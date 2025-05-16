@@ -4,7 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5
 
 export async function pingBackend(): Promise<PingResponse | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/test`)
+    const res = await fetch(`${API_BASE_URL}/`)
     const data = (await res.json()) as PingResponse
     return data
   } catch (error: unknown) {

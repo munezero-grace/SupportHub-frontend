@@ -1,24 +1,10 @@
 "use client"
-
-import { useEffect } from 'react'
-import { useSession, signIn, signOut } from 'next-auth/react'
 import Image from 'next/image'
-import { GoogleIcon } from '../components/icons'
-import { Button } from '../components/ui/Button'
+import { GoogleIcon } from '@/components/icons'
+import { Button } from '@/components/ui/Button'
+import { handleGoogleSignIn, isSigningIn } from '@/constants/GoogleSignIn'
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const loading = status === 'loading'
-
-  useEffect(() => {
-    if (!loading && !session) {
-    }
-  }, [loading, session])
-
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' })
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 space-y-6">
       <div className="flex flex-col items-center space-y-3">

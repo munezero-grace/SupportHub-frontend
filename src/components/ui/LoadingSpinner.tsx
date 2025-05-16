@@ -1,20 +1,11 @@
-import { LoadingSpinnerProps } from '../../types';
+import { LoadingSpinnerProps } from '@/types/interfaces/Props';
+import { colorClasses } from '@/constants/colorClasses ';
+import { sizeClasses } from '@/constants/otherConst';
 
 export function LoadingSpinner({ 
   size = 'md', 
   color = 'primary'
 }: LoadingSpinnerProps) {
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12'
-  };
-
-  const colorClasses = {
-    primary: 'text-green-600',
-    secondary: 'text-gray-600',
-    white: 'text-white'
-  };
 
   return (
     <div 

@@ -1,21 +1,6 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { IconProps } from './interfaces/Props';
 
-export interface PingResponse {
-  message: string;
-}
-
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  loading?: boolean;
-  children: ReactNode;
-}
-
-export interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'secondary' | 'white';
-}
-
-export interface GoogleIconProps {
-  className?: string;
-}
+export type GoogleIconProps = IconProps;
+export type Size = 'sm' | 'md' | 'lg';
+export type Status = 'open' | 'in-progress' | 'resolved' | 'closed';
+export type StatusType = 'open' | 'in-progress' | 'resolved' | 'closed'

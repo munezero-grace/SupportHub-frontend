@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
-import { ButtonProps } from '../../types';
+import { ButtonProps } from '@/types/interfaces/Props';
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', loading = false, children, disabled, ...props }, ref) => {

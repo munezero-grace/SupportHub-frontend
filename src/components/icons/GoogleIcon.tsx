@@ -1,5 +1,5 @@
 import React from "react";
-import { GoogleIconProps } from '../../types';
+import { GoogleIconProps } from '@/types';
 
 export function GoogleIcon({ className = "w-5 h-5" }: GoogleIconProps) {
   return (

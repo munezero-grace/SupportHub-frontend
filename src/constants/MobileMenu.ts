@@ -1,6 +1,3 @@
-  import { useState } from 'react'
-  import { usePathname } from 'next/navigation'
-  
-  export const pathname = usePathname()
-  export const [notifications] = useState(3)
-  export const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  // This file now only exports static values and types
+// For state management, import from MobileMenuContext instead
+export const DEFAULT_NOTIFICATIONS = 3;

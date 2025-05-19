@@ -1,10 +1,20 @@
 "use client"
 import Image from 'next/image'
+import { useSession, signIn} from 'next-auth/react'
+import type { Session } from 'next-auth'
 import { GoogleIcon } from '@/components/icons'
 import { Button } from '@/components/ui/Button'
-import { handleGoogleSignIn, isSigningIn } from '@/constants/GoogleSignIn'
+import Link from 'next/link'
 
 export default function Home() {
+  const { status } = useSession() as { 
+    data: Session | null; 
+    status: "loading" | "authenticated" | "unauthenticated" 
+  }
+  
+  const loading = status === "loading"
+  
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 space-y-6">
       <div className="flex flex-col items-center space-y-3">
@@ -22,20 +32,6 @@ export default function Home() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
         {loading ? (
           <p>Loading...</p>
-        ) : session ? (
-          <>
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold text-gray-700">Signed in as {session.user?.email}</h2>
-            </div>
-
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-3"
-            >
-              Sign out
-            </Button>
-          </>
         ) : (
           <>
             <div className="space-y-1">
@@ -44,13 +40,32 @@ export default function Home() {
             </div>
 
             <Button
-              onClick={() => signIn('google', { prompt: 'select_account' })}
+              onClick={() => signIn('google', { 
+                prompt: 'select_account',
+                callbackUrl: '/dashboard'
+              })}
               variant="outline"
               className="w-full flex items-center justify-center gap-3"
             >
               <GoogleIcon />
               Sign in with Google
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <Link
+              href="/client-login"
+              className="block text-center text-green-600 hover:text-green-700 font-medium"
+            >
+              Client Login
+            </Link>
           </>
         )}
       </div>

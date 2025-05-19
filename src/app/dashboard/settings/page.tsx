@@ -1,34 +1,62 @@
 "use client"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Settings } from '@/types/interfaces/interface'
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "../../../components/ui/Button";
+
+
+interface Settings {
+  fullName: string;
+  email: string;
+  emailNotifications: boolean;
+  slackNotifications: boolean;
+}
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession();
   const [settings, setSettings] = useState<Settings>({
-    fullName: "Sarah Johnson",
-    email: "sarah.johnson@bouletteproof.com",
+    fullName: "",
+    email: "",
     emailNotifications: true,
-    slackNotifications: true
-  })
+    slackNotifications: true,
+  });
+
+  useEffect(() => {
+    if (session && session.user) {
+      setSettings((prev) => ({
+        ...prev,
+        fullName: session?.user?.name ?? "",
+        email: session?.user?.email ?? "",
+      }));
+    }
+  }, [session]);
 
   const handleSettingChange = (field: keyof Settings) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
-    setSettings(prev => ({ ...prev, [field]: value }))
-  } 
-   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setSettings((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-      })
+      await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
     } catch (error) {
-      console.error('Failed to save settings:', error)
+      console.error("Failed to save settings:", error);
     }
+  };
+
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
+  if (status === "unauthenticated") {
+    return <p>Please sign in to view your settings.</p>;
   }
 
   return (
@@ -36,7 +64,8 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-700">Settings</h1>
         <p className="text-gray-600">Manage your account and application preferences</p>
-      </div>      <form onSubmit={handleSubmit} className="space-y-6">
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm">
           <div className="p-6 border-b">
             <h2 className="text-lg font-bold text-gray-700">Profile Settings</h2>
@@ -55,20 +84,16 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Full Name</label>
                 <input
                   type="text"
                   value={settings.fullName}
-                  onChange={handleSettingChange('fullName')}
+                  onChange={handleSettingChange("fullName")}
                   className="mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
                   type="email"
                   value={settings.email}
@@ -79,6 +104,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-xl shadow-sm">
           <div className="p-6 border-b">
             <h2 className="text-lg font-bold text-gray-700">Notification Settings</h2>
@@ -88,16 +114,14 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-gray-700">Email Notifications</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Receive email updates about your tickets
-                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Receive email updates about your tickets</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     className="sr-only peer"
                     checked={settings.emailNotifications}
-                    onChange={handleSettingChange('emailNotifications')}
+                    onChange={handleSettingChange("emailNotifications")}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
@@ -106,16 +130,14 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-gray-700">Slack Notifications</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Get real-time updates in Slack
-                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Get real-time updates in Slack</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     className="sr-only peer"
                     checked={settings.slackNotifications}
-                    onChange={handleSettingChange('slackNotifications')}
+                    onChange={handleSettingChange("slackNotifications")}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
@@ -123,6 +145,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-xl shadow-sm">
           <div className="p-6 border-b">
             <h2 className="text-lg font-bold text-gray-700">Integrations</h2>

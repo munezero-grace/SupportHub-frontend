@@ -1,5 +1,12 @@
 import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes} from "react"
 import { Size, StatusType } from '@/types/index';
+import { BadgeVariant } from '@/types/badges';
+
+export interface BadgeProps {
+  children: ReactNode;
+  variant?: BadgeVariant;
+  className?: string;
+}
 
 export interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
@@ -88,10 +95,10 @@ export interface SearchComboboxProps {
   className?: string
 }
 
-export interface ComboboxOption {
+export interface ComboboxOption<T = unknown> {
   id: string | number
   label: string
-  value: any
+  value: T
 }
 
 export interface SelectOption {

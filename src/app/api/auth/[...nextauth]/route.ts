@@ -1,24 +1,13 @@
-import NextAuth, { AuthOptions, User, Session } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import NextAuth from "next-auth";
+import axios from "axios";
+import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import type { GoogleProfile } from "@/types/auth";
+import { handleAuthError } from "@/lib/auth-utils";
+import type { JWT } from "next-auth/jwt";
 
-interface UserWithId extends User {
-  id: string;
-  role?: string; // Add role here
-}
-
-interface SessionWithId extends Session {
-  user?: UserWithId;
-}
-
-interface GoogleProfile {
-  given_name?: string;
-  family_name?: string;
-  sub?: string;
-}
-
-export const authOptions: AuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -29,6 +18,15 @@ export const authOptions: AuthOptions = {
           access_type: "offline",
           response_type: "code"
         }
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          role: profile.role ?? 'user'
+        }
       }
     }),
     CredentialsProvider({
@@ -38,97 +36,97 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-        const res = await fetch(`${backendUrl}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: credentials?.email,
-            password: credentials?.password,
-          }),
-        });
+        if (!credentials?.email || !credentials?.password) return null;
+        
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+        try {
+          const { data: user } = await axios.post(`${backendUrl}/api/auth/login`, {
+  email: credentials.email,
+  password: credentials.password,
+});
 
-        const user = await res.json();
-
-        if (res.ok && user) {
-          return user;
+          if (user) {
+            return {
+              id: user.id ?? user._id ?? '',
+              name: user.name ?? '',
+              email: user.email,
+              role: user.role ?? 'user',
+              image: user.image
+            };
+          }
+        } catch {
+          return null;
         }
         return null;
       },
     }),
   ],
   session: {
-    strategy: "jwt" as const,
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, 
   },
   pages: {
     signIn: "/",
+    signOut: "/",
     error: "/",
   },
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (account?.provider === "credentials") {
+        return true;
+      }
+
       if (account?.provider === "google") {
         try {
           const prof = profile as GoogleProfile;
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-          const res = await fetch(`${backendUrl}/api/auth/google-signin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: user.email,
-              firstName: prof.given_name || "",
-              lastName: prof.family_name || "defaultLastName",
-              provider: account.provider,
-              providerId: prof.sub,
-            }),
-          });
-          if (res.ok) {
-            return true;
-          } else {
-            const errorBody = await res.text();
-            console.error("Google sign-in backend error:", res.status, errorBody);
-            return "/";
-          }
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+const response = await axios.post(`${backendUrl}/api/auth/google-signin`, {
+  email: user.email,
+  firstName: prof.given_name ?? "",
+  lastName: prof.family_name ?? "",
+  provider: account.provider,
+  providerId: prof.sub,
+});
+
+if (response.status < 200 || response.status >= 300) {
+  handleAuthError({ status: response.status, data: response.data }, 'google-signin');
+  return false;
+}
+return true;
         } catch (error) {
-          console.error("Error syncing user with backend:", error);
-          return "/";
+          handleAuthError(error, 'google-sync');
+          return false;
         }
       }
       return true;
     },
-    async redirect({ url, baseUrl }) {
-      // After successful authentication, redirect to dashboard
-      if (url.startsWith('/auth/signin') || url.startsWith(baseUrl + '/auth/signin')) {
-        return '/dashboard'
-      }
-      // If callback URL includes dashboard, keep it
-      if (url.includes('/dashboard')) {
-        return url
-      }
-      // For any other URLs, make them absolute
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`
-      }
-      return url;
-    },
-    async jwt({ token, user }: { token: JWT; user?: UserWithId }) {
-      if (user && user.id) {
-        (token as JWT & { id?: string; role?: string }).id = user.id;
-        if (user.role) {
-          (token as JWT & { id?: string; role?: string }).role = user.role;
-        }
+    async jwt({ token, user }): Promise<JWT> {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
-    async session(params: { session: Session; token: JWT; user: User } & { newSession: SessionWithId; trigger: "update" }) {
-      const { session, token } = params;
-      if (session.user && (token as JWT & { id?: string; role?: string }).id) {
-        (session.user as UserWithId).id = (token as JWT & { id?: string; role?: string }).id!;
-        if ((token as JWT & { id?: string; role?: string }).role) {
-          (session.user as UserWithId).role = (token as JWT & { id?: string; role?: string }).role!;
-        }
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string | undefined;
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      if (url.includes('signout')) {
+        return '/';
+      }
+      if (url.startsWith('/auth/signin') || url.startsWith(baseUrl + '/auth/signin')) {
+        return '/dashboard';
+      }
+      if (url.includes('/dashboard')) {
+        return url;
+      }
+      return url.startsWith('/') ? `${baseUrl}${url}` : url;
+    }
   },
 };
 

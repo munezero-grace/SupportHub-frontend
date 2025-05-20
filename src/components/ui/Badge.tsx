@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils'
 import { BadgeProps } from '@/types/interfaces/Props'
 import { variantClasses } from '@/constants/otherConst'
+import { BADGE_VARIANTS } from '@/types/badges'
 
 export function Badge({ 
   children, 
-  variant = 'default',
+  variant = BADGE_VARIANTS.DEFAULT,
   className 
 }: BadgeProps) {
  

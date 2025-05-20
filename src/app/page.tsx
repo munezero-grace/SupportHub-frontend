@@ -62,7 +62,7 @@ export default function Home() {
 
             <Link
               href="/client-login"
-              className="block text-center text-green-600 hover:text-green-700 font-medium"
+              className="block text-center text-gray-500 font-medium"
             >
               Client Login
             </Link>

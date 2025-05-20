@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/Button'
 import { PlusIcon } from '@/components/icons'
 import { products } from '@/constants/products'
+import { getProductStatusStyles } from '@/lib/styles'
 
 export default function ProductsPage() {
   return (
@@ -25,11 +26,7 @@ export default function ProductsPage() {
                 <h3 className="text-lg font-bold text-gray-700">{product.name}</h3>
                 <p className="text-sm text-gray-600 mt-1">{product.description}</p>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                product.status === 'Active'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-yellow-100 text-yellow-700'
-              }`}>
+              <span className={getProductStatusStyles(product.status)}>
                 {product.status}
               </span>
             </div>

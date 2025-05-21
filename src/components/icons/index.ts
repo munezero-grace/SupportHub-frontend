@@ -1,7 +1,7 @@
-export { GoogleIcon } from './GoogleIcon';
-export { DashboardIcon } from './DashboardIcon';
-export { SlackIcon } from './SlackIcon';
-export { ClickUpIcon } from './ClickUpIcon';
+export { GoogleIcon } from './GoogleIcon'
+export { DashboardIcon } from './DashboardIcon'
+export { SlackIcon } from './SlackIcon'
+export { ClickUpIcon } from './ClickUpIcon'
 export {
   TicketIcon,
   ClientsIcon,
@@ -9,5 +9,5 @@ export {
   ReportIcon,
   SettingsIcon,
   PlusIcon,
-  AvatarIcon
-} from './CommonIcons';
+  AvatarIcon,
+} from './CommonIcons'

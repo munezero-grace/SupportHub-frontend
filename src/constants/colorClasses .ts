@@ -1,5 +1,5 @@
  export const colorClasses = {
-    primary: 'text-green-600',
+    primary: 'text-black',
     secondary: 'text-gray-600',
     white: 'text-white'
   };

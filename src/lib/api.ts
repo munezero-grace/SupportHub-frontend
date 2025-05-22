@@ -5,7 +5,6 @@ import { handleError } from '@/lib/error-utils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
-// Helper function to handle API errors
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
   try {
     const res = await promise;
@@ -28,16 +27,28 @@ export async function pingBackend(): Promise<PingResponse | null> {
 }
 
 export async function getDashboardStats(): Promise<Stats[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500)); 
   return stats;
 }
 
 export async function getRecentTickets(): Promise<Ticket[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500)); 
   return recentTickets;
 }
 
 export async function getTickets(): Promise<Ticket[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500)); 
   return recentTickets;
+}
+export async function loginClient(email: string, password: string): Promise<{ message: string }> {
+  const response = await handleApiResponse(
+    fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
+  )
+  return response as { message: string }
 }

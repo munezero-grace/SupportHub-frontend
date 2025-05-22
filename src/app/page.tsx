@@ -59,13 +59,14 @@ export default function Home() {
                 <span className="px-2 bg-white text-gray-500">or</span>
               </div>
             </div>
-
-            <Link
-              href="/client-login"
-              className="block text-center text-gray-500 font-medium"
-            >
-              Client Login
+          <div className="mt-4 text-center w-full">
+            <Link href="/login">
+              <span className="text-blue-600 hover:text-blue-500 font-medium cursor-pointer">
+                Client Login
+              </span>
             </Link>
+          </div>
+
           </>
         )}
       </div>

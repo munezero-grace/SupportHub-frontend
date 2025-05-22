@@ -7,6 +7,14 @@ import { usePathname } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
 import { signOut, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+
+interface User {
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role?: string | null
+}
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -60,7 +68,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="text-[#111827] text-lg font-bold">BP Ticket</span>
           </Link>
         </div>
-        
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
             {navigation.map((item) => {

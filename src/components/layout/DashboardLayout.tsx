@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   console.log('Session:', session)
 
   useEffect(() => {
-    if (!session) {
+    if (status === 'unauthenticated' as string) {
       window.history.pushState(null, '', '/')
       window.addEventListener('popstate', () => {
         window.history.forward()
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         window.history.forward()
       })
     }
-  }, [session])
+  }, [status])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

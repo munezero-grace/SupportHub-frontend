@@ -6,6 +6,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import type { GoogleProfile } from '@/types/auth'
 import { handleAuthError } from '@/lib/auth-utils'
 import type { JWT } from 'next-auth/jwt'
+import { debug } from 'console'
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -43,7 +44,7 @@ const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null
 
         const backendUrl =
-          process.env.NEXT_PUBLIC_API_BACKEND_URL ?? 'http://localhost:5000'
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
         try {
           const response = await axios.post(
             `${backendUrl}/api/auth/login`,
@@ -68,7 +69,7 @@ const authOptions: NextAuthOptions = {
             }
           }
         } catch (error) {
-          console.error('Login error:', error);
+          debug('Error during credentials authorization:', error)
           return null;
         }
         return null;
@@ -96,7 +97,7 @@ const authOptions: NextAuthOptions = {
         try {
           const prof = profile as GoogleProfile
           const backendUrl =
-            process.env.NEXT_PUBLIC_API_BACKEND_URL ?? 'http://localhost:5000'
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
           const response = await axios.post(
             `${backendUrl}/api/auth/google-signin`,
             {

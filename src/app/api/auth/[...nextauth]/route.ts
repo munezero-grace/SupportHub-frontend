@@ -6,6 +6,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import type { GoogleProfile } from '@/types/auth'
 import { handleAuthError } from '@/lib/auth-utils'
 import type { JWT } from 'next-auth/jwt'
+
 const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -40,34 +41,37 @@ const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
+
         const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:5000'
+          process.env.NEXT_PUBLIC_API_BACKEND_URL ?? 'http://localhost:5000'
         try {
-          const { data } = await axios.post(
+          const response = await axios.post(
             `${backendUrl}/api/auth/login`,
             {
               email: credentials.email,
               password: credentials.password,
-              provider: "credentials",
+              provider: 'credentials',
             }
           )
-          const user = data.user
-          console.log("Authorize user object:", user);
+
+          const user = response.data.user;
+
           if (user) {
-            const name = user.name ?? (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '')
             return {
               id: user.id ?? user._id ?? '',
-              name: name,
+              name: user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
               email: user.email,
-              role: user.role ?? 'client',
+              role: user.role ?? 'super_admin',
               image: user.image,
+              provider: user.provider,
+              providerId: user.providerId,
             }
           }
         } catch (error) {
-          console.error("Authorize error:", error);
-          return null
+          console.error('Login error:', error);
+          return null;
         }
-        return null
+        return null;
       },
     }),
   ],
@@ -75,6 +79,7 @@ const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60,
   },
+
   pages: {
     signIn: '/',
     signOut: '/',
@@ -86,21 +91,23 @@ const authOptions: NextAuthOptions = {
       if (account?.provider === 'credentials') {
         return true
       }
+
       if (account?.provider === 'google') {
         try {
           const prof = profile as GoogleProfile
           const backendUrl =
-            process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:5000'
+            process.env.NEXT_PUBLIC_API_BACKEND_URL ?? 'http://localhost:5000'
           const response = await axios.post(
             `${backendUrl}/api/auth/google-signin`,
             {
               email: user.email,
               firstName: prof.given_name ?? '',
-              lastName: prof.family_name ?? 'default-lastName',
+              lastName: prof.family_name ?? 'lastName',
               provider: account.provider,
               providerId: prof.sub,
             }
           )
+
           if (response.status < 200 || response.status >= 300) {
             handleAuthError(
               { status: response.status, data: response.data },
@@ -116,19 +123,27 @@ const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async jwt({ token, user }): Promise<JWT> {
+    async jwt({ token, user }: { token: JWT; user?: import('@/types/interfaces/interface').User }): Promise<JWT> {
       if (user) {
         token.id = user.id
         token.role = user.role
-        token.name = user.name
+        token.name = user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+        token.email = user.email
+        token.picture = user.image
+        token.provider = user.provider
+        token.providerId = user.providerId
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: import('next-auth').Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string | undefined
-        session.user.name = token.name as string | undefined
+        session.user.name = token.name as string
+        // @ts-expect-error: provider and providerId are custom fields
+        session.user.provider = token.provider as string | undefined
+        // @ts-expect-error: provider and providerId are custom fields
+        session.user.providerId = token.providerId as string | undefined
       }
       return session
     },
@@ -145,9 +160,10 @@ const authOptions: NextAuthOptions = {
       if (url.includes('/dashboard')) {
         return url
       }
-      return url.startsWith('/') ? `${baseUrl}${url}` : url
+      return url.startsWith('/dashboard') ? `${baseUrl}${url}` : url
     },
   },
 }
+
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

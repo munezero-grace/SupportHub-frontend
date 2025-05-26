@@ -42,3 +42,15 @@ export interface Settings {
   emailNotifications: boolean;
   slackNotifications: boolean;
 }
+
+export interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  provider?: string | null;
+  providerId?: string | null;
+  role?: string | null;
+}

@@ -1,13 +1,19 @@
 'use client'
 import Image from 'next/image'
-import {  signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { GoogleIcon } from '../components/icons'
 import { Button } from '../components/ui/Button'
 import Link from 'next/link'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { redirect } from 'next/navigation'
 
 export default function Home() {
+  const { status } = useSession()
+  if (status === 'authenticated') {
+    return redirect(`/dashboard`)
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 space-y-6">
       <ToastContainer />

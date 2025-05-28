@@ -7,6 +7,7 @@ import type { GoogleProfile } from '@/types/auth'
 import { handleAuthError } from '@/lib/auth-utils'
 import type { JWT } from 'next-auth/jwt'
 import { debug } from 'console'
+import type { ExtendedUser } from '@/types/next-auth'
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -20,13 +21,13 @@ const authOptions: NextAuthOptions = {
           response_type: 'code',
         },
       },
-      profile(profile) {
+      profile(profile) { 
         return {
           id: profile.sub,
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: profile.role ?? 'client',
+          role: profile.role,
         }
       },
     }),
@@ -46,33 +47,36 @@ const authOptions: NextAuthOptions = {
         const backendUrl =
           process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
         try {
-          const response = await axios.post(
-            `${backendUrl}/api/auth/login`,
-            {
-              email: credentials.email,
-              password: credentials.password,
-              provider: 'credentials',
-            }
-          )
+          const response = await axios.post(`${backendUrl}/api/auth/login`, {
+            email: credentials.email,
+            password: credentials.password,
+            provider: 'credentials',
+          })
 
-          const user = response.data.user;
+          const token = response.data.token
 
-          if (user) {
+          if (token) {
+            const base64Payload = token.split('.')[1]
+            const payload = JSON.parse(
+              Buffer.from(base64Payload, 'base64').toString()
+            )
+
             return {
-              id: user.id ?? user._id ?? '',
-              name: user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
-              email: user.email,
-              role: user.role ?? 'super_admin',
-              image: user.image,
-              provider: user.provider,
-              providerId: user.providerId,
+              id: payload.id,
+              firstName: payload.firstName,
+              lastName: payload.lastName,
+              email: payload.email,
+              image: payload.picture,
+              role: payload.role,
+              provider: payload.provider,
+              providerId: payload.providerId,
             }
           }
         } catch (error) {
           debug('Error during credentials authorization:', error)
-          return null;
+          return null
         }
-        return null;
+        return null
       },
     }),
   ],
@@ -116,6 +120,18 @@ const authOptions: NextAuthOptions = {
             )
             return false
           }
+
+          const token = response.data.token
+          if (token) {
+            try {     console.log('User role:', user.role)
+              const base64Payload = token.split('.')[1]
+              const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString())
+              user.role = payload.role  
+            } catch {
+              
+            }
+          }
+
           return true
         } catch (error) {
           handleAuthError(error, 'google-sync')
@@ -124,27 +140,64 @@ const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async jwt({ token, user }: { token: JWT; user?: import('@/types/interfaces/interface').User }): Promise<JWT> {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT
+      user?: ExtendedUser
+    }): Promise<JWT> {
       if (user) {
-        token.id = user.id
-        token.role = user.role
-        token.name = user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-        token.email = user.email
-        token.picture = user.image
-        token.provider = user.provider
-        token.providerId = user.providerId
+        if (typeof user === 'string') {
+          try {
+            const payload = JSON.parse(
+              Buffer.from((user as string).split('.')[1], 'base64').toString()
+            )
+            token = { ...token, ...payload }
+            if (!token.name && token.firstName && token.lastName) {
+              token.name = `${token.firstName} ${token.lastName}`.trim()
+            }
+          } catch {}
+        } else if ('token' in user && typeof user.token === 'string') {
+          try {
+            const payload = JSON.parse(
+              Buffer.from(
+                (user.token as string).split('.')[1],
+                'base64'
+              ).toString()
+            )
+            token = { ...token, ...payload }
+            if (!token.name && token.firstName && token.lastName) {
+              token.name = `${token.firstName} ${token.lastName}`.trim()
+            }
+          } catch {}
+        } else {
+          token.id = user.id
+          token.role = user.role
+          token.name =
+            user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+          token.email = user.email
+          token.picture = user.image
+          token.provider = user.provider
+          token.providerId = user.providerId
+        }
       }
       return token
     },
-    async session({ session, token }: { session: import('next-auth').Session; token: JWT }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: import('next-auth').Session
+      token: JWT
+    }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string | undefined
-        session.user.name = token.name as string
-        // @ts-expect-error: provider and providerId are custom fields
-        session.user.provider = token.provider as string | undefined
-        // @ts-expect-error: provider and providerId are custom fields
-        session.user.providerId = token.providerId as string | undefined
+        const user = session.user as ExtendedUser
+        user.id = token.id as string
+        user.role = token.role as string
+        user.name = token.name as string
+        user.provider = token.provider as string
+        user.providerId = token.providerId as string
       }
       return session
     },

@@ -123,7 +123,7 @@ const authOptions: NextAuthOptions = {
 
           const token = response.data.token
           if (token) {
-            try {     console.log('User role:', user.role)
+            try {
               const base64Payload = token.split('.')[1]
               const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString())
               user.role = payload.role  

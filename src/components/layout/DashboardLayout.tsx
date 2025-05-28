@@ -22,7 +22,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       window.location.replace('/')
     },
   })
-  console.log('Session:', session)
 
   useEffect(() => {
     if (status === 'unauthenticated' as string) {

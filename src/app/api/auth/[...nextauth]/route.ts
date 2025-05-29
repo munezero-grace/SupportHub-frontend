@@ -21,7 +21,7 @@ const authOptions: NextAuthOptions = {
           response_type: 'code',
         },
       },
-      profile(profile) { 
+      profile(profile) {
         return {
           id: profile.sub,
           name: profile.name,
@@ -110,6 +110,7 @@ const authOptions: NextAuthOptions = {
               lastName: prof.family_name ?? 'lastName',
               provider: account.provider,
               providerId: prof.sub,
+              role: prof.role
             }
           )
 
@@ -126,16 +127,16 @@ const authOptions: NextAuthOptions = {
             try {
               const base64Payload = token.split('.')[1]
               const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString())
-              user.role = payload.role  
+              user.role = payload.role
             } catch {
-              
+
             }
           }
 
           return true
         } catch (error) {
-          handleAuthError(error, 'google-sync')
-          return false
+          debug("Error syncing user with backend:", error);
+          return false;
         }
       }
       return true
@@ -157,7 +158,7 @@ const authOptions: NextAuthOptions = {
             if (!token.name && token.firstName && token.lastName) {
               token.name = `${token.firstName} ${token.lastName}`.trim()
             }
-          } catch {}
+          } catch { }
         } else if ('token' in user && typeof user.token === 'string') {
           try {
             const payload = JSON.parse(
@@ -170,12 +171,11 @@ const authOptions: NextAuthOptions = {
             if (!token.name && token.firstName && token.lastName) {
               token.name = `${token.firstName} ${token.lastName}`.trim()
             }
-          } catch {}
+          } catch { }
         } else {
           token.id = user.id
-          token.role = user.role
-          token.name =
-            user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+          token.role = user.role ?? undefined
+          token.name = user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
           token.email = user.email
           token.picture = user.image
           token.provider = user.provider
@@ -205,19 +205,15 @@ const authOptions: NextAuthOptions = {
       if (url.includes('signout')) {
         return '/'
       }
-      if (
-        url.startsWith('/auth/signin') ||
-        url.startsWith(baseUrl + '/auth/signin')
-      ) {
+      
+      if (url === '/login') {
         return '/dashboard'
       }
-      if (url.includes('/dashboard')) {
-        return url
-      }
-      return url.startsWith('/dashboard') ? `${baseUrl}${url}` : url
+
+      return url.startsWith(baseUrl) ? url : baseUrl + url
     },
   },
-}
+};
 
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

@@ -8,5 +8,5 @@ export interface Client {
   products: string[]
   supportTier: 'Premium' | 'Standard'
   activeTickets: number
-  status: 'Active' | 'Inactive'
+  status: 'active' | 'inactive'
 }

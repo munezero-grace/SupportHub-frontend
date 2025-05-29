@@ -11,7 +11,7 @@ export const mockClients: Client[] = [
     products: ['BP CRM', 'BP Analytics'],
     supportTier: 'Premium',
     activeTickets: 5,
-    status: 'Active',
+    status: 'active',
   },
   {
     id: 'C-1002',
@@ -23,7 +23,7 @@ export const mockClients: Client[] = [
     products: ['BP Ticket', 'BP Analytics'],
     supportTier: 'Standard',
     activeTickets: 2,
-    status: 'Active',
+    status: 'active',
   },
   {
     id: 'C-1003',
@@ -35,7 +35,7 @@ export const mockClients: Client[] = [
     products: ['BP CRM'],
     supportTier: 'Premium',
     activeTickets: 3,
-    status: 'Active',
+    status: 'active',
   },
   {
     id: 'C-1004',
@@ -47,7 +47,7 @@ export const mockClients: Client[] = [
     products: ['BP Ticket', 'BP CRM', 'BP Analytics'],
     supportTier: 'Premium',
     activeTickets: 1,
-    status: 'Active',
+    status: 'active',
   },
   {
     id: 'C-1005',
@@ -59,7 +59,7 @@ export const mockClients: Client[] = [
     products: ['BP CRM'],
     supportTier: 'Standard',
     activeTickets: 0,
-    status: 'Inactive',
+    status: 'inactive',
   },
   {
     id: 'C-1006',
@@ -71,6 +71,6 @@ export const mockClients: Client[] = [
     products: ['BP Analytics'],
     supportTier: 'Standard',
     activeTickets: 0,
-    status: 'Inactive',
+    status: 'inactive',
   },
 ]

@@ -1,42 +1,41 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ticketService, statsService } from '@/services/api/services';
-import { Stats, Ticket } from "@/types/interfaces/interface";
+import { getDashboardStats, getRecentTickets, pingBackend } from "@/lib/api";
+import { PingResponse, Stats, Ticket } from "@/types/interfaces/interface";
 
+// Query key constants
 export const queryKeys = {
-  dashboardStats: ["dashboardStats"] as const,
-  tickets: ["tickets"] as const,
-  clients: ["clients"] as const,
-  products: ["products"] as const,
-};
+  ping: ["ping"],
+  dashboardStats: ["dashboardStats"],
+  recentTickets: ["recentTickets"],
+  tickets: ["tickets"],
+  clients: ["clients"],
+  products: ["products"],
+} as const;
+
+export function usePingQuery() {
+  return useQuery<PingResponse | null>({
+    queryKey: queryKeys.ping,
+    queryFn: pingBackend,
+  });
+}
 
 export function useDashboardStatsQuery() {
-  return useQuery<Stats[], Error>({
+  return useQuery<Stats[]>({
     queryKey: queryKeys.dashboardStats,
-    queryFn: statsService.getStats,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-    refetchOnWindowFocus: false
+    queryFn: getDashboardStats,
+    staleTime: 5 * 60 * 1000, 
   });
 }
 
-export function useTicketsQuery() {
-  return useQuery<Ticket[], Error>({
-    queryKey: queryKeys.tickets,
-    queryFn: ticketService.getTickets,
-    staleTime: 30 * 1000,
-    retry: 1,
-    refetchOnWindowFocus: false
+export function useRecentTicketsQuery() {
+  return useQuery<Ticket[]>({
+    queryKey: queryKeys.recentTickets,
+    queryFn: getRecentTickets,
+    staleTime: 30 * 1000, 
   });
 }
 
-export function useTicketQuery(id: string) {
-  return useQuery<Ticket, Error>({
-    queryKey: ['ticket', id],
-    queryFn: () => ticketService.getTicketById(id),
-    enabled: !!id,
-  });
-}
-
+// Mutation Hooks
 interface CreateTicketData {
   title: string;
   client: string;
@@ -52,16 +51,22 @@ interface UpdateTicketData {
 export const useCreateTicketMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<Ticket, Error, CreateTicketData>({
-    mutationFn: (data: CreateTicketData) => ticketService.createTicket({
-      ...data,
-      status: 'New',
-      assignee: 'Unassigned',
-      created: new Date().toISOString(),
-      lastUpdated: 'just now',
-    }),
+  return useMutation({
+    mutationFn: async (data: CreateTicketData) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const newTicket: Ticket = {
+        id: `T-${Math.floor(Math.random() * 10000)}`,
+        ...data,
+        status: 'New',
+        assignee: 'Unassigned',
+        created: new Date().toISOString(),
+        lastUpdated: 'just now',
+      };
+      return newTicket;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets });
     },
   });
 };
@@ -69,9 +74,11 @@ export const useCreateTicketMutation = () => {
 export const useUpdateTicketMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<Ticket, Error, UpdateTicketData>({
-    mutationFn: ({ id, changes }: UpdateTicketData) => 
-      ticketService.updateTicket(id, changes),
+  return useMutation({
+    mutationFn: async ({ id, changes }: UpdateTicketData) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { id, ...changes };
+    },
     onSuccess: (data) => {
       queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
         if (!oldData) return oldData;
@@ -80,6 +87,7 @@ export const useUpdateTicketMutation = () => {
         );
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets });
     },
   });
 };
@@ -87,14 +95,18 @@ export const useUpdateTicketMutation = () => {
 export const useDeleteTicketMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
-    mutationFn: ticketService.deleteTicket,
-    onSuccess: (_, deletedId) => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return id;
+    },
+    onSuccess: (deletedId) => {
       queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
         if (!oldData) return oldData;
         return oldData.filter(ticket => ticket.id !== deletedId);
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets });
     },
   });
 };

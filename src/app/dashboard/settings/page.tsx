@@ -3,8 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { handleError } from "@/lib/error-utils";
-import { Settings } from "@/types/interfaces/interface";
+
+
+interface Settings {
+  fullName: string;
+  email: string;
+  emailNotifications: boolean;
+  slackNotifications: boolean;
+}
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -41,7 +47,7 @@ export default function SettingsPage() {
         body: JSON.stringify(settings),
       });
     } catch (error) {
-      handleError(error, 'save-settings');
+      console.error("Failed to save settings:", error);
     }
   };
 

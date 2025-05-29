@@ -1,27 +1,43 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ReactNode, useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { navigation } from '@/constants/navigation'
 import { usePathname } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
 import { signOut, useSession } from 'next-auth/react'
-
-interface DashboardLayoutProps {
-  children: ReactNode
-}
+import { DashboardLayoutProps } from '@/types/interfaces/Props'
+import { useMobileMenu } from '@/context/MobileMenuContext'
+import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
+  const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu()
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
       window.location.replace('/')
     },
   })
+
+  const isAdmin = session?.user?.role === 'super_admin'
+  const filteredNavigation = navigation.filter(
+    (item) => !item.adminOnly || (item.adminOnly && isAdmin)
+    
+  )
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [setIsMobileMenuOpen])
 
   useEffect(() => {
     if (status === 'unauthenticated' as string) {
@@ -59,8 +75,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex">
-      <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-[#E5E7EB] flex flex-col z-20">
+    <div className="min-h-screen md:flex bg-[#F9FAFB]">
+      {/* Sidebar - Make it full height */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-40 w-64 transform bg-white transition-transform duration-300 ease-in-out border-r border-[#E5E7EB]
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0 md:relative md:flex md:flex-col
+        `}
+      >
         <div className="h-16 flex items-center px-4 border-b border-[#E5E7EB]">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <Image
@@ -75,13 +98,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = pathname === item.href
               return (
                 <li key={item.name}>
                   <Link
                     href={item.href}
                     className={getNavItemStyles(isActive).container}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <item.icon
                       className={getNavItemStyles(isActive).icon}
@@ -94,10 +118,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </ul>
         </nav>
+      </aside>
+
+      {/* Mobile menu button - Fixed to top */}
+      <div className="fixed top-0 left-0 z-50 md:hidden">
+        <button
+          type="button"
+          className="px-4 h-16 text-gray-500 hover:text-gray-600 focus:outline-none"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <span className="sr-only">Open sidebar</span>
+          {isMobileMenuOpen ? (
+            <XMarkIcon className="h-6 w-6" />
+          ) : (
+            <Bars3Icon className="h-6 w-6" />
+          )}
+        </button>
       </div>
-      <div className="pl-62 w-full">
-        <header className="h-16 flex items-center justify-between px-5 bg-white border-b border-[#E5E7EB] sticky top-0 z-10">
-          <div className="flex items-center">
+
+      {/* Main content area */}
+      <div className="flex-1 min-h-screen w-full md:w-[calc(100%-16rem)]">
+        <header className="h-16 flex items-center justify-between px-5 bg-white border-b border-[#E5E7EB]">
+          <div className="flex items-center md:hidden">
+            <span className="text-[#111827] text-xl font-bold p-2.5 ml-8">
+              BP Ticket
+            </span>
+          </div>
+          <div className="hidden md:flex md:items-center">
             <span className="text-[#111827] text-xl font-bold p-2.5">
               BP Ticket
             </span>
@@ -145,52 +192,51 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-48 py-1 bg-white rounded-lg shadow-lg border border-[#E5E7EB] z-50">
-                  <div className="px-4 py-2  border-b border-[#E5E7EB]">
-                    <span className="text-sm text-[#111827] font-extrabold capitalize">
+                  <div className="px-4 py-2 border-b border-[#E5E7EB] overflow-hidden">
+                    <span className="text-sm text-[#111827] font-extrabold capitalize block truncate">
                       {session?.user?.name}
                     </span>
-
-                    <div className="text-gray-500">
-                      <p className='truncate'>{session?.user?.email}</p>
-                      <p className="capitalize">{session?.user?.role}</p>
+                    <div className="text-sm text-gray-500 truncate max-w-[11rem]">
+                      {session?.user?.email}
+                    </div>
+                    <div className="text-xs text-gray-400 capitalize mt-1 truncate">
+                      {session?.user?.role}
                     </div>
                   </div>
-
-                  <div className="text-black font-normal">
-                    <Link
-                      href="/dashboard/settings"
-                      className="block px-4 py-2 text-sm hover:bg-[#F9FAFB] cursor-pointer"
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      Profile
-                    </Link>
-                    <Link
-                      href="/dashboard/settings"
-                      className="block px-4 py-2 text-sm hover:bg-[#F9FAFB] cursor-pointer"
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      Settings
-                    </Link>
-                    <div className="border-t border-[#E5E7EB]"></div>
-                    <button
-                      onClick={() =>
-                        signOut({
-                          redirect: true,
-                          callbackUrl: '/',
-                        })
-                      }
-                      className="block w-full px-4 py-2 text-left text-sm hover:bg-[#F9FAFB] cursor-pointer"
-                    >
-                      Sign out
-                    </button>
-                  </div>
+                  <Link
+                    href="/dashboard/settings"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/dashboard/settings"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </header>
-        <main className="p-7">{children}</main>
+
+        <main className="p-6">{children}</main>
       </div>
+
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
     </div>
   )
 }

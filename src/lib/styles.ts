@@ -21,8 +21,8 @@ export const getPriorityStyles = (priority: string) => classNames(
 export const getProductStatusStyles = (status: string) => classNames(
   'px-2 py-1 rounded-full text-xs font-medium',
   {
-    'bg-green-100 text-green-700': status === 'Active',
-    'bg-yellow-100 text-yellow-700': status !== 'Active'
+    'bg-green-100 text-green-700': status === 'active',
+    'bg-yellow-100 text-yellow-700': status !== 'active'
   }
 );
 

@@ -1,11 +1,9 @@
 
-import { BadgeVariant } from '@/types/badges';
-
-export const variantClasses: Record<BadgeVariant, string> = {
-    default: 'bg-[#F3F4F6] text-[#374151]',
-    success: 'bg-[#ECFDF5] text-[#059669]',
-    warning: 'bg-[#FEF3C7] text-[#D97706]',
-    error: 'bg-[#FEE2E2] text-[#DC2626]',
+export const variantClasses = {
+    default: 'bg-gray-100 text-gray-800',
+    success: 'bg-green-100 text-green-800',
+    warning: 'bg-yellow-100 text-yellow-800',
+    error: 'bg-red-100 text-red-800',
   }
 
 export const sizeClasses = {

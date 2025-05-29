@@ -77,7 +77,7 @@ export default function ClientListItem({ client }: ClientListItemProps) {
       <td className="p-4 ">
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
-            client.status === 'Active'
+            client.status === 'active'
               ? 'bg-green-500 text-white'
               : 'bg-gray-100 text-gray-700'
           }`}

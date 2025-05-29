@@ -1,27 +1,9 @@
 "use client"
 
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { useTicketsQuery } from '@/hooks/useQueries'
+import { tickets } from '@/constants/tickets'
 
 export default function TicketsPage() {
-  const { data: tickets, isLoading, error } = useTicketsQuery()
-
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500">
-        Failed to load tickets. Please try again later.
-      </div>
-    )
-  }
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -61,7 +43,7 @@ export default function TicketsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {tickets?.map((ticket) => (
+              {tickets.map((ticket) => (
                 <tr 
                   key={ticket.id} 
                   className="text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"

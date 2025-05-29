@@ -1,12 +1,5 @@
 import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes} from "react"
 import { Size, StatusType } from '@/types/index';
-import { BadgeVariant } from '@/types/badges';
-
-export interface BadgeProps {
-  children: ReactNode;
-  variant?: BadgeVariant;
-  className?: string;
-}
 
 export interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
@@ -130,4 +123,8 @@ export interface TableProps<T> {
   onRowClick?: (item: T) => void
   className?: string
   emptyState?: ReactNode
+}
+
+export interface DashboardLayoutProps {
+  children: React.ReactNode;
 }

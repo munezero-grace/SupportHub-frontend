@@ -1,10 +1,14 @@
 import { PingResponse, Stats, Ticket } from '@/types/interfaces/interface';
-import { recentTickets } from '@/constants/recentTickets';
-import { stats } from '@/constants/stats';
-import { handleError } from '@/lib/error-utils';
+import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+export const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
   try {
     const res = await promise;
@@ -13,7 +17,11 @@ async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
     }
     return res.json();
   } catch (error: unknown) {
-    handleError(error, 'api-request');
+    if (error instanceof Error) {
+      console.error('API request failed:', error.message);
+    } else {
+      console.error('API request failed:', String(error));
+    }
     throw error;
   }
 }
@@ -27,28 +35,23 @@ export async function pingBackend(): Promise<PingResponse | null> {
 }
 
 export async function getDashboardStats(): Promise<Stats[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); 
-  return stats;
+  const response = await axiosInstance.get<Stats[]>('/stats');
+  return response.data;
 }
 
 export async function getRecentTickets(): Promise<Ticket[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); 
-  return recentTickets;
+  const response = await axiosInstance.get<Ticket[]>('/tickets/recent');
+  return response.data;
 }
 
 export async function getTickets(): Promise<Ticket[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); 
-  return recentTickets;
+  const response = await axiosInstance.get<Ticket[]>('/tickets');
+  return response.data;
 }
 export async function loginClient(email: string, password: string): Promise<{ message: string }> {
-  const response = await handleApiResponse(
-    fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    })
-  )
-  return response as { message: string }
+  const response = await axiosInstance.post<{ message: string }>('/auth/login', { 
+    email, 
+    password 
+  });
+  return response.data;
 }

@@ -1,8 +1,10 @@
-
+import { Session, Profile } from "next-auth";
+import { JWT } from "next-auth/jwt";
 export interface NavItem {
   name: string
   href: string
   icon: React.ComponentType<{ className?: string }>
+  adminOnly?: boolean
 }
 
 export interface Settings {
@@ -50,7 +52,28 @@ export interface User {
   image?: string | null;
   firstName?: string | null;
   lastName?: string | null;
-  provider?: string | null;
-  providerId?: string | null;
+  provider?: string;
+  providerId?: string;
   role?: string | null;
+}
+export interface UserWithId extends User {
+  id: string;
+  role?: string;
+}
+
+export interface SessionWithId extends Session {
+  user: UserWithId;
+}
+
+export interface ExtendedToken extends JWT {
+  id?: string;
+  role?: string;
+}
+
+export interface GoogleProfile extends Profile {
+  given_name?: string;
+  family_name?: string;
+  sub?: string;
+  picture?: string;
+  role?: string;
 }

@@ -10,8 +10,15 @@ import { redirect } from 'next/navigation'
 
 export default function Home() {
   const { status } = useSession()
+  
+  // Redirect authenticated users to dashboard
   if (status === 'authenticated') {
-    return redirect(`/dashboard`)
+    return redirect('/dashboard')
+  }
+
+  // Show loading state while checking session
+  if (status === 'loading') {
+    return null
   }
   
   return (

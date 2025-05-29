@@ -8,6 +8,13 @@ export {
   ProductIcon,
   ReportIcon,
   SettingsIcon,
-  PlusIcon,
   AvatarIcon,
-} from './CommonIcons'
+  TuneIcon,
+} from './CommonIcons';
+
+export {
+  PlusIcon,
+  EditIcon,
+  TrashIcon,
+  EyeIcon
+} from './ActionIcons';

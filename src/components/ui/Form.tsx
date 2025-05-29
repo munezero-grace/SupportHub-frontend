@@ -1,4 +1,4 @@
-import { FormEvent, FormHTMLAttributes } from 'react'
+import { FormEvent } from 'react'
 import { cn } from '@/lib/utils'
 import { FormProps, FormFieldProps, FormActionsProps } from '@/types/interfaces/Props'
 
@@ -7,7 +7,7 @@ export function Form({
   children,
   className,
   disabled = false,
-}: FormProps & FormHTMLAttributes<HTMLFormElement>) {
+}: FormProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!disabled) {
@@ -18,7 +18,8 @@ export function Form({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn('space-y-6', disabled ? 'opacity-50 pointer-events-none' : '', className)}
+      className={cn('space-y-6', className)}
+      aria-disabled={disabled}
     >
       {children}
     </form>

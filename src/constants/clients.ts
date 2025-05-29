@@ -6,7 +6,7 @@ export const clients = [
     email: 'john.smith@techcorp.com',
     products: ['BP Analytics', 'BP CRM'],
     activeTickets: 3,
-    status: 'Active',
+    status: 'active',
     joinedDate: '2024-01-15'
   },
 ];

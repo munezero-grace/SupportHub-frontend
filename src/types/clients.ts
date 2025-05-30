@@ -1,12 +1,37 @@
+export type SupportTier = 'standard' | 'premium'
+export type ClientStatus = 'active' | 'inactive'
+
 export interface Client {
-  id: string
+  id: number
+  clientCode: string
   name: string
-  contact: {
-    name: string
-    email: string
-  }
+  contactName: string
+  companyName: string
   products: string[]
-  supportTier: 'Premium' | 'Standard'
+  supportTier: SupportTier
   activeTickets: number
-  status: 'active' | 'inactive'
+  status: ClientStatus
+  createdAt: string
+  updatedAt: string
+  user: User
+  userId?: string
+}
+
+export interface User {
+  email: string
+  firstName:string
+  lastName:string
+}
+
+export interface CreateClientDto {
+  companyName: string
+  contactName: string
+  contactEmail: string
+  supportTier?: SupportTier
+  status?: ClientStatus
+  userId?: string
+}
+
+export interface UpdateClientDto extends Partial<CreateClientDto> {
+  activeTickets?: number
 }

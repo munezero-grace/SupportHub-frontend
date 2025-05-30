@@ -10,17 +10,15 @@ import { redirect } from 'next/navigation'
 
 export default function Home() {
   const { status } = useSession()
-  
-  // Redirect authenticated users to dashboard
+
   if (status === 'authenticated') {
     return redirect('/dashboard')
   }
 
-  // Show loading state while checking session
   if (status === 'loading') {
     return null
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 space-y-6">
       <ToastContainer />

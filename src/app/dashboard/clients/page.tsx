@@ -1,64 +1,115 @@
 'use client'
 
-import { mockClients } from '@/constants/mockClients'
+import { useMemo, useState } from 'react'
+import { useClientsQuery } from '@/hooks/useQueries'
 import ClientListItem from '@/components/clients/ClientListItem'
-import AddClientButton from '@/components/clients/AddClientButton'
+import { AddClientButton } from '@/components/clients/AddClientButton'
 import ClientSearchAndFilters from '@/components/clients/ClientSearchAndFilters'
-import { useState } from 'react'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
 export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [clients] = useState(mockClients)
-
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: clients, isLoading, error } = useClientsQuery()
+  const filteredClients = useMemo(
+    () =>
+      clients?.filter(
+        (client) =>
+          client.companyName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          // client.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          client.clientCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          client.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ?? [],
+    [clients, searchQuery]
   )
-
-  const handleAddClient = () => {
-    alert('Add Client form would open here')
+  if (error) {
+    return (
+      <div className="p-4 text-red-600">
+        Error loading clients: {error.message}
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-700">Clients</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold">Clients</h1>
+          <p className="text-gray-500">
             Manage client organizations and their product access
           </p>
         </div>
-        <AddClientButton onClick={handleAddClient} />
+        <div>
+          <AddClientButton />
+        </div>
       </div>
 
-      <ClientSearchAndFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <div className="rounded-lg border border-gray-200 pb-9">
+        <div className="p-4 pb-2">
+          <h1 className="text-2xl font-bold">All Clients</h1>
+          <p className="text-gray-500">view and manage client organizations</p>
+        </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead >
-              <tr className="text-left text-sm font-medium text-gray-500 divide-y divide-gray-200">
-                <th className="p-4 ">ID</th>
-                <th className="p-4 ">Client Name</th>
-                <th className="p-4 ">Contact</th>
-                <th className="p-4 ">Products</th>
-                <th className="p-4 ">Support Tier</th>
-                <th className="p-4 ">Active Tickets</th>
-                <th className="p-4 ">Status</th>
-                <th className="p-4 ">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredClients.map((client) => (
-                <ClientListItem key={client.id} client={client} />
-              ))}
-            </tbody>
-          </table>
+        <ClientSearchAndFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+
+        <div className="mx-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      ID
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Company Name
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Contact
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Products
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Support Tier
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Active Tickets
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-gray-500">
+                      Status
+                    </th>
+                    <th className="p-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredClients.map((client) => (
+                    <ClientListItem key={client.clientCode} client={client} />
+                  ))}
+                  {filteredClients.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        {searchQuery
+                          ? 'No clients found matching your search'
+                          : 'No clients found. Add your first client!'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

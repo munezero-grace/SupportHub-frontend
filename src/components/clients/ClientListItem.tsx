@@ -1,107 +1,75 @@
+"use client";
+
 import { Client } from '@/types/clients'
+import ActionMenu from './ActionMenu'
+import { UserCircleIcon } from '@heroicons/react/24/solid'
+import { Badge } from '@/components/ui/Badge'
+import { FC } from 'react'
 
 interface ClientListItemProps {
   client: Client
+  
 }
 
-export default function ClientListItem({ client }: ClientListItemProps) {
+const ClientListItem: FC<ClientListItemProps> = ({ client }: ClientListItemProps) =>{
   return (
-
-   /*ID*/
-
-    <tr className="text-sm font-medium text-black hover:bg-gray-50 cursor-pointer">
-      <td className="p-4 ">{client.id}</td>
-
-
-
-        {/*Client Name*/}
-      <td className="p-4 ">
+    <tr className="text-sm font-medium text-black hover:bg-gray-50">
+      <td className="p-4">{client.clientCode}</td>
+      <td className="p-4">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-            <span className="text-sm font-medium">
-              {client.name
-                .split(' ')
-                .map((word) => word[0])
-                .join('')}
-            </span>
-          </div>
-          {client.name}
+          <UserCircleIcon className="h-6 w-6 text-gray-500 mr-2" />
+          {client.companyName}
         </div>
       </td>
-
-
-        {/*Contact*/}
-      <td className="p-4 ">
-        <div>{client.contact.name}</div>
-        <div className="text-gray-500">{client.contact.email}</div>{' '}
+      <td className="p-4">
+        <div>{client.user.firstName}</div>
+        <div className="text-gray-500">{client.user.email}</div>
       </td>
-
-
-
-        {/*Products*/}
-      <td className="p-4 ">
-        <div className="flex gap-1">
-          {client.products.map((product) => (
-            <span
-              key={product}
-              className="px-2 py-1 rounded-full text-xs font-medium text-black bg-gray-100"
-            >
-              {product}
-            </span>
-          ))}
+      <td className="p-4">
+        <div className="flex flex-wrap gap-1">
+          {100}
         </div>
       </td>
-
-
-
-        {/*Support Tier*/}
-      <td className="p-4 ">
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            client.supportTier === 'Premium'
-              ? 'bg-black text-white'
-              : 'bg-gray-100 text-gray-700'
-          }`}
+      <td className="p-4">
+        <Badge
+          variant={client.supportTier === 'premium' ? 'warning' : 'default'}
         >
           {client.supportTier}
-        </span>
+        </Badge>
       </td>
-
-
-
-        {/*Active Tickets*/}
-      <td className="p-4 ">{client.activeTickets}</td>
-
-
-        {/*Status*/}
-      <td className="p-4 ">
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            client.status === 'active'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-700'
-          }`}
-        >
-          {client.status}
-        </span>
-      </td>
-
-
-
-
-        {/*Actions*/}
+      <td className="p-4">{100}</td>
       <td className="p-4">
-        <button className="text-black hover:text-gray-700">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-          </svg>
-        </button>
+        <Badge variant={client.status === 'active' ? 'success' : 'default'}>
+          {client.status}
+        </Badge>
+      </td>
+      <td className="p-4">
+        <ActionMenu
+          items={[
+            {
+              label: 'View Details',
+              onClick: () =>
+                console.log('Viewing details for:', client.clientCode),
+            },
+            {
+              label: 'Edit Client',
+              onClick: () => console.log('Editing client:', client.clientCode),
+            },
+            {
+              label: 'Manage Products',
+              onClick: () =>
+                console.log('Managing products for:', client.clientCode),
+            },
+            {
+              label: 'View Tickets',
+              onClick: () =>
+                console.log('Viewing tickets for:', client.clientCode),
+            },
+          ]}
+        />
       </td>
     </tr>
   )
 }
+
+export default ClientListItem;

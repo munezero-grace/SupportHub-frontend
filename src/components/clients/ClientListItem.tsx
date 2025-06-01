@@ -4,8 +4,6 @@ import { UserCircleIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/Badge'
 import { FC } from 'react'
 import { ClientListItemProps } from '@/types/interfaces/Props';
-
-
 const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) => {
   return (
     <tr className="text-sm font-medium text-black hover:bg-gray-50">
@@ -76,5 +74,4 @@ const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) =
     </tr>
   )
 }
-
 export default ClientListItem;

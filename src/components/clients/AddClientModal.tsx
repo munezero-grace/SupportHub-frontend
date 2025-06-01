@@ -2,11 +2,8 @@ import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { AddClientForm } from './AddClientForm'
+import type { AddClientModalProps } from '@/types/clients'
 
-interface AddClientModalProps {
-  isOpen: boolean
-  onClose: () => void
-}
 
 export function AddClientModal({ isOpen, onClose }: AddClientModalProps) {
   return (

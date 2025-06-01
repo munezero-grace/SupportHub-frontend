@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
-import { sideBar } from '@/constants/sideBar'
+import { navigation } from '@/constants/sidebarNavigation'
 import { usePathname } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
@@ -24,9 +24,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   })
 
   const isAdmin = session?.user?.role === 'super_admin'
-  const filteredNavigation = sideBar.filter(
+  const filteredNavigation = navigation.filter(
     (item) => !item.adminOnly || (item.adminOnly && isAdmin)
-    
   )
 
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [setIsMobileMenuOpen])
 
   useEffect(() => {
-    if (status === 'unauthenticated' as string) {
+    if (status === ('unauthenticated' as string)) {
       window.history.pushState(null, '', '/')
       window.addEventListener('popstate', () => {
         window.history.forward()

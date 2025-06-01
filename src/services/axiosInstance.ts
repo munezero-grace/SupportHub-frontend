@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getSession, signOut } from 'next-auth/react';
 
+console.log('[axiosInstance] Loaded');
+
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
   headers: {
@@ -40,8 +42,8 @@ axiosInstance.interceptors.request.use(
   async (config) => {
     try {
       const session = await getSession();
-      if (session?.user?.token) {
-        config.headers.Authorization = `Bearer ${session.user.token}`;
+      if (session?.user?.accessToken) {
+        config.headers.Authorization = `Bearer ${session.user.accessToken}`;
       }
       return config;
     } catch (error) {

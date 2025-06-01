@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useClientsQuery } from '@/hooks/useQueries'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
+import { useClients } from '@/hooks/useClientQueries'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import ProductSelectionModal from '@/components/products/ProductSelectionModal'
 import { Product } from '@/types/interfaces/product'
@@ -25,7 +25,7 @@ import type { UpdateClientDto } from '@/types/clients'
 export default function ClientsPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const { data: clients, isLoading, error, refetch } = useClientsQuery()
+  const { data: clients, isLoading, error, refetch } = useClients()
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)

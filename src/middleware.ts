@@ -20,6 +20,9 @@ export default withAuth(
         return NextResponse.redirect(new URL('/dashboard', req.url))
       }
     }
+    if (req.nextUrl.pathname.startsWith('/dashboard/clients') && req.nextauth.token?.role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
 
     return NextResponse.next()
   },

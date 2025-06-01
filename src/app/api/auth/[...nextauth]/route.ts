@@ -60,11 +60,11 @@ const authOptions: NextAuthOptions = {
             id: payload.id,
             name: `${payload.firstName} ${payload.lastName}`.trim(),
             email: payload.email,
+            image: payload.picture,
             role: payload.role,
-            provider: 'credentials',
-            providerId: 'credentials',
-            token: token,
-            accessToken: token,
+            provider: payload.provider,
+            providerId: payload.providerId,
+            token,
           }
         } catch (error) {
           if (axios.isAxiosError(error)) {
@@ -105,7 +105,7 @@ const authOptions: NextAuthOptions = {
               lastName: prof.family_name ?? 'lastName',
               provider: account.provider,
               providerId: prof.sub,
-              role: prof.role
+              role: prof.role,
             }
           )
 
@@ -121,49 +121,68 @@ const authOptions: NextAuthOptions = {
           if (token) {
             try {
               const base64Payload = token.split('.')[1]
-              const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString())
+              const payload = JSON.parse(
+                Buffer.from(base64Payload, 'base64').toString()
+              )
               user.role = payload.role
-              user.accessToken = token
-            } catch {
-            }
+            } catch {}
           }
 
           return true
         } catch {
-          return false;
+          return false
         }
       }
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
-        const extendedUser = user as User
-
-        token.id = extendedUser.id
-        token.email = extendedUser.email ?? ''
-        token.name = extendedUser.name || ''
-        token.role = extendedUser.role || 'client'
-        token.provider = extendedUser.provider || account?.provider || 'credentials'
-        token.providerId = extendedUser.providerId || account?.providerAccountId || ''
-        token.token = extendedUser.token || ''
-        token.accessToken = extendedUser.accessToken || ''
+        if (typeof user === 'string') {
+          try {
+            const payload = JSON.parse(
+              Buffer.from((user as string).split('.')[1], 'base64').toString()
+            )
+            token = { ...token, ...payload }
+            if (!token.name && token.firstName && token.lastName) {
+              token.name = `${token.firstName} ${token.lastName}`.trim()
+            }
+          } catch {}
+        } else if ('token' in user && typeof user.token === 'string') {
+          try {
+            const payload = JSON.parse(
+              Buffer.from(
+                (user.token as string).split('.')[1],
+                'base64'
+              ).toString()
+            )
+            token = { ...token, ...payload }
+            if (!token.name && token.firstName && token.lastName) {
+              token.name = `${token.firstName} ${token.lastName}`.trim()
+            }
+          } catch {}
+        } else {
+          token.id = user.id
+          token.role = user.role ?? undefined
+          token.name =
+            user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+          token.email = user.email
+          token.picture = user.image
+          token.provider = user.provider
+          token.providerId = user.providerId
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user = {
-          ...session.user,
-          id: token.id,
-          name: token.name,
-          email: token.email,
-          image: token.picture || null,
-          role: token.role,
-          provider: token.provider,
-          providerId: token.providerId,
-          token: token.token,
-          accessToken: token.accessToken
-        }
+        const user = session.user as string & User
+        user.id = token.id as string
+        user.role = token.role as string
+        user.name = token.name as string
+        user.provider = token.provider as string
+        user.providerId = token.providerId as string
+        user.accessToken =
+          (token.token as string) || (token.accessToken as string)
       }
       return session
     },
@@ -180,7 +199,7 @@ const authOptions: NextAuthOptions = {
       return url.startsWith(baseUrl) ? url : baseUrl
     },
   },
-};
+}
 
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

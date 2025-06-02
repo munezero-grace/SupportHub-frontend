@@ -2,7 +2,7 @@ export type SupportTier = 'standard' | 'premium'
 export type ClientStatus = 'active' | 'inactive'
 
 export interface Client {
-  id: number
+  id: string
   clientCode: string
   name: string
   contactName: string
@@ -15,6 +15,16 @@ export interface Client {
   updatedAt: string
   user: User
   userId?: string
+  clientProducts?: { 
+    id: string;
+    product?: {
+      id: string;
+      productCode: string;
+      name: string;
+      description?: string;
+      status: 'active' | 'inactive';
+    };
+  }[];
 }
 
 export interface User {
@@ -34,4 +44,14 @@ export interface CreateClientDto {
 
 export interface UpdateClientDto extends Partial<CreateClientDto> {
   activeTickets?: number
+}
+
+export interface SelectOption {
+  value: string
+  label: string
+}
+
+export type FormData = {
+  productId: string
+  clientId: string
 }

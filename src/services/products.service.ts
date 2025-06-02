@@ -71,5 +71,45 @@ export const productService = {
             }
             throw error;
         }
+    },
+
+    getClientsForProduct: async (productId: string) => {
+        const { data } = await axiosInstance.get(`/api/products/${productId}/clients`);
+        return data;
+    },
+
+    addClientToProduct: async (productId: string, clientId: string) => {
+        const { data } = await axiosInstance.post(`/api/products/${productId}/clients/${clientId}`);
+        return data;
+    },
+
+    removeClientFromProduct: async (productId: string, clientId: string) => {
+        await axiosInstance.delete(`/api/products/${productId}/clients/${clientId}`);
+    }
+};
+
+export const productsService = {
+    getAll: async (): Promise<Product[]> => {
+        try {
+            const response = await axiosInstance.get<Product[]>(BASE_URL);
+            return response.data;
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.data?.error) {
+                throw new Error(error.response.data.error);
+            }
+            throw error;
+        }
+    },
+    
+    addClientToProduct: async (productId: string, clientId: string) => {
+        try {
+            const { data } = await axiosInstance.post(`${BASE_URL}/${productId}/clients/${clientId}`);
+            return data;
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.data?.error) {
+                throw new Error(error.response.data.error);
+            }
+            throw error;
+        }
     }
 };

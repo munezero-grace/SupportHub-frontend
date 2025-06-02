@@ -38,4 +38,18 @@ export const clientsApi = {
   delete: async (clientCode: string) => {
     await axiosInstance.delete(`${BASE_URL}/${clientCode}`)
   },
+
+  getProductsForClient: async (clientCode: string) => {
+    const { data } = await axiosInstance.get(`/api/clients/${clientCode}/products`)
+    return data
+  },
+
+  addProductToClient: async (clientCode: string, productId: string) => {
+    const { data } = await axiosInstance.post(`/api/clients/${clientCode}/products/${productId}`)
+    return data
+  },
+
+  removeProductFromClient: async (clientCode: string, productId: string) => {
+    await axiosInstance.delete(`/api/clients/${clientCode}/products/${productId}`)
+  }
 }

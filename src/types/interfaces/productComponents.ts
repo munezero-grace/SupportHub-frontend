@@ -6,6 +6,7 @@ export interface ProductHandlerProps {
     setIsDeleteModalOpen: (isOpen: boolean) => void;
     selectedProduct: Product | null;
     refreshData?: () => void;
+    openClientModal: (product: Product) => void;
 }
 
 export interface ProductCardProps {

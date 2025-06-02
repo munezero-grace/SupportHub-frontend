@@ -18,8 +18,9 @@ export function Form({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn('space-y-6', className)}
-      aria-disabled={disabled}
+      className={cn('space-y-6', className, {
+        'opacity-50 pointer-events-none': disabled
+      })}
     >
       {children}
     </form>

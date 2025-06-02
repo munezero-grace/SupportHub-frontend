@@ -8,10 +8,10 @@ import { FC } from 'react'
 
 interface ClientListItemProps {
   client: Client
-  
+  onManageProducts: () => void
 }
 
-const ClientListItem: FC<ClientListItemProps> = ({ client }: ClientListItemProps) =>{
+const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) => {
   return (
     <tr className="text-sm font-medium text-black hover:bg-gray-50">
       <td className="p-4">{client.clientCode}</td>
@@ -27,7 +27,18 @@ const ClientListItem: FC<ClientListItemProps> = ({ client }: ClientListItemProps
       </td>
       <td className="p-4">
         <div className="flex flex-wrap gap-1">
-          {100}
+          {client.clientProducts && client.clientProducts.map(cp => (
+            <Badge
+              key={cp.id}
+              variant="default"
+              className="capitalize font-bold bg-white/90"
+            >
+              {cp.product?.name || 'Unknown Product'}
+            </Badge>
+          ))}
+          {!client.clientProducts?.length && (
+            <Badge variant="default" className="font-bold  bg-white/90">No products</Badge>
+          )}
         </div>
       </td>
       <td className="p-4">
@@ -57,8 +68,7 @@ const ClientListItem: FC<ClientListItemProps> = ({ client }: ClientListItemProps
             },
             {
               label: 'Manage Products',
-              onClick: () =>
-                console.log('Managing products for:', client.clientCode),
+              onClick: onManageProducts,
             },
             {
               label: 'View Tickets',

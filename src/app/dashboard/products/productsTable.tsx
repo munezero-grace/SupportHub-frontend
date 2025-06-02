@@ -36,9 +36,10 @@ export const productTableColumns: TableColumn[] = [
   },
   {
     header: 'Clients',
-    accessor: (): ReactNode => (
+    accessor: (product): ReactNode => (
       <div className="flex items-center gap-1">
-        <ClientsIcon className="w-4 h-4 text-gray-400" />       
+        <ClientsIcon className="w-4 h-4 text-gray-400" />
+        <span>{product.clientProducts ? product.clientProducts.length : 0}</span>
       </div>
     )
   },

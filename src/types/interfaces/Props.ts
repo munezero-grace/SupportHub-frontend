@@ -1,5 +1,7 @@
 import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes} from "react"
-import { Size, StatusType } from '@/types/index';
+import { Size, StatusType } from '@/types/index'
+import { Client } from '@/types/clients'
+import { Product } from '@/types/interfaces/product'
 
 export interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
@@ -127,4 +129,19 @@ export interface TableProps<T> {
 
 export interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+export interface ClientSelectionModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSelectClient: (client: Client) => void
+  selectedClientIds: string[]
+}
+
+export interface ProductSelectionModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onRemoveProduct: (product: Product) => void
+  selectedProductIds: string[]
+  clientId: string
 }

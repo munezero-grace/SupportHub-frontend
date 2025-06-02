@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
-import { PlusIcon } from '@/components/icons/ActionIcons';
+import { PlusIcon, FilterIcon, SearchIcon } from '@/components/icons/ActionIcons';
 import { ProductFormModal } from '@/components/products/ProductFormModal';
 import { Dialog } from '@/components/ui/Dialog';
 import { PRODUCT_STATUS_OPTIONS } from '@/constants/productConfig';
@@ -12,9 +12,11 @@ import { Product } from '@/types/interfaces/product';
 import { Input } from '@/components/ui/Input';
 import { FilterModal, FilterOptions } from '@/components/products/FilterModal';
 import { createProductHandlers } from '@/components/products/productHandlers';
-import { FilterIcon, SearchIcon } from '@/components/icons/ActionIcons';
 import axiosInstance from '@/services/axiosInstance';
-
+import ClientSelectionModal from '@/components/clients/ClientSelectionModal';
+import { productService } from '@/services/products.service';
+import { Client } from '@/types/clients';
+import { ClientResponse } from '@/types/clients/clientResponse';
 
 export default function ProductsAdminPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,10 +32,18 @@ export default function ProductsAdminPage() {
     hasActiveTickets: false
   });
 
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [selectedClients, setSelectedClients] = useState<Client[]>([]);
+
   const fetchProducts = async () => {
     try {
       const response = await axiosInstance.get('/api/products');
-      setProducts(response.data);
+    
+      const productsWithActiveClients = response.data.map((product: Product) => ({
+        ...product,
+        activeClients: product.clientProducts ? product.clientProducts.length : 0,
+      }));
+      setProducts(productsWithActiveClients);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
@@ -44,18 +54,56 @@ export default function ProductsAdminPage() {
     fetchProducts();
   }, []);
 
-  const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColumns } = createProductHandlers({
-    setSelectedProduct,
-    setIsAddModalOpen,
-    setIsDeleteModalOpen,
-    selectedProduct,
-    refreshData: fetchProducts
-  });
+const openClientModal = (product: Product) => {
+  setSelectedProduct(product);
+
+  const initialSelectedClients: Client[] = product.clientProducts 
+    ? product.clientProducts.map(cp => {
+        const clientData = cp as unknown as ClientResponse;
+        return {
+          id: String(clientData.id),
+          clientCode: clientData.clientCode,
+          name: clientData.name,
+          contactName: clientData.contactName,
+          companyName: clientData.companyName,
+          products: clientData.products,
+          supportTier: clientData.supportTier,
+          activeTickets: clientData.activeTickets,
+          status: clientData.status,
+          createdAt: clientData.createdAt,
+          updatedAt: clientData.updatedAt,
+          user: clientData.user,
+          userId: clientData.userId,
+          clientProducts: clientData.clientProducts
+        };
+      })
+    : [];
+  setSelectedClients(initialSelectedClients);
+  setIsClientModalOpen(true);
+};
+
+const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColumns } = createProductHandlers({
+  setSelectedProduct,
+  setIsAddModalOpen,
+  setIsDeleteModalOpen,
+  selectedProduct,
+  refreshData: fetchProducts,
+  openClientModal
+});
 
   const handleFilterApply = (newFilters: FilterOptions) => setFilters(newFilters);
   
   const filteredProducts = filterProducts(products, filters, searchTerm);
   const columns = getProductColumns();
+
+  const handleClientSelect = async (client: Client) => {
+    const exists = selectedClients.find(c => c.id === client.id);
+    if (!exists && selectedProduct) {
+      await productService.addClientToProduct(String(selectedProduct.id), String(client.id));
+      setSelectedClients([...selectedClients, client]);
+      await fetchProducts();
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
@@ -164,6 +212,13 @@ export default function ProductsAdminPage() {
           </div>
         </div>
       </Dialog>
+
+      <ClientSelectionModal
+        isOpen={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onSelectClient={handleClientSelect}
+        selectedClientIds={selectedClients.map(c => String(c.id))}
+      />
     </div>
   );
 }

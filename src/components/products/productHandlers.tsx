@@ -13,7 +13,8 @@ export const createProductHandlers = ({
     setIsAddModalOpen,
     setIsDeleteModalOpen,
     selectedProduct,
-    refreshData
+    refreshData,
+    openClientModal
 }: ProductHandlerProps) => ({
     handleAddProduct: async (data: ProductFormData) => {
         try {
@@ -76,10 +77,10 @@ export const createProductHandlers = ({
         },
         {
             header: 'Active Clients',
-            accessor: () => (
+            accessor: (product) => (
                 <div className="flex items-center gap-2">
                     <UsersIcon className="w-4 h-4" />
-                    <span>100</span>
+                    <span>{product.clientProducts ? product.clientProducts.length : 0}</span>
                 </div>
             )
         },
@@ -128,8 +129,7 @@ export const createProductHandlers = ({
                         },
                         {
                             label: 'Manage Clients',
-                            onClick: () => {
-                            }
+                            onClick: () => openClientModal(product)
                         },
                         {
                             label: 'View Tickets',

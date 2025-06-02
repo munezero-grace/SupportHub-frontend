@@ -6,10 +6,17 @@ import ClientListItem from '@/components/clients/ClientListItem'
 import { AddClientButton } from '@/components/clients/AddClientButton'
 import ClientSearchAndFilters from '@/components/clients/ClientSearchAndFilters'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import ProductSelectionModal from '@/components/products/ProductSelectionModal'
+import { Product } from '@/types/interfaces/product'
+import { Client } from '@/types/clients'
+import { productService } from '@/services/products.service'
+import { toast } from 'react-toastify'
 
 export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const { data: clients, isLoading, error } = useClientsQuery()
+  const { data: clients, isLoading, error, refetch } = useClientsQuery()
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const filteredClients = useMemo(
     () =>
       clients?.filter(
@@ -17,12 +24,32 @@ export default function ClientsPage() {
           client.companyName
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          // client.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           client.clientCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
           client.companyName.toLowerCase().includes(searchQuery.toLowerCase())
       ) ?? [],
     [clients, searchQuery]
   )
+
+  const handleManageProducts = (client: Client) => {
+    setSelectedClient(client)
+    setIsProductModalOpen(true)
+  }
+
+  const handleRemoveProduct = async (product: Product) => {
+    if (!selectedClient) return
+
+    try {
+      await productService.removeClientFromProduct(String(product.id), String(selectedClient.id))
+    
+      refetch()
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      const errorMessage =
+        err?.response?.data?.message || err?.message || 'Error removing product'
+      toast.error(errorMessage)
+    }
+  }
+
   if (error) {
     return (
       <div className="p-4 text-red-600">
@@ -92,7 +119,11 @@ export default function ClientsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredClients.map((client) => (
-                    <ClientListItem key={client.clientCode} client={client} />
+                    <ClientListItem 
+                      key={client.clientCode} 
+                      client={client} 
+                      onManageProducts={() => handleManageProducts(client)} 
+                    />
                   ))}
                   {filteredClients.length === 0 && (
                     <tr>
@@ -112,6 +143,18 @@ export default function ClientsPage() {
           )}
         </div>
       </div>
+      {selectedClient && (
+        <ProductSelectionModal
+          isOpen={isProductModalOpen}
+          onClose={() => {
+            setIsProductModalOpen(false)
+            setSelectedClient(null)
+          }}
+          onRemoveProduct={handleRemoveProduct}
+          selectedProductIds={selectedClient.clientProducts?.map(cp => String(cp.product?.id)) || []}
+          clientId={String(selectedClient.id)}
+        />
+      )}
     </div>
   )
 }

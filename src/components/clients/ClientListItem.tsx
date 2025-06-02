@@ -1,15 +1,10 @@
 "use client";
-
-import { Client } from '@/types/clients'
 import ActionMenu from './ActionMenu'
 import { UserCircleIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/Badge'
 import { FC } from 'react'
+import { ClientListItemProps } from '@/types/interfaces/Props';
 
-interface ClientListItemProps {
-  client: Client
-  onManageProducts: () => void
-}
 
 const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) => {
   return (

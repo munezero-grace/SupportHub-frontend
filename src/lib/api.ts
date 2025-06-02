@@ -2,13 +2,13 @@ import { PingResponse, Stats, Ticket } from '@/types/interfaces/interface';
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
   try {
     const res = await promise;
@@ -49,9 +49,9 @@ export async function getTickets(): Promise<Ticket[]> {
   return response.data;
 }
 export async function loginClient(email: string, password: string): Promise<{ message: string }> {
-  const response = await axiosInstance.post<{ message: string }>('/auth/login', { 
-    email, 
-    password 
+  const response = await axiosInstance.post<{ message: string }>('/auth/login', {
+    email,
+    password
   });
   return response.data;
 }

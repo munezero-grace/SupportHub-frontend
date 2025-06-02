@@ -14,7 +14,12 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token, req }) => {
+        if (!req.nextUrl.pathname.startsWith('/dashboard')) {
+          return true
+        }
+        return !!token
+      }
     },
   }
 )

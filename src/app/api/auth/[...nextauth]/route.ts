@@ -203,14 +203,14 @@ const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       if (url.includes('signout')) {
-        return '/'
-      }
-      
-      if (url === '/login') {
-        return '/dashboard'
+        return baseUrl
       }
 
-      return url.startsWith(baseUrl) ? url : baseUrl + url
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/dashboard`
+      }
+
+      return url.startsWith(baseUrl) ? url : baseUrl
     },
   },
 };

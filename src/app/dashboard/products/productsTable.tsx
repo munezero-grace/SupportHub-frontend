@@ -9,7 +9,7 @@ type TableColumn = {
 };
 
 export const productTableColumns: TableColumn[] = [
-  {    
+  {
     header: 'ID',
     accessor: (product: Product): ReactNode => (
       <span>{product.productCode}</span>
@@ -22,16 +22,17 @@ export const productTableColumns: TableColumn[] = [
         <ProductIcon className="w-5 h-5 text-gray-500" />
         <span className="font-medium">{product.name}</span>
       </div>
-    )
+    ),
+    className: 'w-[200px] max-w-[200px]'
   },
   {
     header: 'Description',
     accessor: (product: Product): ReactNode => (
       <div className="max-w-[200px] text-gray-600 truncate">
-        <p className="text-sm text-red-500">
-        {product.description}
+        <p className="text-sm">
+          {product.description}
         </p>
-        </div>
+      </div>
     )
   },
   {
@@ -63,11 +64,10 @@ export const productTableColumns: TableColumn[] = [
   {
     header: 'Status',
     accessor: (product: Product): ReactNode => (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-        product.status === 'active' 
-          ? 'bg-green-500 text-white' 
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${product.status === 'active'
+          ? 'bg-green-500/10 text-green-700'
           : 'bg-gray-200 text-gray-700'
-      }`}>
+        }`}>
         {product.status}
       </span>
     )

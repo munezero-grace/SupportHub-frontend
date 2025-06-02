@@ -116,14 +116,19 @@ export const createProductHandlers = ({
                     items={[
                         {
                             label: 'View Details',
-
                             onClick: () => {
+                                window.location.href = `/dashboard/products/${product.productCode}`;
                             }
                         },
                         {
                             label: 'Edit Product',
                             onClick: () => {
-                                setSelectedProduct(product);
+                                setSelectedProduct({
+                                    ...product,
+                                    name: product.name || '',
+                                    description: product.description || '',
+                                    status: product.status || 'active'
+                                });
                                 setIsAddModalOpen(true);
                             }
                         },

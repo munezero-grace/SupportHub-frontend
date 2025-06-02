@@ -14,33 +14,33 @@ export default function Home() {
   if (status === 'authenticated') {
     return redirect('/dashboard')
   }
-
   if (status === 'loading') {
     return null
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 space-y-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       <ToastContainer />
-      <div className="flex flex-col items-center space-y-3">
-        <Image
-          src="/BP Ticket.png"
-          alt="BP Ticket Logo"
-          width={80}
-          height={80}
-          className="object-contain"
-        />
-        <h1 className="text-2xl font-bold text-gray-700">BP Ticket</h1>
-        <p className="text-sm font-medium text-gray-600">
+      <div className="flex flex-col items-center mb-12">
+        <div className="mb-3">
+          <Image
+            src="/BP Ticket.png"
+            alt="BP Ticket Logo"
+            width={64}
+            height={64}
+            className="object-contain"
+          />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">BP Ticket</h1>
+        <p className="text-base text-gray-500 font-normal">
           Support Ticket Management
         </p>
       </div>
-
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold text-gray-700">Sign In</h2>
-          <p className="text-sm font-normal text-gray-600">
-            Use your Google account to continue
+      <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In</h2>
+          <p className="text-base text-gray-600 leading-relaxed">
+            Sign in with your Google account to continue.
           </p>
         </div>
 
@@ -52,24 +52,19 @@ export default function Home() {
             })
           }
           variant="outline"
-          className="w-full flex items-center justify-center gap-3"
+          className="w-full h-12 flex items-center justify-center gap-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 text-gray-900 font-medium text-sm"
         >
           <GoogleIcon />
           Sign in with Google
         </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">or</span>
-          </div>
-        </div>
-        <div className="mt-4 text-center w-full">
+        <div className="mt-6 text-center">
+          <p className="text-base text-gray-500 mb-4">
+            Only Google accounts are authorized.
+          </p>
           <Link href="/login">
-            <span className="text-blue-600 hover:text-blue-500 font-medium cursor-pointer">
-              Login with password
+            <span className="text-base text-blue-600 hover:text-blue-600 cursor-pointer font-medium">
+              Client login
             </span>
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes} from "react"
 import { Size, StatusType } from '@/types/index'
 import { Client } from '@/types/clients'
-import { Product } from '@/types/interfaces/product'
+import { Product, ProductFormData } from '@/types/interfaces/product'
 
 export interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
@@ -144,4 +144,38 @@ export interface ProductSelectionModalProps {
   onRemoveProduct: (product: Product) => void
   selectedProductIds: string[]
   clientId: string
+}
+export interface FilterOptions {
+  status: SelectOption;
+  minClients?: number;
+  minDevelopers?: number;
+  hasActiveTickets?: boolean;
+}
+
+export interface FilterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onApply: (filters: FilterOptions) => void;
+  initialFilters: FilterOptions;
+}
+
+
+export interface ProductFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ProductFormData) => void | Promise<void>;
+  initialData?: Partial<ProductFormData>;
+  title: string;
+}
+
+export interface ClientListItemProps {
+  client: Client
+  onManageProducts: () => void
+}
+
+
+export interface NavLinkProps {
+  href: string
+  icon: React.ElementType
+  name: string
 }

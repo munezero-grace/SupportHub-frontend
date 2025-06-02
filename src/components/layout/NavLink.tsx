@@ -1,12 +1,8 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { NavLinkProps } from '@/types/interfaces/Props'
 
-interface NavLinkProps {
-  href: string
-  icon: React.ElementType
-  name: string
-}
 
 export function NavLink({ href, icon: Icon, name }: NavLinkProps) {
   const pathname = usePathname()

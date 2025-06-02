@@ -5,22 +5,10 @@ import { Form, FormField } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { ProductFormData, productValidationSchema } from '@/types/interfaces/product';
-import { SelectOption } from '@/types/interfaces/Props';
-import { FormEvent } from 'react';
-
-interface ProductFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: ProductFormData) => void | Promise<void>;
-  initialData?: Partial<ProductFormData>;
-  title: string;
-}
-
-const STATUS_OPTIONS: SelectOption[] = [
-  { label: 'active', value: 'active' },
-  { label: 'inactive', value: 'inactive' }
-];
+import { productValidationSchema } from '@/types/interfaces/product';
+import { FormEvent, useEffect } from 'react';
+import { ProductFormModalProps } from '@/types/interfaces/Props';
+import { STATUS_OPTIONS } from '@/constants/productConfig';
 
 export function ProductFormModal({
   isOpen,
@@ -38,13 +26,42 @@ export function ProductFormModal({
     }
   });
 
+  useEffect(() => {
+    if (isOpen && initialData) {
+      form.reset({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        status: initialData.status || 'active',
+      });
+    } else if (!initialData) {
+      form.reset({
+        name: '',
+        description: '',
+        status: 'active',
+      });
+    }
+  }, [isOpen, initialData, form]);
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      form.reset({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        status: initialData.status || 'active',
+      });
+    }
+  }, [isOpen, initialData, form]);
+
   const currentStatus = form.watch('status');
   const selectedOption = STATUS_OPTIONS.find(option => option.value === currentStatus) || STATUS_OPTIONS[0];
 
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        onClose();
+        form.reset();
+      }}
       title={title}
     >
       <Form
@@ -101,7 +118,13 @@ export function ProductFormModal({
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onClose();
+              form.reset();
+            }}>
             Cancel
           </Button>
           <Button type="submit" variant="primary">

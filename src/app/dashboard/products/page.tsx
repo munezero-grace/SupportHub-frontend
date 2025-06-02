@@ -10,13 +10,14 @@ import { PRODUCT_STATUS_OPTIONS } from '@/constants/productConfig';
 import { filterProducts } from '@/constants/filterConfig';
 import { Product } from '@/types/interfaces/product';
 import { Input } from '@/components/ui/Input';
-import { FilterModal, FilterOptions } from '@/components/products/FilterModal';
+import { FilterModal } from '@/components/products/FilterModal';
 import { createProductHandlers } from '@/components/products/productHandlers';
 import axiosInstance from '@/services/axiosInstance';
 import ClientSelectionModal from '@/components/clients/ClientSelectionModal';
 import { productService } from '@/services/products.service';
 import { Client } from '@/types/clients';
 import { ClientResponse } from '@/types/clients/clientResponse';
+import { FilterOptions } from '@/types/interfaces/Props';
 
 export default function ProductsAdminPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -92,7 +93,6 @@ const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColu
 });
 
   const handleFilterApply = (newFilters: FilterOptions) => setFilters(newFilters);
-  
   const filteredProducts = filterProducts(products, filters, searchTerm);
   const columns = getProductColumns();
 
@@ -131,7 +131,6 @@ const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColu
             <h2 className="text-xl font-bold text-gray-700">All Products</h2>
             <p className="text-gray-600">View and Manage Software Products</p>
           </div>
-          
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 flex items-center gap-2">
               <SearchIcon className="w-4 h-4 text-gray-500" />
@@ -143,7 +142,7 @@ const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColu
                 className="w-full"
               />
             </div>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setFilterModalOpen(true)}
               className="flex items-center gap-2 w-full md:w-auto"

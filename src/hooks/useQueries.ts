@@ -4,6 +4,7 @@ import { PingResponse, Stats, Ticket } from '@/types/interfaces/interface'
 import { ticketService } from '../services/services'
 import { clientsApi } from '../services'
 import type { Client, CreateClientDto, UpdateClientDto } from '../types/clients'
+import { CreateTicketData, UpdateTicketData } from '@/types/interfaces/Data'
 
 export const queryKeys = {
   ping: ['ping'],
@@ -56,18 +57,6 @@ export function useTicketQuery(id: string) {
   })
 }
 
-interface CreateTicketData {
-  title: string
-  client: string
-  product: string
-  priority: 'High' | 'Medium' | 'Low'
-}
-
-interface UpdateTicketData {
-  id: string
-  changes: Partial<Ticket>
-}
-
 export const useCreateTicketMutation = () => {
   const queryClient = useQueryClient()
 
@@ -96,8 +85,8 @@ export const useUpdateTicketMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, changes }: UpdateTicketData) => {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      return { id, ...changes }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { id, ...changes };
     },
     onSuccess: (data) => {
       queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
@@ -169,10 +158,18 @@ export function useUpdateClientMutation() {
 export function useDeleteClientMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation<void, Error, string>({
-    mutationFn: clientsApi.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.clients })
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return id;
+    },
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.filter(ticket => ticket.id !== deletedId);
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets });
     },
   })
 }

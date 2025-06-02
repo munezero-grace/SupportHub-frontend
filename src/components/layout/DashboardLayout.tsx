@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
-import { navigation } from '@/constants/navigation'
+import { sideBar } from '@/constants/sideBar'
 import { usePathname } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   })
 
   const isAdmin = session?.user?.role === 'super_admin'
-  const filteredNavigation = navigation.filter(
+  const filteredNavigation = sideBar.filter(
     (item) => !item.adminOnly || (item.adminOnly && isAdmin)
     
   )
@@ -76,7 +76,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen md:flex bg-[#F9FAFB]">
-      {/* Sidebar - Make it full height */}
       <aside
         className={`
           fixed inset-y-0 left-0 z-40 w-64 transform bg-white transition-transform duration-300 ease-in-out border-r border-[#E5E7EB]
@@ -119,8 +118,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </ul>
         </nav>
       </aside>
-
-      {/* Mobile menu button - Fixed to top */}
       <div className="fixed top-0 left-0 z-50 md:hidden">
         <button
           type="button"
@@ -135,8 +132,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
         </button>
       </div>
-
-      {/* Main content area */}
       <div className="flex-1 min-h-screen w-full md:w-[calc(100%-16rem)]">
         <header className="h-16 flex items-center justify-between px-5 bg-white border-b border-[#E5E7EB]">
           <div className="flex items-center md:hidden">

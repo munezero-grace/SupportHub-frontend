@@ -22,3 +22,4 @@ export const statusConfig = {
     className: 'bg-[#F3F4F6] text-[#374151]'
   }
 }
+

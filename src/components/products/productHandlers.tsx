@@ -3,9 +3,9 @@ import { Product, ProductFormData } from '@/types/interfaces/product';
 import { ActionMenu } from '@/components/ui/ActionMenu';
 import { TableProps } from '@/types/interfaces/Props';
 import { PRODUCT_STATUS_STYLES } from '@/constants/productConfig';
-import { UsersIcon } from '@/components/icons/UsersIcon';
 import { productService } from '@/services/products.service';
 import { ProductHandlerProps } from '@/types/interfaces/productComponents';
+import { UsersIcon } from '@heroicons/react/24/outline';
 
 
 export const createProductHandlers = ({

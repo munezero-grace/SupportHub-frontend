@@ -51,7 +51,7 @@ export interface CreateClientDto {
 
 export interface UpdateClientDto extends Partial<CreateClientDto> {
   activeTickets?: number
-  status: 'active' | 'inactive'
+  status: Status
 }
 
 export interface SelectOption {

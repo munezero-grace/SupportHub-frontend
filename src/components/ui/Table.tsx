@@ -62,7 +62,9 @@ export function Table<T extends { id: string | number }>({
                         column.className
                       )}
                     >
-                      {content as ReactNode}
+                      <div className="truncate w-full">
+                        {content as ReactNode}
+                      </div>
                     </td>
                   )
                 })}

@@ -1,49 +1,47 @@
-import type { DefaultSession, DefaultUser } from "next-auth";
-import type { JWT as NextAuthJWTType } from "next-auth/jwt";
+import { DefaultSession } from "next-auth"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: string;
-      role?: string;
-      accessToken?: string;
-      provider?: string;
-      providerId?: string;
-      emailVerified?: Date | null;
+      id: string
+      role: string
+      token: string
+      accessToken: string
+      provider: string
+      providerId: string
     } & DefaultSession["user"]
   }
 
-  interface User extends DefaultUser {
-    id: string;
-    role?: string | null;
-    token?: string;
-    accessToken?: string;
-    provider?: string;
-    providerId?: string;
-    emailVerified?: Date | null;
-    firstName?: string;
-    lastName?: string;
+  interface User {
+    id: string
+    role: string
+    token?: string
+    accessToken?: string
+    provider: string
+    providerId: string
+    firstName?: string
+    lastName?: string
   }
 }
 
 declare module "next-auth/jwt" {
-  interface CustomJWT extends NextAuthJWTType {
-    id?: string;
-    role?: string;
-    accessToken?: string;
-    provider?: string;
-    providerId?: string;
-    emailVerified?: Date | null;
+  interface JWT {
+    id: string
+    role: string
+    token: string
+    accessToken: string
+    provider: string
+    providerId: string
   }
 }
 
 export interface GoogleProfile {
-  given_name?: string;
-  family_name?: string;
-  sub?: string;
-  picture?: string;
-  email?: string;
-  name?: string;
-  role?: string;
-  emailVerified?: Date | null;
+  given_name?: string
+  family_name?: string
+  sub?: string
+  picture?: string
+  email?: string
+  name?: string
+  role?: string
+  emailVerified?: Date | null
 }

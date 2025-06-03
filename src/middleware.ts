@@ -3,11 +3,22 @@ import { NextResponse } from 'next/server'
 
 export default withAuth(
   function middleware(req) {
-    if (!req.nextauth.token && req.nextUrl.pathname.startsWith('/dashboard')) {
+    const token = req.nextauth.token
+    console.log("req.nextauth.token", req.nextauth.token)
+    
+    if (!token && req.nextUrl.pathname.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/', req.url))
     }
-    if (req.nextUrl.pathname.startsWith('/dashboard/products') && req.nextauth.token?.role !== 'super_admin') {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+
+    if (req.nextUrl.pathname.startsWith('/dashboard/products' )) {
+      if (token?.role !== 'super_admin') {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
+    }
+     if (req.nextUrl.pathname.startsWith('/dashboard/clients')) {
+      if (token?.role !== 'super_admin') {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
     }
 
     return NextResponse.next()

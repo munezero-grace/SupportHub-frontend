@@ -3,8 +3,11 @@ import ActionMenu from './ActionMenu'
 import { UserCircleIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/Badge'
 import { FC } from 'react'
+import { useRouter } from 'next/navigation'
 import { ClientListItemProps } from '@/types/interfaces/Props';
+
 const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) => {
+  const router = useRouter();
   return (
     <tr className="text-sm font-medium text-black hover:bg-gray-50">
       <td className="p-4">{client.clientCode}</td>
@@ -52,8 +55,7 @@ const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) =
           items={[
             {
               label: 'View Details',
-              onClick: () =>
-                console.log('Viewing details for:', client.clientCode),
+              onClick: () => router.push(`/dashboard/clients/${client.clientCode}`),
             },
             {
               label: 'Edit Client',

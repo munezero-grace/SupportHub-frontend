@@ -4,9 +4,35 @@ import axios from 'axios';
 export const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
 });
+
+axiosInstance.interceptors.request.use(async (config) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+
+      if (session?.user?.token) {
+        config.headers['Authorization'] = `Bearer ${session.user.token}`;
+      }
+    } catch (error) {
+      console.error('Error getting auth session:', error);
+    }
+  }
+  return config;
+});
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {

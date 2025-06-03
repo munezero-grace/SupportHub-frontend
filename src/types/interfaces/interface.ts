@@ -1,5 +1,5 @@
-import { Session, Profile } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import { JWT } from "next-auth/jwt"
+
 export interface NavItem {
   name: string
   href: string
@@ -15,65 +15,51 @@ export interface Settings {
 }
 
 export interface PingResponse {
-  message: string;
+  message: string
 }
 
 export interface Stats {
-  name: string;
-  value: string;
-  change: string;
-  changeType: 'increase' | 'decrease';
-  info: string;
+  name: string
+  value: string
+  change: string
+  changeType: 'increase' | 'decrease'
+  info: string
 }
 
 export interface Ticket {
-  id: string;
-  title: string;
-  client: string;
-  product: string;
-  status: string;
-  priority: 'High' | 'Medium' | 'Low';
-  assignee: string;
-  created: string;
-  lastUpdated: string;
-}
-
-export interface Settings {
-  fullName: string;
-  email: string;
-  emailNotifications: boolean;
-  slackNotifications: boolean;
+  id: string
+  title: string
+  client: string
+  product: string
+  status: string
+  priority: 'High' | 'Medium' | 'Low'
+  assignee: string
+  created: string
+  lastUpdated: string
 }
 
 export interface User {
-  id: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  provider?: string;
-  providerId?: string;
-  role?: string | null;
-}
-export interface UserWithId extends User {
-  id: string;
-  role?: string;
-}
-
-export interface SessionWithId extends Session {
-  user: UserWithId;
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role: string
+  firstName?: string | null
+  lastName?: string | null
+  provider: string
+  providerId: string
+  token?: string
+  accessToken?: string
 }
 
 export interface ExtendedToken extends JWT {
-  id?: string;
-  role?: string;
-}
-
-export interface GoogleProfile extends Profile {
-  given_name?: string;
-  family_name?: string;
-  sub?: string;
-  picture?: string;
-  role?: string;
+  id: string
+  role: string
+  name: string
+  email: string
+  picture?: string | null
+  token: string
+  accessToken: string
+  provider: string
+  providerId: string
 }

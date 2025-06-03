@@ -205,11 +205,12 @@ const authOptions: NextAuthOptions = {
       if (url.includes('signout')) {
         return baseUrl
       }
-
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/dashboard`
+      if (url.includes('/dashboard')) {
+        return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
       }
-
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return baseUrl
+      }
       return url.startsWith(baseUrl) ? url : baseUrl
     },
   },

@@ -25,15 +25,19 @@ export const productTableColumns: TableColumn[] = [
     ),
     className: 'w-[200px] max-w-[200px]'
   },
-  {
+ {
     header: 'Description',
     accessor: (product: Product): ReactNode => (
-      <div className="max-w-[200px] text-gray-600 truncate">
-        <p className="text-sm">
+      <div className="w-full max-w-xs relative group">
+        <p className="text-sm text-gray-600 truncate group-hover:hidden">
           {product.description}
         </p>
+        <div className="hidden group-hover:block absolute left-0 top-0 bg-white border border-gray-200 shadow-lg rounded-md p-3 z-50 max-w-sm text-sm text-gray-600 whitespace-normal break-words">
+          {product.description}
+        </div>
       </div>
-    )
+    ),
+    className: 'w-64 min-w-64 max-w-64'
   },
   {
     header: 'Clients',

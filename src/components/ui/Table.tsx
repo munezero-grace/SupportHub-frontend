@@ -22,7 +22,7 @@ export function Table<T extends { id: string | number }>({
   return (
     <div className={cn('overflow-x-auto -mx-4 sm:mx-0', className)}>
       <div className="inline-block min-w-full align-middle">
-        <table className="min-w-full divide-y divide-gray-300">
+        <table className="w-full table-fixed divide-y divide-gray-300">
           <thead>
             <tr>
               {columns.map((column, index) => (
@@ -30,7 +30,7 @@ export function Table<T extends { id: string | number }>({
                   key={index}
                   scope="col"
                   className={cn(
-                    'py-3.5 px-3 text-left text-sm font-semibold text-gray-900 whitespace-nowrap',
+                    'py-3.5 px-3 text-left text-sm font-semibold text-gray-900',
                     column.className
                   )}
                 >
@@ -58,7 +58,7 @@ export function Table<T extends { id: string | number }>({
                     <td
                       key={index}
                       className={cn(
-                        'whitespace-nowrap py-4 px-3 text-sm text-gray-900',
+                        'py-4 px-3 text-sm text-gray-900 overflow-hidden',
                         column.className
                       )}
                     >

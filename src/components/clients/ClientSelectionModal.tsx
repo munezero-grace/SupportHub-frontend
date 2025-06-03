@@ -11,6 +11,7 @@ export default function ClientSelectionModal({
   isOpen,
   onClose,
   onSelectClient,
+  onRemoveClient,
   selectedClientIds,
 }: ClientSelectionModalProps) {
   const [clients, setClients] = useState<Client[]>([])
@@ -27,12 +28,17 @@ export default function ClientSelectionModal({
         .finally(() => setLoading(false))
     }
   }, [isOpen])
-  const toggleClientSelection = (client: Client) => {
-    const clientId = client.id.toString()
-    if (!selectedClientIds.includes(clientId)) {
-      onSelectClient(client)
+
+    const toggleClientSelection = (client: Client) => {
+      const clientId = client.id.toString()
+      if (!selectedClientIds.includes(clientId)) {
+        onSelectClient(client)
+      } else {
+        if (onRemoveClient) {
+          onRemoveClient(client)
+        }
+      }
     }
-  }
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title="Select Clients">
@@ -51,16 +57,12 @@ export default function ClientSelectionModal({
           </thead>
           <tbody>
             {clients.map((client) => {
-              const isSelected = selectedClientIds.includes(client.id)
+              const isSelected = selectedClientIds.includes(client.id.toString())
               return (
                 <tr
                   key={client.id}
-                  className={`${
-                    isSelected
-                      ? 'bg-blue-100 cursor-pointer'
-                      : 'hover:bg-gray-100 cursor-pointer'
-                  }`}
-                  onClick={() => !isSelected && toggleClientSelection(client)}
+                  className={isSelected ? 'bg-blue-100 cursor-pointer' : 'hover:bg-gray-100 cursor-pointer'}
+                  onClick={() => toggleClientSelection(client)}
                 >
                   <td className="p-2">{client.clientCode}</td>
                   <td className="p-2">{client.companyName}</td>

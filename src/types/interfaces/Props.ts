@@ -135,6 +135,7 @@ export interface ClientSelectionModalProps {
   isOpen: boolean
   onClose: () => void
   onSelectClient: (client: Client) => void
+  onRemoveClient?: (client: Client) => void
   selectedClientIds: string[]
 }
 

@@ -9,6 +9,7 @@ import { ClientsIcon, TicketIcon } from '@/components/icons';
 import { useState } from 'react';
 import { FilterModalProps, FilterOptions  } from '@/types/interfaces/Props';
 
+export type { FilterOptions };
 
 export function FilterModal({ isOpen, onClose, onApply, initialFilters }: FilterModalProps) {
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);

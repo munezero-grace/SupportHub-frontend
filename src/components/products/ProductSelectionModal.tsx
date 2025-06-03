@@ -10,7 +10,6 @@ import { ProductSelectionModalProps } from '@/types/interfaces/Props'
 export default function ProductSelectionModal({
   isOpen,
   onClose,
-  onRemoveProduct,
   selectedProductIds,
   clientId,
 }: ProductSelectionModalProps) {
@@ -63,14 +62,6 @@ export default function ProductSelectionModal({
                 </td>
                 <td className="p-2">
                   {' '}
-                  <Button
-                    variant="outline"
-                    onClick={() => onRemoveProduct(product)}
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Move
-                  </Button>
                 </td>
               </tr>
             ))}

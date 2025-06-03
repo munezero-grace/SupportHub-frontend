@@ -18,6 +18,22 @@ export const productService = {
         }
     },
 
+    fetchProductsWithActiveClients: async (): Promise<Product[]> => {
+        try {
+            const response = await axiosInstance.get<Product[]>(BASE_URL);
+            const productsWithActiveClients = response.data.map((product: Product) => ({
+                ...product,
+                activeClients: product.clientProducts ? product.clientProducts.length : 0,
+            }));
+            return productsWithActiveClients;
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.data?.error) {
+                throw new Error(error.response.data.error);
+            }
+            throw error;
+        }
+    },
+
     getProduct: async (productCode: string): Promise<Product> => {
         try {
             const response = await axiosInstance.get<Product>(`${BASE_URL}/${productCode}`);

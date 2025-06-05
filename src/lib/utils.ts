@@ -21,7 +21,14 @@ export function truncateText(text: string, length: number): string {
 export function generateAvatarFallback(name: string): string {
   return name
     .split(' ')
-    .map(part => part[0])
+    .map((part) => part[0])
     .join('')
     .toUpperCase()
+}
+
+export const splitName = (name?: string) => {
+  return {
+    firstName: name?.split(' ')[0],
+    lastName: name?.split(' ')[1] || ' ',
+  }
 }

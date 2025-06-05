@@ -69,6 +69,9 @@ export default function DashboardPage() {
 	const [stats] = useState(mockStats);
 	const [recentTickets] = useState(mockRecentTickets);
 
+	console.log('=====session====', session);
+	
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -17,8 +17,10 @@ import { Client } from '@/types/clients';
 import { ClientResponse } from '@/types/clients/clientResponse';
 import { FilterOptions } from '@/types/interfaces/Props';
 import SearchAndFilters from '@/components/shared/SearchAndFilters';
+import { useRouter } from 'next/navigation';
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -70,28 +72,28 @@ export default function ProductsAdminPage() {
     } else {
       const initialSelectedClients: Client[] = product.clientProducts
         ? product.clientProducts.map((cp) => {
-            const clientData = cp as unknown as ClientResponse;
-            return {
-              id: String(clientData.id),
-              clientCode: clientData.clientCode,
-              name: clientData.name,
-              contactName: clientData.contactName,
-              companyName: clientData.companyName,
-              products: clientData.products,
-              supportTier: clientData.supportTier,
-              activeTickets: clientData.activeTickets,
-              status: clientData.status,
-              createdAt: clientData.createdAt,
-              updatedAt: clientData.updatedAt,
-              user: clientData.user,
-              userId: clientData.userId,
-              clientProducts: clientData.clientProducts,
-            };
-          })
+          const clientData = cp as unknown as ClientResponse;
+          return {
+            id: String(clientData.id),
+            clientCode: clientData.clientCode,
+            name: clientData.name,
+            contactName: clientData.contactName,
+            companyName: clientData.companyName,
+            products: clientData.products,
+            supportTier: clientData.supportTier,
+            activeTickets: clientData.activeTickets,
+            status: clientData.status,
+            createdAt: clientData.createdAt,
+            updatedAt: clientData.updatedAt,
+            user: clientData.user,
+            userId: clientData.userId,
+            clientProducts: clientData.clientProducts,
+          };
+        })
         : [];
       setSelectedClients(initialSelectedClients);
     }
-  
+
     const initialSelectedProductIds = product.clientProducts
       ? product.clientProducts.map((cp) => String((cp as unknown as ClientResponse).id))
       : [];
@@ -115,6 +117,7 @@ export default function ProductsAdminPage() {
         }
       },
       openClientModal,
+      onNavigate: (path) => router.push(path)
     });
 
   const handleFilterApply = (newFilters: FilterOptions) => setFilters(newFilters);

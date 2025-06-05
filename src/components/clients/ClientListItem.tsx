@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import axios from 'axios'
+import { axiosInstance } from '@/lib/api'
 
 interface ClientListItemProps {
   client: Client
@@ -27,9 +27,7 @@ const ClientListItem: FC<ClientListItemProps> = ({
     setIsLoading(true)
 
     try {
-      await axios.patch(
-        `http://localhost:5000/api/clients/${client.clientCode}/status`
-      )
+      await axiosInstance.patch(`/clients/${client.clientCode}/status`)
 
       const updatedStatus = client.status === 'active' ? 'inactive' : 'active'
 

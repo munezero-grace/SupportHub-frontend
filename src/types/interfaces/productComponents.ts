@@ -7,6 +7,7 @@ export interface ProductHandlerProps {
     selectedProduct: Product | null;
     refreshData?: () => void;
     openClientModal: (product: Product) => void;
+    onNavigate: (path: string) => void;
 }
 
 export interface ProductCardProps {

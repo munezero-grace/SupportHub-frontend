@@ -1,19 +1,30 @@
-import NextAuth from 'next-auth'
-import axios from 'axios'
-import type { NextAuthOptions } from 'next-auth'
+import NextAuth, { type NextAuthOptions } from 'next-auth'
+import axios, { AxiosError } from 'axios'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
-import type { GoogleProfile } from '@/types/auth'
-import { handleAuthError } from '@/lib/auth-utils'
-import type { JWT } from 'next-auth/jwt'
-import { debug } from 'console'
-import type { ExtendedUser } from '@/types/next-auth'
+import { socialSignup } from '@/services/auth.service'
+import { signOut } from 'next-auth/react'
+import { splitName } from '@/lib/utils'
+
+type CustomUser = {
+  id: string;
+  email: string;
+  name?: string | null;
+  image?: string | null;
+  token?: string;
+  role?: string;
+  provider?: string;
+  providerId?: string;
+}
 
 const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      httpOptions: {
+        timeout: 10000,
+      },
       authorization: {
         params: {
           prompt: 'select_account',
@@ -28,11 +39,14 @@ const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.picture,
           role: profile.role,
+          provider: 'google',
+          providerId: profile.sub,
         }
       },
     }),
     CredentialsProvider({
-      name: 'Credentials',
+      id: 'credentials',
+      name: 'credentials',
       credentials: {
         email: {
           label: 'Email',
@@ -42,179 +56,118 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        if (!credentials?.email || !credentials?.password) return null;
 
-        const backendUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
+        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
+
         try {
           const response = await axios.post(`${backendUrl}/api/auth/login`, {
             email: credentials.email,
-            password: credentials.password,
-            provider: 'credentials',
-          })
+            password: credentials.password
+          });
 
-          const token = response.data.token
+          const { token } = response.data;
 
           if (token) {
             const base64Payload = token.split('.')[1]
-            const payload = JSON.parse(
+            const userData = JSON.parse(
               Buffer.from(base64Payload, 'base64').toString()
             )
-
             return {
-              id: payload.id,
-              firstName: payload.firstName,
-              lastName: payload.lastName,
-              email: payload.email,
-              image: payload.picture,
-              role: payload.role,
-              provider: payload.provider,
-              providerId: payload.providerId,
+              ...userData,
+              token,
+              accessToken: token,
+              provider: 'credentials',
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              name: userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : undefined
             }
           }
+
+          return null;
         } catch (error) {
-          debug('Error during credentials authorization:', error)
-          return null
+          if (error instanceof AxiosError) {
+            throw new Error(JSON.stringify({ ...error.response?.data }))
+          }
+          throw error
         }
-        return null
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60,
-  },
-
-  pages: {
-    signIn: '/',
-    signOut: '/',
-    error: '/',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'credentials') {
-        return true
+    async signIn({ user }) {
+      return !!user
+    }, async jwt({ token, user, account, profile }) {
+      if (user) {
+        const customUser = user as CustomUser
+        token.id = customUser.id
+        token.role = customUser.role || 'user'
+        token.accessToken = customUser.token || token.accessToken || ''
+        token.provider = customUser.provider || account?.provider || token.provider || ''
+        token.providerId = customUser.providerId || token.providerId || ''
+        token.email = customUser.email || token.email
+        if (customUser.firstName && customUser.lastName) {
+          token.name = `${customUser.firstName} ${customUser.lastName}`
+        }
       }
 
       if (account?.provider === 'google') {
+        const payload = {
+          email: profile?.email,
+          firstName: profile?.name ? splitName(profile.name).firstName : '',
+          lastName: profile?.name ? splitName(profile.name).lastName : '',
+          providerId: account.providerAccountId,
+          provider: account.provider,
+        }
+
         try {
-          const prof = profile as GoogleProfile
-          const backendUrl =
-            process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
-          const response = await axios.post(
-            `${backendUrl}/api/auth/google-signin`,
-            {
-              email: user.email,
-              firstName: prof.given_name ?? '',
-              lastName: prof.family_name ?? 'lastName',
-              provider: account.provider,
-              providerId: prof.sub,
-              role: prof.role
-            }
-          )
-
-          if (response.status < 200 || response.status >= 300) {
-            handleAuthError(
-              { status: response.status, data: response.data },
-              'google-signin'
+          const data = await socialSignup(payload)
+          if (data.token) {
+            const base64Payload = data.token.split('.')[1]
+            const decodedUser = JSON.parse(
+              Buffer.from(base64Payload, 'base64').toString()
             )
-            return false
-          }
-
-          const token = response.data.token
-          if (token) {
-            try {
-              const base64Payload = token.split('.')[1]
-              const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString())
-              user.role = payload.role
-            } catch {
-
+            return {
+              ...token,
+              ...decodedUser,
+              accessToken: data.token,
             }
           }
-
-          return true
         } catch (error) {
-          debug("Error syncing user with backend:", error);
-          return false;
+          console.error("Error in social signup:", error)
+          return token
         }
       }
-      return true
-    },
-    async jwt({
-      token,
-      user,
-    }: {
-      token: JWT
-      user?: ExtendedUser
-    }): Promise<JWT> {
-      if (user) {
-        if (typeof user === 'string') {
-          try {
-            const payload = JSON.parse(
-              Buffer.from((user as string).split('.')[1], 'base64').toString()
-            )
-            token = { ...token, ...payload }
-            if (!token.name && token.firstName && token.lastName) {
-              token.name = `${token.firstName} ${token.lastName}`.trim()
-            }
-          } catch { }
-        } else if ('token' in user && typeof user.token === 'string') {
-          try {
-            const payload = JSON.parse(
-              Buffer.from(
-                (user.token as string).split('.')[1],
-                'base64'
-              ).toString()
-            )
-            token = { ...token, ...payload }
-            if (!token.name && token.firstName && token.lastName) {
-              token.name = `${token.firstName} ${token.lastName}`.trim()
-            }
-          } catch { }
-        } else {
-          token.id = user.id
-          token.role = user.role ?? undefined
-          token.name = user.name ?? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-          token.email = user.email
-          token.picture = user.image
-          token.provider = user.provider
-          token.providerId = user.providerId
-        }
-      }
+
       return token
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: import('next-auth').Session
-      token: JWT
-    }) {
-      if (session.user) {
-        const user = session.user as ExtendedUser
-        user.id = token.id as string
-        user.role = token.role as string
-        user.name = token.name as string
-        user.provider = token.provider as string
-        user.providerId = token.providerId as string
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.accessToken = token.accessToken as string
+        session.user.provider = token.provider as string
+        session.user.providerId = token.providerId as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string || ''
       }
       return session
     },
-    async redirect({ url, baseUrl }) {
-      if (url.includes('signout')) {
-        return baseUrl
-      }
-      if (url.includes('/dashboard')) {
-        return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
-      }
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return baseUrl
-      }
-      return url.startsWith(baseUrl) ? url : baseUrl
-    },
   },
-};
+  pages: {
+    signIn: '/',
+    error: '/',
+    signOut: '/'
+  },
+  session: {
+    strategy: 'jwt'
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+export const logout = (route = '/') => {
+  signOut({ callbackUrl: route })
+}
 
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

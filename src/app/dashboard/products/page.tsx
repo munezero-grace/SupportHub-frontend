@@ -1,27 +1,26 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/Button";
-import { Table } from "@/components/ui/Table";
-import {
-  PlusIcon,
-  FilterIcon,
-  SearchIcon,
-} from "@/components/icons/ActionIcons";
-import { ProductFormModal } from "@/components/products/ProductFormModal";
-import { Dialog } from "@/components/ui/Dialog";
-import { PRODUCT_STATUS_OPTIONS } from "@/constants/productConfig";
-import { filterProducts } from "@/constants/filterConfig";
-import { Product } from "@/types/interfaces/product";
-import { Input } from "@/components/ui/Input";
-import { FilterModal, FilterOptions } from "@/components/products/FilterModal";
-import { createProductHandlers } from "@/components/products/productHandlers";
-import ClientSelectionModal from "@/components/clients/ClientSelectionModal";
-import { productService } from "@/services/products.service";
-import { Client } from "@/types/clients";
-import { ClientResponse } from "@/types/clients/clientResponse";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Table } from '@/components/ui/Table';
+import { PlusIcon } from '@/components/icons/ActionIcons';
+import { ProductFormModal } from '@/components/products/ProductFormModal';
+import { Dialog } from '@/components/ui/Dialog';
+import { PRODUCT_STATUS_OPTIONS } from '@/constants/productConfig';
+import { filterProducts } from '@/constants/filterConfig';
+import { Product } from '@/types/interfaces/product';
+import { FilterModal } from '@/components/products/FilterModal';
+import { createProductHandlers } from '@/components/products/productHandlers';
+import ClientSelectionModal from '@/components/clients/ClientSelectionModal';
+import { productService } from '@/services/products.service';
+import { Client } from '@/types/clients';
+import { ClientResponse } from '@/types/clients/clientResponse';
+import { FilterOptions } from '@/types/interfaces/Props';
+import SearchAndFilters from '@/components/shared/SearchAndFilters';
+import { useRouter } from 'next/navigation';
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -73,28 +72,28 @@ export default function ProductsAdminPage() {
     } else {
       const initialSelectedClients: Client[] = product.clientProducts
         ? product.clientProducts.map((cp) => {
-            const clientData = cp as unknown as ClientResponse;
-            return {
-              id: String(clientData.id),
-              clientCode: clientData.clientCode,
-              name: clientData.name,
-              contactName: clientData.contactName,
-              companyName: clientData.companyName,
-              products: clientData.products,
-              supportTier: clientData.supportTier,
-              activeTickets: clientData.activeTickets,
-              status: clientData.status,
-              createdAt: clientData.createdAt,
-              updatedAt: clientData.updatedAt,
-              user: clientData.user,
-              userId: clientData.userId,
-              clientProducts: clientData.clientProducts,
-            };
-          })
+          const clientData = cp as unknown as ClientResponse;
+          return {
+            id: String(clientData.id),
+            clientCode: clientData.clientCode,
+            name: clientData.name,
+            contactName: clientData.contactName,
+            companyName: clientData.companyName,
+            products: clientData.products,
+            supportTier: clientData.supportTier,
+            activeTickets: clientData.activeTickets,
+            status: clientData.status,
+            createdAt: clientData.createdAt,
+            updatedAt: clientData.updatedAt,
+            user: clientData.user,
+            userId: clientData.userId,
+            clientProducts: clientData.clientProducts,
+          };
+        })
         : [];
       setSelectedClients(initialSelectedClients);
     }
-  
+
     const initialSelectedProductIds = product.clientProducts
       ? product.clientProducts.map((cp) => String((cp as unknown as ClientResponse).id))
       : [];
@@ -118,6 +117,7 @@ export default function ProductsAdminPage() {
         }
       },
       openClientModal,
+      onNavigate: (path) => router.push(path)
     });
 
   const handleFilterApply = (newFilters: FilterOptions) => setFilters(newFilters);
@@ -164,52 +164,41 @@ export default function ProductsAdminPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-700">Products</h1>
-          <p className="text-gray-600">Manage software products and assign clients and developers</p>
+          <h1 className="text-2xl font-bold">Products</h1>
+          <p className="text-gray-500">Manage software products and assign clients and developers</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setSelectedProduct(null);
-            setIsAddModalOpen(true);
-          }}
-          className="!bg-black !text-white rounded-lg flex items-center gap-2 w-full md:w-auto"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Add Product
-        </Button>
+        <div>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setSelectedProduct(null);
+              setIsAddModalOpen(true);
+            }}
+            className="!bg-black !text-white rounded-lg flex items-center gap-2"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add Product
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-4 md:p-6 space-y-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-700">All Products</h2>
-            <p className="text-gray-600">View and Manage Software Products</p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 flex items-center gap-2">
-              <SearchIcon className="w-4 h-4 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setFilterModalOpen(true)}
-              className="flex items-center gap-2 w-full md:w-auto"
-            >
-              <FilterIcon className="w-4 h-4" />
-              Filter
-            </Button>
-          </div>
+      <div className="rounded-lg border border-gray-200 pb-9">
+        <div className="p-4 pb-2">
+          <h2 className="text-2xl font-bold">All Products</h2>
+          <p className="text-gray-500">View and manage software products</p>
+        </div>
 
+        <SearchAndFilters
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          onFilterClick={() => setFilterModalOpen(true)}
+          placeholder="Search products..."
+        />
+
+        <div className="mx-4">
           <div className="border border-gray-200 rounded-lg overflow-x-auto">
             <Table
               data={filteredProducts}

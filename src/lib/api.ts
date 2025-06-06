@@ -4,9 +4,46 @@ import axios from 'axios';
 export const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
 });
+
+axiosInstance.interceptors.request.use(async (config) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+
+      if (session?.user?.accessToken) {
+        config.headers['Authorization'] = `Bearer ${session.user.accessToken}`;
+      }
+    } catch (error) {
+      console.error('Error getting auth session:', error);
+    }
+  }
+  return config;
+});
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.error('Authentication error:', {
+        path: error.config?.url,
+        message: error.response?.data?.message || error.message
+      });
+      const session = await fetch('/api/auth/session');
+      const sessionData = await session.json();
+
+      if (!sessionData?.user?.accessToken) {
+        window.location.href = '/';
+      } else {
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {

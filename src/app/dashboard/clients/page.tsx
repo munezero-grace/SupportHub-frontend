@@ -1,29 +1,41 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useClientsQuery } from '@/hooks/useQueries'
-import ClientListItem from '@/components/clients/ClientListItem'
-import { AddClientButton } from '@/components/clients/AddClientButton'
-import ClientSearchAndFilters from '@/components/clients/ClientSearchAndFilters'
+import SearchAndFilters from '@/components/shared/SearchAndFilters'
+import { useClients } from '@/hooks/useClientQueries'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import ProductSelectionModal from '@/components/products/ProductSelectionModal'
 import { Product } from '@/types/interfaces/product'
-import { Client } from '@/types/clients'
+import { Client, SupportTier, Status } from '@/types/clients'
 import { productService } from '@/services/products.service'
 import { toast } from 'react-toastify'
+import { Table } from '@/components/ui/Table'
+import { Badge } from '@/components/ui/Badge'
+import { ActionMenu } from '@/components/ui/ActionMenu'
+import { useRouter } from 'next/navigation'
+import { UserCircleIcon } from '@heroicons/react/24/solid'
+import { AddClientButton } from '@/components/clients/AddClientButton'
+import { Dialog } from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/Button'
+import { clientsApi } from '@/services/clients'
+import { ClientFormModal } from '@/components/clients/ClientFormModal'
+import type { ClientFormData } from '@/validations/clientSchema'
+import type { UpdateClientDto } from '@/types/clients'
 
 export default function ClientsPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const { data: clients, isLoading, error, refetch } = useClientsQuery()
+  const { data: clients, isLoading, error, refetch } = useClients()
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
   const filteredClients = useMemo(
     () =>
       clients?.filter(
         (client) =>
-          client.companyName
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
+          client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           client.clientCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
           client.companyName.toLowerCase().includes(searchQuery.toLowerCase())
       ) ?? [],
@@ -35,17 +47,59 @@ export default function ClientsPage() {
     setIsProductModalOpen(true)
   }
 
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client)
+    setIsEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async (formData: ClientFormData) => {
+    if (!selectedClient) return
+
+    try {
+      const updateData: UpdateClientDto = {
+        companyName: formData.companyName,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail,
+        supportTier: formData.supportTier as SupportTier,
+        status: formData.status as Status
+      }
+      await clientsApi.update(selectedClient.clientCode, updateData)
+      toast.success('Client updated successfully')
+      setIsEditModalOpen(false)
+      setSelectedClient(null)
+      refetch()
+    } catch (error) {
+      console.error('Error updating client:', error)
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err?.response?.data?.message || 'Error updating client')
+    }
+  }
+
   const handleRemoveProduct = async (product: Product) => {
     if (!selectedClient) return
 
     try {
       await productService.removeClientFromProduct(String(product.id), String(selectedClient.id))
-    
       refetch()
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      const errorMessage =
-        err?.response?.data?.message || err?.message || 'Error removing product'
+      const errorMessage = err?.response?.data?.message || err?.message || 'Error removing product'
+      toast.error(errorMessage)
+    }
+  }
+
+  const handleDeleteClient = async () => {
+    if (!selectedClient) return
+
+    try {
+      await clientsApi.delete(selectedClient.clientCode)
+      toast.success('Client deleted successfully')
+      setIsDeleteModalOpen(false)
+      setSelectedClient(null)
+      refetch()
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      const errorMessage = err?.response?.data?.message || err?.message || 'Error deleting client'
       toast.error(errorMessage)
     }
   }
@@ -58,8 +112,104 @@ export default function ClientsPage() {
     )
   }
 
+  const columns = [
+    {
+      header: 'ID',
+      accessor: (client: Client) => client.clientCode
+    },
+    {
+      header: 'Company Name',
+      accessor: (client: Client) => (
+        <div className="flex items-center">
+          <UserCircleIcon className="h-6 w-6 text-gray-500 mr-2" />
+          {client.companyName}
+        </div>
+      )
+    },
+    {
+      header: 'Contact',
+      accessor: (client: Client) => (
+        <div>
+          <div className="text-gray-500">{client.user.email}</div>
+        </div>
+      )
+    },
+    {
+      header: 'Products',
+      accessor: (client: Client) => (
+        <div className="flex flex-wrap gap-1">
+          {client.clientProducts && client.clientProducts.map(cp => (
+            <Badge
+              key={cp.id}
+              variant="default"
+              className="capitalize font-bold bg-white/90"
+            >
+              {cp.product?.name || 'Unknown Product'}
+            </Badge>
+          ))}
+          {!client.clientProducts?.length && (
+            <Badge variant="default" className="font-bold bg-white/90">No products</Badge>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Support Tier',
+      accessor: (client: Client) => (
+        <Badge variant={client.supportTier === 'premium' ? 'warning' : 'default'}>
+          {client.supportTier}
+        </Badge>
+      )
+    },
+    {
+      header: 'Active Tickets',
+      accessor: () => 100
+    },
+    {
+      header: 'Status',
+      accessor: (client: Client) => (
+        <Badge variant={client.status === 'active' ? 'success' : 'error'} className={client.status === 'active' ? 'bg-green-500 text-white' : ''}>
+          {client.status}
+        </Badge>
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: (client: Client) => (
+        <ActionMenu
+          items={[
+            {
+              label: 'View Details',
+              onClick: () => router.push(`/dashboard/clients/${client.clientCode}`),
+            },
+            {
+              label: 'Edit Client',
+              onClick: () => handleEditClient(client),
+            },
+            {
+              label: 'Manage Products',
+              onClick: () => handleManageProducts(client),
+            },
+            {
+              label: 'View Tickets',
+              onClick: () => router.push(`/dashboard/clients/${client.clientCode}/tickets`),
+            },
+            {
+              label: 'Delete',
+              onClick: () => {
+                setSelectedClient(client)
+                setIsDeleteModalOpen(true)
+              },
+              variant: 'danger'
+            }
+          ]}
+        />
+      )
+    }
+  ]
+
   return (
-    <div className="space-y-6">
+    <div className="px-1 py-2 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Clients</h1>
@@ -78,9 +228,10 @@ export default function ClientsPage() {
           <p className="text-gray-500">view and manage client organizations</p>
         </div>
 
-        <ClientSearchAndFilters
+        <SearchAndFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          placeholder="Search clients..."
         />
 
         <div className="mx-4">
@@ -89,72 +240,77 @@ export default function ClientsPage() {
               <LoadingSpinner size="lg" />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      ID
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Company Name
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Contact
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Products
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Support Tier
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Active Tickets
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">
-                      Status
-                    </th>
-                    <th className="p-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredClients.map((client) => (
-                    <ClientListItem 
-                      key={client.clientCode} 
-                      client={client} 
-                      onManageProducts={() => handleManageProducts(client)} 
-                    />
-                  ))}
-                  {filteredClients.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="px-4 py-8 text-center text-gray-500"
-                      >
-                        {searchQuery
-                          ? 'No clients found matching your search'
-                          : 'No clients found. Add your first client!'}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="border border-gray-200 rounded-lg overflow-x-auto">
+              <Table
+                data={filteredClients}
+                columns={columns}
+                className="w-full [&_th]:!text-gray-500 [&_td]:!text-gray-900 [&_th]:!font-medium [&_td]:!font-medium [&_th]:!p-4 [&_td]:!p-4 [&_tr]:border-b [&_tr:last-child]:border-b-0"
+                emptyState={searchQuery ? 'No clients found matching your search' : 'No clients found. Add your first client!'}
+              />
             </div>
           )}
         </div>
       </div>
-      {selectedClient && (
-        <ProductSelectionModal
-          isOpen={isProductModalOpen}
-          onClose={() => {
-            setIsProductModalOpen(false)
-            setSelectedClient(null)
-          }}
-          onRemoveProduct={handleRemoveProduct}
-          selectedProductIds={selectedClient.clientProducts?.map(cp => String(cp.product?.id)) || []}
-          clientId={String(selectedClient.id)}
-        />
-      )}
+
+      <ClientFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedClient(null)
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedClient ? {
+          companyName: selectedClient.companyName,
+          contactName: selectedClient.user.firstName,
+          contactEmail: selectedClient.user.email,
+          supportTier: selectedClient.supportTier,
+          status: selectedClient.status,
+        } : undefined}
+        title="Edit Client"
+      />
+
+      <Dialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setSelectedClient(null)
+        }}
+        title="Delete Client"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to delete this client? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false)
+                setSelectedClient(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteClient}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <ProductSelectionModal
+        isOpen={isProductModalOpen}
+        onClose={() => {
+          setIsProductModalOpen(false)
+          setSelectedClient(null)
+        }}
+        onRemoveProduct={handleRemoveProduct}
+        selectedProductIds={selectedClient?.clientProducts?.map(cp => String(cp.product?.id)) || []}
+        clientId={selectedClient ? String(selectedClient.id) : ''}
+      />
     </div>
   )
 }

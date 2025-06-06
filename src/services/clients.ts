@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance'
+import { axiosInstance } from '@/lib/api';
 import { Client, CreateClientDto, UpdateClientDto } from '../types/clients'
 
 const BASE_URL = '/api/clients'

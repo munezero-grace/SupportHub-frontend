@@ -55,10 +55,18 @@ export const productService = {
             const response = await axiosInstance.post<Product>(BASE_URL, normalizedData);
             return response.data;
         } catch (error) {
-            if (error instanceof AxiosError && error.response?.data?.error) {
-                throw new Error(error.response.data.error);
+            if (error instanceof AxiosError) {
+                if (error.response?.status === 401) {
+                    throw new Error('You must be logged in to perform this action');
+                }
+                if (error.response?.status === 403) {
+                    throw new Error('You do not have permission to perform this action');
+                }
+                if (error.response?.data?.message) {
+                    throw new Error(error.response.data.message);
+                }
             }
-            throw error;
+            throw new Error('Failed to create product');
         }
     },
     updateProduct: async (id: string, productData: Partial<ProductFormData>): Promise<Product> => {
@@ -71,10 +79,18 @@ export const productService = {
             const response = await axiosInstance.put<Product>(`${BASE_URL}/${id}`, normalizedData);
             return response.data;
         } catch (error) {
-            if (error instanceof AxiosError && error.response?.data?.error) {
-                throw new Error(error.response.data.error);
+            if (error instanceof AxiosError) {
+                if (error.response?.status === 401) {
+                    throw new Error('You must be logged in to perform this action');
+                }
+                if (error.response?.status === 403) {
+                    throw new Error('You do not have permission to perform this action');
+                }
+                if (error.response?.data?.message) {
+                    throw new Error(error.response.data.message);
+                }
             }
-            throw error;
+            throw new Error('Failed to update product');
         }
     },
 
@@ -116,7 +132,7 @@ export const productsService = {
             throw error;
         }
     },
-    
+
     addClientToProduct: async (productId: string, clientId: string) => {
         try {
             const { data } = await axiosInstance.post(`${BASE_URL}/${productId}/clients/${clientId}`);

@@ -1,12 +1,51 @@
-"use client";
+'use client'
+
+import { Client } from '@/types/clients'
 import ActionMenu from './ActionMenu'
 import { UserCircleIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/Badge'
-import { FC } from 'react'
-import { ClientListItemProps } from '@/types/interfaces/Props';
+import { FC, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { axiosInstance } from '@/lib/api'
 
+interface ClientListItemProps {
+  client: Client
+  onStatusChange?: () => void
+  onManageProducts?: () => void
+}
 
-const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) => {
+const ClientListItem: FC<ClientListItemProps> = ({
+  client,
+  onStatusChange,
+  onManageProducts,
+}) => {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const toggleClientStatus = async () => {
+    setIsLoading(true)
+
+    try {
+      await axiosInstance.patch(`/clients/${client.clientCode}/status`)
+
+      const updatedStatus = client.status === 'active' ? 'inactive' : 'active'
+
+      toast.success(
+        updatedStatus === 'active' ? 'Client activated' : 'Client deactivated'
+      )
+
+      if (onStatusChange) onStatusChange()
+
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to update status')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <tr className="text-sm font-medium text-black hover:bg-gray-50">
       <td className="p-4">{client.clientCode}</td>
@@ -22,17 +61,20 @@ const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) =
       </td>
       <td className="p-4">
         <div className="flex flex-wrap gap-1">
-          {client.clientProducts && client.clientProducts.map(cp => (
-            <Badge
-              key={cp.id}
-              variant="default"
-              className="capitalize font-bold bg-white/90"
-            >
-              {cp.product?.name || 'Unknown Product'}
-            </Badge>
-          ))}
+          {client.clientProducts &&
+            client.clientProducts.map((cp) => (
+              <Badge
+                key={cp.id}
+                variant="default"
+                className="capitalize font-bold bg-white/90"
+              >
+                {cp.product?.name || 'Unknown Product'}
+              </Badge>
+            ))}
           {!client.clientProducts?.length && (
-            <Badge variant="default" className="font-bold  bg-white/90">No products</Badge>
+            <Badge variant="default" className="font-bold  bg-white/90">
+              No products
+            </Badge>
           )}
         </div>
       </td>
@@ -45,30 +87,48 @@ const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) =
       </td>
       <td className="p-4">{100}</td>
       <td className="p-4">
-        <Badge variant={client.status === 'active' ? 'success' : 'default'}>
-          {client.status}
-        </Badge>
+        <button
+          onClick={toggleClientStatus}
+          disabled={isLoading}
+          className="cursor-pointer"
+        >
+          <Badge
+            variant={client.status === 'active' ? 'success' : 'default'}
+            className={isLoading ? 'opacity-50' : ''}
+          >
+            {isLoading ? 'Updating...' : client.status}
+          </Badge>
+        </button>
       </td>
+
       <td className="p-4">
         <ActionMenu
           items={[
             {
               label: 'View Details',
-              onClick: () =>
-                console.log('Viewing details for:', client.clientCode),
+              onClick: () => router.push(`/clients/${client.clientCode}`),
             },
             {
               label: 'Edit Client',
-              onClick: () => console.log('Editing client:', client.clientCode),
+              onClick: () => router.push(`/clients/${client.clientCode}/edit`),
             },
             {
               label: 'Manage Products',
-              onClick: onManageProducts,
+              onClick: () => {
+                if (onManageProducts) onManageProducts()
+              },
             },
             {
               label: 'View Tickets',
               onClick: () =>
-                console.log('Viewing tickets for:', client.clientCode),
+                router.push(`/clients/${client.clientCode}/tickets`),
+            },
+            {
+              label:
+                client.status === 'active'
+                  ? 'Deactivate Client'
+                  : 'Activate Client',
+              onClick: toggleClientStatus,
             },
           ]}
         />
@@ -77,4 +137,4 @@ const ClientListItem: FC<ClientListItemProps> = ({ client, onManageProducts }) =
   )
 }
 
-export default ClientListItem;
+export default ClientListItem

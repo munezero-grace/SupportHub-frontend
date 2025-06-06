@@ -1,5 +1,18 @@
-export type SupportTier = 'standard' | 'premium'
-export type ClientStatus = 'active' | 'inactive'
+export enum SupportTier {
+  Standard = 'standard',
+  Premium = 'premium',
+}
+
+export enum Status {
+  Active = 'active',
+  Inactive = 'inactive',
+}
+
+export interface User {
+  email: string
+  firstName: string
+  lastName: string
+}
 
 export interface Client {
   id: string
@@ -10,7 +23,7 @@ export interface Client {
   products: string[]
   supportTier: SupportTier
   activeTickets: number
-  status: ClientStatus
+  status: Status
   createdAt: string
   updatedAt: string
   user: User
@@ -27,24 +40,18 @@ export interface Client {
   }[];
 }
 
-export interface User {
-  email: string
-  firstName:string
-  lastName:string
-}
-
 export interface CreateClientDto {
   companyName: string
   contactName: string
   contactEmail: string
   supportTier?: SupportTier
-  status?: ClientStatus
+  status?: Status
   userId?: string
 }
 
 export interface UpdateClientDto extends Partial<CreateClientDto> {
   activeTickets?: number
-  status: 'active' | 'inactive'
+  status: Status
 }
 
 export interface SelectOption {
@@ -55,4 +62,13 @@ export interface SelectOption {
 export type FormData = {
   productId: string
   clientId: string
+}
+
+export interface AddClientFormProps {
+  onSuccess: () => void
+}
+
+export interface AddClientModalProps {
+  isOpen: boolean
+  onClose: () => void
 }

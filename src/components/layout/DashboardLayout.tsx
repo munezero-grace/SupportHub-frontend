@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
-import { sideBar } from '@/constants/sideBar'
+import { navigation } from '@/constants/sidebarNavigation'
 import { usePathname } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
@@ -10,6 +10,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { DashboardLayoutProps } from '@/types/interfaces/Props'
 import { useMobileMenu } from '@/context/MobileMenuContext'
 import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
+// import { globalToken } from '@/app/api/auth/[...nextauth]/route'
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
@@ -19,15 +20,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
-      window.location.replace('/')
+      // window.location.replace('/')
     },
   })
+  // console.log('=====session Layout====', session)
 
   const isAdmin = session?.user?.role === 'super_admin'
-  const filteredNavigation = sideBar.filter(
+  // console.log("token Global",globalToken)
+
+  const filteredNavigation = navigation.filter(
     (item) => !item.adminOnly || (item.adminOnly && isAdmin)
-    
   )
+
+  // console.log('====================================')
+  // console.log(filteredNavigation)
+  // console.log('====================================')
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +47,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [setIsMobileMenuOpen])
 
   useEffect(() => {
-    if (status === 'unauthenticated' as string) {
+    if (status === ('unauthenticated' as string)) {
       window.history.pushState(null, '', '/')
       window.addEventListener('popstate', () => {
         window.history.forward()
@@ -174,7 +181,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {session?.user?.image ? (
                     <Image
                       src={session.user.image}
-                      alt={session.user.name || 'User'}
+                      alt={session.user?.name || ''}
                       width={32}
                       height={32}
                       className="rounded-full"

@@ -16,7 +16,7 @@ const ClientSearchAndFilters = ({
         <input
           type="text"
           placeholder="Search clients..."
-          className="w-250 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-amber-950 focus:ring-1"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-amber-950 focus:ring-1"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
         />

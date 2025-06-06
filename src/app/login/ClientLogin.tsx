@@ -1,33 +1,38 @@
-import React, { useState } from "react"
+'use client';
+
+import { signIn } from 'next-auth/react';
+import { useState, FormEvent } from 'react';
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
-import { toast } from "react-toastify"
-import { signIn } from "next-auth/react"
 
-const BPTicketLogin = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+const BPTicketLogin: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    const result = await signIn("credentials", {
-      redirect: false,
-      provider: "credentials",
-      email,
-      password,
-      callbackUrl: window.location.origin + "/dashboard",
-    })
-    setIsLoading(false)
-    if (result?.error) {
-      toast.error("Invalid email or password")
-    } else if (result?.ok) {
-      toast.success("Login successful")
-      window.location.href = "/dashboard"
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        const errorData = JSON.parse(result.error);
+        setError(errorData.message || 'Login failed');
+      } else if (result?.ok) {
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+      console.error('Login error:', err);
     }
-  }
+  };
 
   return (
     <>
@@ -98,6 +103,11 @@ const BPTicketLogin = () => {
                 </div>
               </div>
 
+              {error && (
+                <div className="text-red-600 text-sm mb-4">
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={isLoading}

@@ -45,3 +45,16 @@ export interface GoogleProfile {
   role?: string
   emailVerified?: Date | null
 }
+
+export type CustomUser = {
+  id: string;
+  email: string;
+  name?: string | null;
+  image?: string | null;
+  token?: string;
+  role?: string;
+  provider?: string;
+  providerId?: string;
+  firstName?: string;
+  lastName?: string;
+}

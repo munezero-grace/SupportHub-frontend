@@ -5,17 +5,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { socialSignup } from '@/services/auth.service'
 import { signOut } from 'next-auth/react'
 import { splitName } from '@/lib/utils'
-
-type CustomUser = {
-  id: string;
-  email: string;
-  name?: string | null;
-  image?: string | null;
-  token?: string;
-  role?: string;
-  provider?: string;
-  providerId?: string;
-}
+import { CustomUser } from '@/types/auth'
 
 const authOptions: NextAuthOptions = {
   providers: [

@@ -23,18 +23,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       // window.location.replace('/')
     },
   })
-  // console.log('=====session Layout====', session)
+  
 
   const isAdmin = session?.user?.role === 'super_admin'
-  // console.log("token Global",globalToken)
+  
 
   const filteredNavigation = navigation.filter(
     (item) => !item.adminOnly || (item.adminOnly && isAdmin)
   )
 
-  // console.log('====================================')
-  // console.log(filteredNavigation)
-  // console.log('====================================')
 
   useEffect(() => {
     const handleResize = () => {

@@ -69,7 +69,7 @@ export default function DashboardPage() {
 	const [stats] = useState(mockStats);
 	const [recentTickets] = useState(mockRecentTickets);
 
-	console.log('=====session====', session);
+	
 	
 
 	return (

@@ -1,6 +1,7 @@
 import { PingResponse, Stats, Ticket } from '@/types/interfaces/interface';
 import axios from 'axios';
 
+
 export const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
@@ -46,6 +47,7 @@ axiosInstance.interceptors.response.use(
 );
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+
 async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
   try {
     const res = await promise;
@@ -53,7 +55,7 @@ async function handleApiResponse<T>(promise: Promise<Response>): Promise<T> {
       throw new Error(`API error: ${res.status}`);
     }
     return res.json();
-  } catch (error: unknown) {
+  } catch (error) {
     if (error instanceof Error) {
       console.error('API request failed:', error.message);
     } else {
@@ -85,6 +87,7 @@ export async function getTickets(): Promise<Ticket[]> {
   const response = await axiosInstance.get<Ticket[]>('/tickets');
   return response.data;
 }
+
 export async function loginClient(email: string, password: string): Promise<{ message: string }> {
   const response = await axiosInstance.post<{ message: string }>('/auth/login', {
     email,

@@ -63,3 +63,23 @@ export interface ExtendedToken extends JWT {
   provider: string
   providerId: string
 }
+
+export interface FilterField {
+  label: string
+  name: string
+  type?: string
+  options?: Array<{ label: string; value: string }>
+}
+
+export interface FilterModalProps {
+  isOpen: boolean
+  onClose: () => void
+  fields: FilterField[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  values: Record<string, any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onChange: (name: string, value: any) => void
+  onApply: () => void
+  title?: string
+}
+

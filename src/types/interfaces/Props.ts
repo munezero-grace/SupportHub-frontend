@@ -148,6 +148,8 @@ export interface ProductSelectionModalProps {
 }
 export interface FilterOptions {
   status: SelectOption;
+  priority: SelectOption;
+  hasActiveClients?: boolean;
   minClients?: number;
   minDevelopers?: number;
   hasActiveTickets?: boolean;

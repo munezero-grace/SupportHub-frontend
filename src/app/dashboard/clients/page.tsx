@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { useClients } from '@/hooks/useClientQueries'
+import { AddClientButton } from '@/components/clients/AddClientButton'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import ProductSelectionModal from '@/components/products/ProductSelectionModal'
 import { Product } from '@/types/interfaces/product'
@@ -14,13 +15,14 @@ import { Badge } from '@/components/ui/Badge'
 import { ActionMenu } from '@/components/ui/ActionMenu'
 import { useRouter } from 'next/navigation'
 import { UserCircleIcon } from '@heroicons/react/24/solid'
-import { AddClientButton } from '@/components/clients/AddClientButton'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { clientsApi } from '@/services/clients'
 import { ClientFormModal } from '@/components/clients/ClientFormModal'
 import type { ClientFormData } from '@/validations/clientSchema'
 import type { UpdateClientDto } from '@/types/clients'
+import { FilterPopup } from '@/components/shared/FilterModal'
+import { filterFields } from '@/constants/filterConfig'
 
 export default function ClientsPage() {
   const router = useRouter()
@@ -30,16 +32,38 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [filterValues, setFilterValues] = useState({
+    status: '',
+    supportTier: '',
+  })
+
+  const handleFilterChange = (name: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleApplyFilters = () => {
+    setIsFilterModalOpen(false)
+  }
 
   const filteredClients = useMemo(
     () =>
       clients?.filter(
         (client) =>
-          client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          client.clientCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          client.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+          (client.companyName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+            client.clientCode
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())) &&
+          (filterValues.status
+            ? client.status === filterValues.status
+            : true) &&
+          (filterValues.supportTier
+            ? client.supportTier === filterValues.supportTier
+            : true)
       ) ?? [],
-    [clients, searchQuery]
+    [clients, searchQuery, filterValues]
   )
 
   const handleManageProducts = (client: Client) => {
@@ -61,7 +85,7 @@ export default function ClientsPage() {
         contactName: formData.contactName,
         contactEmail: formData.contactEmail,
         supportTier: formData.supportTier as SupportTier,
-        status: formData.status as Status
+        status: formData.status as Status,
       }
       await clientsApi.update(selectedClient.clientCode, updateData)
       toast.success('Client updated successfully')
@@ -79,11 +103,18 @@ export default function ClientsPage() {
     if (!selectedClient) return
 
     try {
-      await productService.removeClientFromProduct(String(product.id), String(selectedClient.id))
+      await productService.removeClientFromProduct(
+        String(product.id),
+        String(selectedClient.id)
+      )
       refetch()
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      const errorMessage = err?.response?.data?.message || err?.message || 'Error removing product'
+      const err = error as {
+        response?: { data?: { message?: string } }
+        message?: string
+      }
+      const errorMessage =
+        err?.response?.data?.message || err?.message || 'Error removing product'
       toast.error(errorMessage)
     }
   }
@@ -98,8 +129,12 @@ export default function ClientsPage() {
       setSelectedClient(null)
       refetch()
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      const errorMessage = err?.response?.data?.message || err?.message || 'Error deleting client'
+      const err = error as {
+        response?: { data?: { message?: string } }
+        message?: string
+      }
+      const errorMessage =
+        err?.response?.data?.message || err?.message || 'Error deleting client'
       toast.error(errorMessage)
     }
   }
@@ -115,7 +150,7 @@ export default function ClientsPage() {
   const columns = [
     {
       header: 'ID',
-      accessor: (client: Client) => client.clientCode
+      accessor: (client: Client) => client.clientCode,
     },
     {
       header: 'Company Name',
@@ -124,7 +159,7 @@ export default function ClientsPage() {
           <UserCircleIcon className="h-6 w-6 text-gray-500 mr-2" />
           {client.companyName}
         </div>
-      )
+      ),
     },
     {
       header: 'Contact',
@@ -132,46 +167,60 @@ export default function ClientsPage() {
         <div>
           <div className="text-gray-500">{client.user.email}</div>
         </div>
-      )
+      ),
     },
     {
       header: 'Products',
       accessor: (client: Client) => (
         <div className="flex flex-wrap gap-1">
-          {client.clientProducts && client.clientProducts.map(cp => (
-            <Badge
-              key={cp.id}
-              variant="default"
-              className="capitalize font-bold bg-white/90"
-            >
-              {cp.product?.name || 'Unknown Product'}
-            </Badge>
-          ))}
+          {client.clientProducts &&
+            client.clientProducts.map((cp) => (
+              <Badge
+                key={cp.id}
+                variant="default"
+                className="capitalize font-bold bg-white/90"
+              >
+                {cp.product?.name || 'Unknown Product'}
+              </Badge>
+            ))}
           {!client.clientProducts?.length && (
-            <Badge variant="default" className="font-bold bg-white/90">No products</Badge>
+            <Badge variant="default" className="font-bold bg-white/90">
+              No products
+            </Badge>
           )}
         </div>
-      )
+      ),
     },
     {
       header: 'Support Tier',
       accessor: (client: Client) => (
-        <Badge variant={client.supportTier === 'premium' ? 'warning' : 'default'}>
-          {client.supportTier}
+        <Badge
+          variant={client.supportTier === 'premium' ? 'warning' : 'default'}
+          className={
+            client.supportTier === 'premium' ? 'bg-black text-white' : ''
+          }
+        >
+          {client.supportTier.charAt(0).toUpperCase() +
+            client.supportTier.slice(1)}
         </Badge>
-      )
+      ),
     },
     {
       header: 'Active Tickets',
-      accessor: () => 100
+      accessor: () => 100,
     },
     {
       header: 'Status',
       accessor: (client: Client) => (
-        <Badge variant={client.status === 'active' ? 'success' : 'error'} className={client.status === 'active' ? 'bg-green-500 text-white' : ''}>
+        <Badge
+          variant={client.status === 'active' ? 'success' : 'error'}
+          className={
+            client.status === 'active' ? 'bg-green-500 text-white' : ''
+          }
+        >
           {client.status}
         </Badge>
-      )
+      ),
     },
     {
       header: 'Actions',
@@ -180,7 +229,8 @@ export default function ClientsPage() {
           items={[
             {
               label: 'View Details',
-              onClick: () => router.push(`/dashboard/clients/${client.clientCode}`),
+              onClick: () =>
+                router.push(`/dashboard/clients/${client.clientCode}`),
             },
             {
               label: 'Edit Client',
@@ -192,7 +242,8 @@ export default function ClientsPage() {
             },
             {
               label: 'View Tickets',
-              onClick: () => router.push(`/dashboard/clients/${client.clientCode}/tickets`),
+              onClick: () =>
+                router.push(`/dashboard/clients/${client.clientCode}/tickets`),
             },
             {
               label: 'Delete',
@@ -200,12 +251,12 @@ export default function ClientsPage() {
                 setSelectedClient(client)
                 setIsDeleteModalOpen(true)
               },
-              variant: 'danger'
-            }
+              variant: 'danger',
+            },
           ]}
         />
-      )
-    }
+      ),
+    },
   ]
 
   return (
@@ -232,6 +283,7 @@ export default function ClientsPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           placeholder="Search clients..."
+          onFilterClick={() => setIsFilterModalOpen(true)}
         />
 
         <div className="mx-4">
@@ -245,7 +297,11 @@ export default function ClientsPage() {
                 data={filteredClients}
                 columns={columns}
                 className="w-full [&_th]:!text-gray-500 [&_td]:!text-gray-900 [&_th]:!font-medium [&_td]:!font-medium [&_th]:!p-4 [&_td]:!p-4 [&_tr]:border-b [&_tr:last-child]:border-b-0"
-                emptyState={searchQuery ? 'No clients found matching your search' : 'No clients found. Add your first client!'}
+                emptyState={
+                  searchQuery
+                    ? 'No clients found matching your search'
+                    : 'No clients found. Add your first client!'
+                }
               />
             </div>
           )}
@@ -259,13 +315,17 @@ export default function ClientsPage() {
           setSelectedClient(null)
         }}
         onSubmit={handleEditSubmit}
-        initialData={selectedClient ? {
-          companyName: selectedClient.companyName,
-          contactName: selectedClient.user.firstName,
-          contactEmail: selectedClient.user.email,
-          supportTier: selectedClient.supportTier,
-          status: selectedClient.status,
-        } : undefined}
+        initialData={
+          selectedClient
+            ? {
+                companyName: selectedClient.companyName,
+                contactName: selectedClient.user.firstName,
+                contactEmail: selectedClient.user.email,
+                supportTier: selectedClient.supportTier,
+                status: selectedClient.status,
+              }
+            : undefined
+        }
         title="Edit Client"
       />
 
@@ -279,7 +339,8 @@ export default function ClientsPage() {
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Are you sure you want to delete this client? This action cannot be undone.
+            Are you sure you want to delete this client? This action cannot be
+            undone.
           </p>
           <div className="flex justify-end gap-3">
             <Button
@@ -291,10 +352,7 @@ export default function ClientsPage() {
             >
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              onClick={handleDeleteClient}
-            >
+            <Button variant="primary" onClick={handleDeleteClient}>
               Delete
             </Button>
           </div>
@@ -308,8 +366,21 @@ export default function ClientsPage() {
           setSelectedClient(null)
         }}
         onRemoveProduct={handleRemoveProduct}
-        selectedProductIds={selectedClient?.clientProducts?.map(cp => String(cp.product?.id)) || []}
+        selectedProductIds={
+          selectedClient?.clientProducts?.map((cp) => String(cp.product?.id)) ||
+          []
+        }
         clientId={selectedClient ? String(selectedClient.id) : ''}
+      />
+
+      <FilterPopup
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        fields={filterFields}
+        values={filterValues}
+        onChange={handleFilterChange}
+        onApply={handleApplyFilters}
+        title="Filter"
       />
     </div>
   )

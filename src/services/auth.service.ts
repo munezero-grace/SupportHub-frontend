@@ -1,12 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import axios from 'axios'
+import type { GoogleProfile } from '../types/auth'
 
 const backendUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const login = async ({ email, password }: any) => {
+
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export const login = async ({ email, password }: LoginCredentials) => {
   const response = await axios.post(`${backendUrl}/api/auth/login`, {
     email,
     password,
@@ -14,9 +19,9 @@ export const login = async ({ email, password }: any) => {
   return response
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-export const socialSignup = async (payload: any) => {
+
+export const socialSignup = async (payload: GoogleProfile) => {
   const response = await axios.post(
     `${backendUrl}/api/auth/google-signin`,
     payload

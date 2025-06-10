@@ -77,7 +77,7 @@ export default function Home() {
           </p>
           <Link href="/login">
             <span className="text-base text-blue-600 hover:text-blue-600 cursor-pointer font-medium">
-              Client login
+              Login with Password
             </span>
           </Link>
         </div>

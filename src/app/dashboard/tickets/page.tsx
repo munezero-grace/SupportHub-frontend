@@ -1,5 +1,6 @@
 'use client'
 import type { Ticket } from '@/types/interfaces/interface'
+import type { FilterOptions } from '@/types/interfaces/Props'
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ticketService } from '@/services/tickets.service'
@@ -7,19 +8,17 @@ import {
   TICKET_STATUS_OPTIONS,
   TICKET_PRIORITY_OPTIONS,
 } from '@/constants/ticketconfig'
+import { FilterModalTickets } from '@/components/tickets/FilterModalTickets'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import { Table } from '@/components/ui/Table'
 import { createTicketTableColumns } from "./ticketsTable"
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
-import { FilterModal } from '@/components/shared/FilterModal'
 
-export default function TicketsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
-  const [filterValues, setFilterValues] = useState({
-    status: '',
-    priority: ''
+  const [filterValues, setFilterValues] = useState<FilterOptions>({
+    status: TICKET_STATUS_OPTIONS[0],
+    priority: TICKET_PRIORITY_OPTIONS[0]
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -144,38 +143,27 @@ export default function TicketsPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleFilterChange = (name: string, value: string) => {
-    setFilterValues(prev => ({ ...prev, [name]: value }));
-  };
+  const handleFilterChange = (fieldName: string, value: string) => {
 
   const filteredTickets = tickets.filter((ticket) => {
     const clientName = typeof ticket.client === 'string' ? ticket.client : ticket.client?.companyName || '';
     const productName = typeof ticket.product === 'string' ? ticket.product : ticket.product?.name || '';
 
-    const matchesSearch =
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       productName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
-      !filterValues.status ||
-      ticket.status.toLowerCase() === filterValues.status.toLowerCase();
+      filterValues.status.value === 'all' ||
+      ticket.status.toLowerCase() === filterValues.status.value.toLowerCase();
 
     const matchesPriority =
-      !filterValues.priority ||
-      ticket.priority.toLowerCase() === filterValues.priority.toLowerCase();
-
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
-
-  const enhancedColumns = createTicketTableColumns({
     onEdit: handleEditTicket,
     onDelete: handleDeleteTicket,
     currentUserId,
     isAdmin
   });
 
-  const handleRowClick = (item: Ticket): void => {
     setSelectedTicket(item);
     setIsEditModalOpen(true);
   };
@@ -214,38 +202,12 @@ export default function TicketsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow">
-          <div className="relative">
-            <SearchAndFilters
-              searchQuery={searchTerm}
-              onSearchChange={setSearchTerm}
-              placeholder="Search tickets..."
-              onFilterClick={() => setIsFilterModalOpen(true)}
-            />
-            {isFilterModalOpen && (
-              <FilterModal
-                isOpen={isFilterModalOpen}
-                onClose={() => setIsFilterModalOpen(false)}
-                title="Filter Tickets"
-                fields={[
-                  {
-                    name: 'status',
-                    label: 'Status',
-                    type: 'select',
-                    options: TICKET_STATUS_OPTIONS,
-                  },
-                  {
-                    name: 'priority',
-                    label: 'Priority',
-                    type: 'select',
-                    options: TICKET_PRIORITY_OPTIONS,
-                  },
-                ]}
-                values={filterValues}
-                onChange={handleFilterChange}
-                onApply={() => setIsFilterModalOpen(false)}
-              />
-            )}
-          </div>
+          <SearchAndFilters
+            searchQuery={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="Search tickets..."
+            onFilterClick={() => setIsFilterModalOpen(true)}
+          />
 
           <div className="p-4">
             <Table
@@ -264,6 +226,16 @@ export default function TicketsPage() {
           </div>
         </div>
       </div>
+
+      <FilterModalTickets
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApply={(filters) => {
+          setFilterValues(filters);
+          setIsFilterModalOpen(false);
+        }}
+        initialFilters={filterValues}
+      />
 
       <CreateTicketModal
         isOpen={isCreateModalOpen}

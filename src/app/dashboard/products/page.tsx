@@ -15,11 +15,7 @@ import { Client } from '@/types/clients';
 import { ClientResponse } from '@/types/clients/clientResponse';
 import SearchAndFilters from '@/components/shared/SearchAndFilters';
 import { useRouter } from 'next/navigation';
-import { FilterModal } from '@/components/shared/FilterModal';
-
-interface ProductFilters {
-  status: string;
-}
+import { FilterModalTickets } from '@/components/tickets/FilterModalTickets';
 
 export default function ProductsAdminPage() {
   const router = useRouter();
@@ -229,7 +225,12 @@ export default function ProductsAdminPage() {
           />
         </div>
       </div>
-
+      <FilterModalTickets
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={handleFilterApply}
+        initialFilters={filters}  
+      />
       <ProductFormModal
         isOpen={isAddModalOpen}
         onClose={() => {
@@ -237,7 +238,6 @@ export default function ProductsAdminPage() {
           setSelectedProduct(null);
         }}
         onSubmit={selectedProduct ? handleEditProduct : handleAddProduct}
-        initialData={selectedProduct || undefined}
         title={selectedProduct ? "Edit Product" : "Add Product"}
       />
 

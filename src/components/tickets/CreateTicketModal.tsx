@@ -6,7 +6,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import { ticketService } from '../../services/tickets.service'
 import { productService } from '../../services/products.service'
 
-// Define proper types for the session user
+
 interface SessionUser {
   id: string
   name?: string | null
@@ -15,7 +15,6 @@ interface SessionUser {
   lastName?: string
 }
 
-// Define API error structure
 interface ApiError {
   response?: {
     status?: number
@@ -25,19 +24,18 @@ interface ApiError {
   }
 }
 
-// Define product type
+
 interface Product {
   id: string
   name: string
 }
 
-// Define uploaded file structure
 interface UploadedFile {
   file: File
   name: string
 }
 
-// Define form data structure
+
 interface FormData {
   title: string
   description: string
@@ -50,7 +48,7 @@ interface FormData {
   clientId: string
 }
 
-// Define select option structure
+
 interface SelectOption {
   label: string
   value: string
@@ -165,7 +163,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     try {
       const form = new FormData()
 
-      const ticketCode = `TICKET-${Date.now()}`//move to BE and increment
+      const ticketCode = `TICKET-${Date.now()}`
       form.append('ticketCode', ticketCode)
       form.append('title', formData.title)
       form.append('description', formData.description)
@@ -175,7 +173,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
       form.append('contactEmail', formData.contactEmail)
       form.append('contactPhone', formData.contactPhone)
       form.append('clientId', formData.clientId)
-      form.append('product', formData.product)
+      form.append('productId', formData.product)
 
       if (uploadedFiles.length > 0) {
         form.append('file', uploadedFiles[0].file)
@@ -184,7 +182,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
       await ticketService.createTicket(form)
       toast.success('Ticket created successfully!')
 
-      // Reset form
+      
       setFormData({
         title: '',
         description: '',
@@ -204,7 +202,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     } catch (error: unknown) {
       console.error('Detailed error:', error)
 
-      // Type guard to check if error has response property
+     
       const isApiError = (err: unknown): err is ApiError => {
         return typeof err === 'object' && err !== null && 'response' in err
       }
@@ -235,7 +233,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const files = event.target.files
     if (files) {
-      const maxFileSize = 10 * 1024 * 1024 // 10MB
+      const maxFileSize = 10 * 1024 * 1024 
       const validFiles: UploadedFile[] = []
       const invalidFiles: string[] = []
 

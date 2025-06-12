@@ -32,7 +32,7 @@ export default function ProductsAdminPage() {
     minClients: undefined,
     minDevelopers: undefined,
     hasActiveTickets: false,
-  });
+  } as FilterOptions);
 
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);

@@ -3,6 +3,7 @@ import { Size, StatusType } from '@/types/index'
 import { Client } from '@/types/clients'
 import { Product, ProductFormData } from '@/types/interfaces/product'
 
+
 export interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   children: ReactNode
@@ -115,18 +116,6 @@ export interface StatusProps {
   className?: string
 }
 
-export interface TableProps<T> {
-  data: T[]
-  columns: {
-    header: string
-    accessor: keyof T | ((item: T) => ReactNode)
-    className?: string
-  }[]
-  onRowClick?: (item: T) => void
-  className?: string
-  emptyState?: ReactNode
-}
-
 export interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -181,4 +170,37 @@ export interface NavLinkProps {
   href: string
   icon: React.ElementType
   name: string
+}
+
+export type Ticket = {
+  id: string;
+  ticketCode?: string;
+  title: string;
+  client: { companyName: string } | null;
+  product: { name: string; status: string; updatedAt?: string } | null;
+  status: string;
+  priority: string;
+  assignee: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface TableColumn<T extends Record<string, unknown> = Record<string, unknown>> {
+  header: string | ReactNode;
+  accessor: keyof T | ((item: T) => ReactNode);
+  className?: string;
+}
+
+export interface TableProps<T extends { id: string | number }> {
+  data: T[];
+  columns: TableColumn<T>[];
+  onRowClick?: (item: T) => void;
+  className?: string;
+  emptyState?: ReactNode;
+}
+
+export interface TicketTableColumn {
+  header: string;
+  accessor: (ticket: Ticket) => ReactNode;
+  className?: string;
 }

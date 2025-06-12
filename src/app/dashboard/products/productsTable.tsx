@@ -3,7 +3,7 @@ import type { Product } from '@/types/interfaces/product';
 import { ProductIcon } from '@/components/icons';
 import { UsersIcon } from '@heroicons/react/24/outline';
 
-type TableColumn = {
+export type TableColumn = {
   header: string;
   accessor: (product: Product) => ReactNode;
   className?: string;

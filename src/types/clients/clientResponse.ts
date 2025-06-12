@@ -1,4 +1,4 @@
-import { SupportTier, ClientStatus } from '@/types/clients'
+import { Status, SupportTier } from '@/types/clients'
 
 export type ClientResponse = {
   id: string
@@ -9,7 +9,7 @@ export type ClientResponse = {
   products: string[]
   supportTier: SupportTier
   activeTickets: number
-  status: ClientStatus
+  status: Status
   createdAt: string
   updatedAt: string
   user: {

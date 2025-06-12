@@ -10,7 +10,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { DashboardLayoutProps } from '@/types/interfaces/Props'
 import { useMobileMenu } from '@/context/MobileMenuContext'
 import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
-// import { globalToken } from '@/app/api/auth/[...nextauth]/route'
+
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
-      // window.location.replace('/')
+     
     },
   })
   
@@ -215,7 +215,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     Settings
                   </Link>
                   <button
-                    onClick={() => signOut()}
+                    onClick={() => signOut({ callbackUrl: '/' })}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Sign Out

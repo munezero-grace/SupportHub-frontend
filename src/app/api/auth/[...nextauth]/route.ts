@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { socialSignup } from '@/services/auth.service'
-import { signOut } from 'next-auth/react'
+
 import { splitName } from '@/lib/utils'
 import { CustomUser } from '@/types/auth'
 
@@ -155,9 +155,6 @@ const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 }
 
-export const logout = (route = '/') => {
-  signOut({ callbackUrl: route })
-}
 
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

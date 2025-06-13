@@ -5,32 +5,25 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { SearchIcon, FilterIcon } from '@/components/icons/ActionIcons'
 import { ticketService } from '@/services/tickets.service'
-import { FilterModalTickets } from '@/components/tickets/FilterModalTickets'
 import {
   TICKET_STATUS_OPTIONS,
   TICKET_PRIORITY_OPTIONS,
 } from '@/constants/ticketconfig'
+import { FilterPopup } from '@/components/shared/FilterModal'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import { Table } from '@/components/ui/Table'
 import { createTicketsTableColumns } from './ticketsTable'
 
-interface Filters {
-  status: { label: string; value: string | number }
-  priority: { label: string; value: string | number }
-}
-
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<Filters>({
-    status: TICKET_STATUS_OPTIONS[0],
-    priority: TICKET_PRIORITY_OPTIONS[0],
+  const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false)
+  const [filterValues, setFilterValues] = useState({
+    status: 'all',
+    priority: 'all',
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTickets, setSelectedTickets] = useState<string[]>([])
-  const [selectedStatus, setSelectedStatus] = useState('all')
-  const [selectedPriority, setSelectedPriority] = useState('all')
 
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -52,7 +45,29 @@ export default function TicketsPage() {
       await ticketService.deleteTicket(selectedTicket.id)
       setIsDeleteModalOpen(false)
       setSelectedTicket(null)
-      await handleRefresh()
+
+      const data = await ticketService.getUserTickets()
+      const mappedTickets: Ticket[] = data.map((ticket: Ticket) => ({
+        id: ticket.id,
+        ticketCode: ticket.ticketCode,
+        title: ticket.title,
+        client: ticket.client
+          ? { companyName: ticket.client.companyName }
+          : null,
+        product: ticket.product
+          ? {
+              name: ticket.product.name,
+              status: ticket.product.status,
+              updatedAt: ticket.product.updatedAt,
+            }
+          : null,
+        status: ticket.status,
+        priority: ticket.priority,
+        assignee: ticket.assignee,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+      }))
+      setTickets(mappedTickets)
     } catch (error) {
       console.error('Error deleting ticket:', error)
     }
@@ -102,51 +117,28 @@ export default function TicketsPage() {
       productName.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus =
-      selectedStatus === 'all' || ticket.status === selectedStatus
+      !filterValues.status ||
+      filterValues.status === 'all' ||
+      ticket.status === filterValues.status
 
     const matchesPriority =
-      selectedPriority === 'all' || ticket.priority === selectedPriority
+      !filterValues.priority ||
+      filterValues.priority === 'all' ||
+      ticket.priority === filterValues.priority
 
     return matchesSearch && matchesStatus && matchesPriority
   })
 
-  const handleFilterApply = (newFilters: Filters) => {
-    setFilters(newFilters)
-    setSelectedStatus(newFilters.status.value as string)
-    setSelectedPriority(newFilters.priority.value as string)
+  const handleFilterChange = (name: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleRefresh = async () => {
-    try {
-      const data = await ticketService.getUserTickets()
-      const mappedTickets: Ticket[] = data.map((ticket: Ticket) => ({
-        id: ticket.id,
-        ticketCode: ticket.ticketCode,
-        title: ticket.title,
-        client: ticket.client
-          ? { companyName: ticket.client.companyName }
-          : null,
-        product: ticket.product
-          ? {
-              name: ticket.product.name,
-              status: ticket.product.status,
-              updatedAt: ticket.product.updatedAt,
-            }
-          : null,
-        status: ticket.status,
-        priority: ticket.priority,
-        assignee: ticket.assignee,
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
-      }))
-      setTickets(mappedTickets)
-      setSearchTerm('')
-      setSelectedTickets([])
-      setSelectedStatus('all')
-      setSelectedPriority('all')
-    } catch (error) {
-      console.error('Error refreshing tickets:', error)
-    }
+  const handleFilterApply = () => {
+    setIsFilterPopupOpen(false)
+  }
+
+  const handleFilterClose = () => {
+    setIsFilterPopupOpen(false)
   }
 
   const handleSelectAll = (checked: boolean) => {
@@ -243,44 +235,11 @@ export default function TicketsPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div className="flex flex-wrap items-center gap-1">
             <button className="px-4 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg">
-              All Tickets
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
               My Tickets
             </button>
             <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
               Unassigned
             </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setFilterModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <FilterIcon className="w-4 h-4" />
-              Filters
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Refresh
-            </Button>
           </div>
         </div>
 
@@ -305,29 +264,14 @@ export default function TicketsPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Button
+              variant="outline"
+              onClick={() => setIsFilterPopupOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              <option value="all">All Statuses</option>
-              <option value="new">New</option>
-              <option value="in_progress">In Progress</option>
-              <option value="assigned">Assigned</option>
-              <option value="awaiting_client">Awaiting Client</option>
-              <option value="resolved">Resolved</option>
-            </select>
-            <select
-              value={selectedPriority}
-              onChange={(e) => setSelectedPriority(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
+              <FilterIcon className="w-4 h-4" />
+              Filters
+            </Button>
           </div>
 
           <div className="border border-gray-200 rounded-lg">
@@ -348,11 +292,27 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      <FilterModalTickets
-        isOpen={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
+      <FilterPopup
+        isOpen={isFilterPopupOpen}
+        onClose={handleFilterClose}
         onApply={handleFilterApply}
-        initialFilters={filters}
+        onChange={handleFilterChange}
+        values={filterValues}
+        fields={[
+          {
+            label: 'Status',
+            name: 'status',
+            type: 'select',
+            options: TICKET_STATUS_OPTIONS,
+          },
+          {
+            label: 'Priority',
+            name: 'priority',
+            type: 'select',
+            options: TICKET_PRIORITY_OPTIONS,
+          },
+        ]}
+        title="Filter"
       />
 
       <CreateTicketModal

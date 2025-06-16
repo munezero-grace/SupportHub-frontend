@@ -27,15 +27,40 @@ export interface Stats {
 }
 
 export interface Ticket {
-  id: string
-  title: string
-  client: string
-  product: string
-  status: string
-  priority: 'High' | 'Medium' | 'Low'
-  assignee: string
-  created: string
-  lastUpdated: string
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  ticketCode?: string;
+  client?: string | {
+    id: string;
+    companyName: string;
+    clientCode: string;
+    status: string;
+    clientProducts?: Array<{
+      product: {
+        id: string;
+        name: string;
+      }
+    }>;
+  };
+  product?: string | {
+    id: string;
+    name: string;
+  };
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  imageUrl?: string;
+  tags?: string[];
+  dueDate?: string;
+  estimatedTime?: string;
+  assignee?: string;
+  internalNotes?: string;
+  createdAt?: string;
+  created?: string;
+  lastUpdated?: string;
 }
 
 export interface User {

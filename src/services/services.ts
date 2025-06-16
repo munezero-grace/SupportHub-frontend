@@ -55,11 +55,16 @@ export const ticketService = {
 
   updateTicket: async (
     id: string,
-    ticketData: Partial<Ticket>
+    ticketData: FormData
   ): Promise<Ticket> => {
     const response = await axiosInstance.patch<Ticket>(
       `/api/tickets/${id}`,
-      ticketData
+      ticketData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
     )
     return response.data
   },

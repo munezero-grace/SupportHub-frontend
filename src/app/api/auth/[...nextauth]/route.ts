@@ -96,6 +96,7 @@ const authOptions: NextAuthOptions = {
         token.provider = customUser.provider || account?.provider || token.provider || ''
         token.providerId = customUser.providerId || token.providerId || ''
         token.email = customUser.email || token.email
+        token.client = customUser.client
         if (customUser.firstName && customUser.lastName) {
           token.name = `${customUser.firstName} ${customUser.lastName}`
         }
@@ -140,6 +141,7 @@ const authOptions: NextAuthOptions = {
         session.user.providerId = token.providerId as string
         session.user.email = token.email as string
         session.user.name = token.name as string || ''
+        session.user.client = token.client
       }
       return session
     },

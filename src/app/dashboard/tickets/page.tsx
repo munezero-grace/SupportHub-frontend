@@ -1,9 +1,8 @@
 'use client'
-import type { Ticket } from '@/constants/tickets'
-import type { TableColumn } from '@/types/interfaces/Props'
+import type { Ticket } from '@/types/interfaces/interface'
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { SearchIcon, FilterIcon } from '@/components/icons/ActionIcons'
+import { SearchIcon } from '@/components/icons/ActionIcons'
 import { ticketService } from '@/services/tickets.service'
 import {
   TICKET_STATUS_OPTIONS,
@@ -12,7 +11,7 @@ import {
 import { FilterPopup } from '@/components/shared/FilterModal'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import { Table } from '@/components/ui/Table'
-import { createTicketsTableColumns } from './ticketsTable'
+import { createTicketTableColumns } from "./ticketsTable"
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -23,21 +22,12 @@ export default function TicketsPage() {
     priority: 'all',
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [selectedTickets, setSelectedTickets] = useState<string[]>([])
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
 
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-
-  const handleEdit = (ticket: Ticket) => {
-    setSelectedTicket(ticket)
-    setIsEditModalOpen(true)
-  }
-
-  const handleDeleteClick = (ticket: Ticket) => {
-    setSelectedTicket(ticket)
-    setIsDeleteModalOpen(true)
-  }
 
   const handleDelete = async () => {
     if (!selectedTicket) return
@@ -50,83 +40,129 @@ export default function TicketsPage() {
       const mappedTickets: Ticket[] = data.map((ticket: Ticket) => ({
         id: ticket.id,
         ticketCode: ticket.ticketCode,
-        title: ticket.title,
-        client: ticket.client
-          ? { companyName: ticket.client.companyName }
-          : null,
-        product: ticket.product
+        title: ticket.title, 
+        client: typeof ticket.client === 'object' && ticket.client
           ? {
-              name: ticket.product.name,
-              status: ticket.product.status,
-              updatedAt: ticket.product.updatedAt,
-            }
-          : null,
+            id: ticket.client.id,
+            companyName: ticket.client.companyName,
+            clientCode: ticket.client.clientCode,
+            status: ticket.client.status,
+            clientProducts: ticket.client.clientProducts
+          }
+          : ticket.client,
+        product: typeof ticket.product === 'object' && ticket.product
+          ? {
+            id: ticket.product.id,
+            name: ticket.product.name
+          }
+          : ticket.product,
         status: ticket.status,
         priority: ticket.priority,
+        description: ticket.description,
+        contactName: ticket.contactName,
+        contactEmail: ticket.contactEmail,
+        contactPhone: ticket.contactPhone,
+        created: ticket.created || ticket.createdAt,
+        lastUpdated: ticket.lastUpdated,
+        tags: ticket.tags,
+        dueDate: ticket.dueDate,
+        estimatedTime: ticket.estimatedTime,
         assignee: ticket.assignee,
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
+        internalNotes: ticket.internalNotes,
+        imageUrl: ticket.imageUrl
       }))
       setTickets(mappedTickets)
     } catch (error) {
       console.error('Error deleting ticket:', error)
     }
   }
-
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const data = await ticketService.getUserTickets()
-
-        const mappedTickets: Ticket[] = data.map((ticket: Ticket) => ({
-          id: ticket.id,
-          ticketCode: ticket.ticketCode,
-          title: ticket.title,
-          client: ticket.client
-            ? { companyName: ticket.client.companyName }
-            : null,
-          product: ticket.product
+        const data = await ticketService.getUserTickets();
+        const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        
+        setIsAdmin(userRole?.includes('admin') || userRole?.includes('super_admin') || false);
+        setCurrentUserId(userId || undefined);
+        
+        const mappedTickets = data.map((ticket: Record<string, unknown>): Ticket => ({
+          id: ticket.id as string,
+          title: ticket.title as string,
+          description: ticket.description as string | undefined,
+          status: ticket.status as string,
+          priority: ticket.priority as string,
+          ticketCode: ticket.ticketCode as string | undefined,
+          client: ticket.client && typeof ticket.client === 'object'
             ? {
-                name: ticket.product.name,
-                status: ticket.product.status,
-                updatedAt: ticket.product.updatedAt,
-              }
-            : null,
-          status: ticket.status,
-          priority: ticket.priority,
-          assignee: ticket.assignee,
-          createdAt: ticket.createdAt,
-          updatedAt: ticket.updatedAt,
-        }))
-        setTickets(mappedTickets)
+              id: (ticket.client as Record<string, unknown>).id as string,
+              companyName: (ticket.client as Record<string, unknown>).companyName as string,
+              clientCode: (ticket.client as Record<string, unknown>).clientCode as string,
+              status: (ticket.client as Record<string, unknown>).status as string,
+              clientProducts: (ticket.client as Record<string, unknown>).clientProducts as Array<{
+                product: {
+                  id: string;
+                  name: string;
+                }
+              }> | undefined,
+            }
+            : ticket.client as string | undefined,
+          product: ticket.product && typeof ticket.product === 'object'
+            ? {
+              id: (ticket.product as Record<string, unknown>).id as string,
+              name: (ticket.product as Record<string, unknown>).name as string,
+            }
+            : ticket.product as string,
+          contactName: ticket.contactName as string | undefined,
+          contactEmail: ticket.contactEmail as string | undefined,
+          contactPhone: ticket.contactPhone as string | undefined,
+          created: String(ticket.createdAt),
+          createdAt: String(ticket.createdAt),
+          lastUpdated: String(ticket.updatedAt),
+          tags: Array.isArray(ticket.tags) ? ticket.tags.map(String) : undefined,
+          assignee: ticket.assignee as string | undefined,
+          dueDate: ticket.dueDate as string | undefined,
+          estimatedTime: ticket.estimatedTime as string | undefined,
+          internalNotes: ticket.internalNotes as string | undefined,
+          imageUrl: ticket.imageUrl as string | undefined
+        }));
+        setTickets(mappedTickets);
       } catch (error) {
-        console.error('Error fetching tickets:', error)
-        setTickets([])
+        console.error('Error fetching tickets:', error);
+        setTickets([]);
       }
-    }
-    fetchTickets()
+    };
+    fetchTickets();
   }, [])
 
-  const filteredTickets = tickets.filter((ticket) => {
-    const clientName = ticket.client?.companyName || ''
-    const productName = ticket.product?.name || ''
+  const handleEditTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsEditModalOpen(true);
+  };
 
-    const matchesSearch =
+  const handleDeleteTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsDeleteModalOpen(true);
+  };
+
+  const filteredTickets = tickets.filter((ticket) => {
+    const clientName = typeof ticket.client === 'string' ? ticket.client : ticket.client?.companyName || '';
+    const productName = typeof ticket.product === 'string' ? ticket.product : ticket.product?.name || '';
+
+    const matchesSearch = 
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      productName.toLowerCase().includes(searchTerm.toLowerCase())
+      productName.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      !filterValues.status ||
-      filterValues.status === 'all' ||
-      ticket.status === filterValues.status
+    const matchesStatus = 
+      filterValues.status === 'all' || 
+      ticket.status.toLowerCase() === filterValues.status.toLowerCase();
 
-    const matchesPriority =
-      !filterValues.priority ||
-      filterValues.priority === 'all' ||
-      ticket.priority === filterValues.priority
+    const matchesPriority = 
+      filterValues.priority === 'all' || 
+      ticket.priority.toLowerCase() === filterValues.priority.toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesPriority
+    return matchesSearch && matchesStatus && matchesPriority;
   })
 
   const handleFilterChange = (name: string, value: string) => {
@@ -141,70 +177,36 @@ export default function TicketsPage() {
     setIsFilterPopupOpen(false)
   }
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedTickets(filteredTickets.map((ticket) => ticket.id))
-    } else {
-      setSelectedTickets([])
+  const handleRefresh = async () => {
+    try {
+      const data = await ticketService.getUserTickets();
+      setTickets(data);
+      setSearchTerm("");
+      setFilterValues({
+        status: 'all',
+        priority: 'all'
+      });
+    } catch (error) {
+      console.error("Error refreshing tickets:", error);
     }
-  }
+  };
 
-  const handleSelectTicket = (ticketId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedTickets((prev) => [...prev, ticketId])
-    } else {
-      setSelectedTickets((prev) => prev.filter((id) => id !== ticketId))
-    }
-  }
+  const enhancedColumns = createTicketTableColumns({ 
+    onEdit: handleEditTicket, 
+    onDelete: handleDeleteTicket, 
+    currentUserId, 
+    isAdmin 
+  });
 
-  const handleRowClick = (ticket: Ticket) => {
-    console.log('Row clicked:', ticket)
-  }
-
-  const ticketsTableColumns = createTicketsTableColumns({
-    handleEdit,
-    handleDeleteClick,
-  })
-
-  const enhancedColumns: TableColumn<Ticket>[] = [
-    {
-      header: (
-        <input
-          type="checkbox"
-          checked={
-            filteredTickets.length > 0 &&
-            selectedTickets.length === filteredTickets.length
-          }
-          ref={(input) => {
-            if (input) {
-              input.indeterminate =
-                selectedTickets.length > 0 &&
-                selectedTickets.length < filteredTickets.length
-            }
-          }}
-          onChange={(e) => handleSelectAll(e.target.checked)}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          aria-label="Select all tickets"
-        />
-      ),
-      accessor: (ticket: Ticket) => (
-        <input
-          type="checkbox"
-          checked={selectedTickets.includes(ticket.id)}
-          onChange={(e) => handleSelectTicket(ticket.id, e.target.checked)}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-      className: 'w-12',
-    },
-    ...ticketsTableColumns,
-  ]
+  const handleRowClick = (item: Ticket): void => {
+    setSelectedTicket(item);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <>
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Tickets</h1>
             <p className="text-gray-500 text-sm mt-1">
@@ -232,10 +234,10 @@ export default function TicketsPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
           <div className="flex flex-wrap items-center gap-1">
             <button className="px-4 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg">
-              My Tickets
+              {isAdmin ? 'My Tickets' : 'All Tickets'}
             </button>
             <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
               Unassigned
@@ -243,17 +245,8 @@ export default function TicketsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-1">
-              All Tickets
-            </h2>
-            <p className="text-gray-500 text-sm">
-              View and manage all support tickets across products
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="bg-white  p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
             <div className="flex-1 relative w-full sm:w-auto">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -261,16 +254,38 @@ export default function TicketsPage() {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setIsFilterPopupOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            <select
+              value={filterValues.status}
+              onChange={(e) => setFilterValues(prev => ({ ...prev, status: e.target.value }))}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <FilterIcon className="w-4 h-4" />
-              Filters
+              <option value="all">All Statuses</option>
+              <option value="new">New</option>
+              <option value="in_progress">In Progress</option>
+              <option value="assigned">Assigned</option>
+              <option value="awaiting_client">Awaiting Client</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <select
+              value={filterValues.priority}
+              onChange={(e) => setFilterValues(prev => ({ ...prev, priority: e.target.value }))}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Priorities</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="px-4 py-2 flex items-center gap-2"
+            >
+              Refresh
             </Button>
           </div>
 

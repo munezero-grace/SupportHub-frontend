@@ -2,7 +2,6 @@ import { axiosInstance } from '@/lib/api';
 import { Product, ProductFormData } from '@/types/interfaces/product';
 import { AxiosError } from 'axios';
 
-
 const BASE_URL = '/api/products';
 
 export const productService = {
@@ -18,15 +17,41 @@ export const productService = {
         }
     },
 
-    getProductsByClient: async (): Promise<Product[]> => {
+    getProductsByClient: async (clientCode?: string): Promise<Product[]> => {
         try {
-            const response = await axiosInstance.get<Product[]>(`${BASE_URL}/client-products`);
-            return response.data;
-        } catch (error) {
-            if (error instanceof AxiosError && error.response?.data?.error) {
-                throw new Error(error.response.data.error);
+            if (!clientCode) {
+
+                type ApiResponse = { data: { data: Product[] } } | { data: Product[] };
+                const response = await axiosInstance.get<ApiResponse>(`${BASE_URL}/client-products`);
+                if ('data' in response.data) {
+                    return (response.data as { data: Product[] }).data;
+                }
+                return response.data as Product[];
             }
-            throw error;
+
+            type ClientApiResponse = { data: Product[] } | Product[];
+            const response = await axiosInstance.get<ClientApiResponse>(`${BASE_URL}/client/${clientCode}`);
+            console.log('Products for clientCode:', clientCode, response.data);
+
+            if (Array.isArray(response.data)) {
+                return response.data;
+            }
+            if ('data' in response.data) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error in getProductsByClient:', error);
+            if (error instanceof AxiosError) {
+                if (error.response?.status === 404) {
+                    return [];
+                }
+                console.error('API Error response:', error.response?.data);
+                if (error.response?.data?.error) {
+                    console.error('API Error message:', error.response.data.error);
+                }
+            }
+            return [];
         }
     },
 
@@ -57,6 +82,7 @@ export const productService = {
             throw error;
         }
     },
+
     createProduct: async (productData: ProductFormData): Promise<Product> => {
         try {
             const normalizedData = {
@@ -81,6 +107,7 @@ export const productService = {
             throw new Error('Failed to create product');
         }
     },
+
     updateProduct: async (id: string, productData: Partial<ProductFormData>): Promise<Product> => {
         try {
             const normalizedData = {

@@ -29,6 +29,7 @@ export default function ProductsAdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<FilterOptions>({
     status: PRODUCT_STATUS_OPTIONS[0],
+    priority: PRODUCT_STATUS_OPTIONS[0],
     minClients: undefined,
     minDevelopers: undefined,
     hasActiveTickets: false,
@@ -184,13 +185,7 @@ export default function ProductsAdminPage() {
           </Button>
         </div>
       </div>
-
-      <div className="rounded-lg border border-gray-200 pb-9">
-        <div className="p-4 pb-2">
-          <h2 className="text-2xl font-bold">All Products</h2>
-          <p className="text-gray-500">View and manage software products</p>
-        </div>
-
+      <div className="bg-white  p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">
         <SearchAndFilters
           searchQuery={searchTerm}
           onSearchChange={setSearchTerm}

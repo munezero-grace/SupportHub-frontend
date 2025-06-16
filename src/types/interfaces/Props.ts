@@ -1,4 +1,4 @@
-import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes} from "react"
+import { ReactNode, FormEvent, ButtonHTMLAttributes, InputHTMLAttributes } from "react"
 import { Size, StatusType } from '@/types/index'
 import { Client } from '@/types/clients'
 import { Product, ProductFormData } from '@/types/interfaces/product'
@@ -57,7 +57,6 @@ export interface BadgeProps {
   className?: string
 }
 
-
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: Size;
@@ -98,8 +97,44 @@ export interface ComboboxOption<T = unknown> {
 }
 
 export interface SelectOption {
-  label: string
-  value: string | number
+  label: string;
+  value: string | number;
+}
+
+export interface TableProps<T> {
+  data: T[]
+  columns: {
+    header: string | ReactNode
+    accessor: keyof T | ((item: T) => ReactNode)
+    className?: string
+  }[]
+  onRowClick?: (item: T) => void
+  className?: string
+  emptyState?: ReactNode
+  selectedRows?: string[]
+  onSelectionChange?: (selectedIds: string[]) => void
+}
+
+export interface FilterOptions {
+  status: SelectOption;
+  priority: SelectOption;
+  hasActiveClients?: boolean;
+  minClients?: number;
+  minDevelopers?: number;
+  hasActiveTickets?: boolean;
+}
+
+export interface FilterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onApply: (filters: FilterOptions) => void;
+  initialFilters: FilterOptions;
+}
+
+export interface CreateTicketModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 export interface SelectProps {
@@ -135,22 +170,6 @@ export interface ProductSelectionModalProps {
   selectedProductIds: string[]
   clientId: string
 }
-export interface FilterOptions {
-  status: SelectOption;
-  priority: SelectOption;
-  hasActiveClients?: boolean;
-  minClients?: number;
-  minDevelopers?: number;
-  hasActiveTickets?: boolean;
-}
-
-export interface FilterModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (filters: FilterOptions) => void;
-  initialFilters: FilterOptions;
-}
-
 
 export interface ProductFormModalProps {
   isOpen: boolean;
@@ -164,7 +183,6 @@ export interface ClientListItemProps {
   client: Client
   onManageProducts: () => void
 }
-
 
 export interface NavLinkProps {
   href: string

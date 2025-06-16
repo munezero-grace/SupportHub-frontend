@@ -9,6 +9,12 @@ interface TicketUpdateData {
   imageUrl?: string
   clientId?: string
   productId?: string
+  description?: string
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
+  tags?: string
+  dueDate?: string
 }
 
 const BASE_URL = '/api/tickets';
@@ -32,13 +38,18 @@ export const ticketService = {
 
   getUserTickets: async () => {
     try {
-      const response = await axiosInstance.get(BASE_URL)
-      return response.data
-    } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        throw new Error(error.response.data.error)
+      const response = await axiosInstance.get(BASE_URL);
+      if (!response.data) {
+        throw new Error('No tickets found');
       }
-      throw error
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      if (error instanceof AxiosError) {
+        const errorMessage = error.response?.data?.error || error.message;
+        throw new Error(errorMessage);
+      }
+      throw new Error('Failed to fetch tickets. Please try again.');
     }
   },
 
@@ -54,9 +65,13 @@ export const ticketService = {
     }
   },
 
-  updateTicket: async (id: string, updateData: TicketUpdateData) => {
+  updateTicket: async (id: string, ticketData: TicketUpdateData) => {
     try {
-      const response = await axiosInstance.put(`${BASE_URL}/${id}`, updateData)
+      const response = await axiosInstance.put(`${BASE_URL}/${id}`, ticketData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       return response.data
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data?.error) {

@@ -1,5 +1,10 @@
 import { ReactNode } from 'react'
 
+export type TicketHandlers = {
+  onEdit: (ticket: Ticket) => void;
+  onDelete: (ticket: Ticket) => void;
+};
+
 export const tickets = [
   {
     id: 'T-1234',

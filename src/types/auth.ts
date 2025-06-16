@@ -9,6 +9,13 @@ declare module "next-auth" {
       accessToken: string
       provider: string
       providerId: string
+      firstName?: string
+      lastName?: string
+      client?: {
+        id: string;
+        clientCode: string;
+        companyName: string | null;
+      }
     } & DefaultSession["user"]
   }
 
@@ -32,6 +39,11 @@ declare module "next-auth/jwt" {
     accessToken: string
     provider: string
     providerId: string
+    client?: {
+      id: string;
+      clientCode: string;
+      companyName: string;
+    }
   }
 }
 
@@ -48,6 +60,11 @@ export interface GoogleProfile {
 
 export type CustomUser = {
   id: string;
+  client?: {
+    id: string;
+    clientCode: string;
+    companyName: string;
+  };
   email: string;
   name?: string | null;
   image?: string | null;

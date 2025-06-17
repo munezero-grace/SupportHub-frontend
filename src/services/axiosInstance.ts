@@ -1,4 +1,5 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosError} from 'axios'
+import { ExtendedAxiosRequestConfig, ErrorResponse, QueueItem } from '@/types/auth'
 import { getSession, signOut } from 'next-auth/react'
 
 const axiosInstance = axios.create({
@@ -6,19 +7,6 @@ const axiosInstance = axios.create({
   headers: {
   },
 })
-
-interface QueueItem {
-  resolve: (token: string) => void
-  reject: (error: AxiosError | Error) => void
-}
-
-interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean
-}
-
-interface ErrorResponse {
-  message?: string
-}
 
 let isRefreshing = false
 let failedQueue: QueueItem[] = []
@@ -47,7 +35,6 @@ axiosInstance.interceptors.request.use(
       }
       return config
     } catch (error) {
-      console.error('Error getting session:', error)
       return Promise.reject(error)
     }
   },

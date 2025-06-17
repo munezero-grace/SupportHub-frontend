@@ -1,12 +1,7 @@
 'use client'
 import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
+import { SearchAndFiltersProps } from '@/types/interfaces/form'
 
-interface SearchAndFiltersProps {
-    searchQuery: string
-    onSearchChange: (query: string) => void
-    onFilterClick?: () => void
-    placeholder?: string
-}
 
 const SearchAndFilters = ({
     searchQuery,
@@ -26,13 +21,16 @@ const SearchAndFilters = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
             />
-        </div>      <button
-            onClick={onFilterClick}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-        >
-            <AdjustmentsHorizontalIcon className="h-5 w-5" />
-            <span>Filter</span>
-        </button>
+        </div>
+        <div className="relative">
+            <button
+                onClick={onFilterClick}
+                className="px-3 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+            >
+                <AdjustmentsHorizontalIcon className="h-5 w-5" />
+                <span>Filter</span>
+            </button>
+        </div>
     </div>
     )
 }

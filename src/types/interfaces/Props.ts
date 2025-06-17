@@ -30,13 +30,13 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
 }
 
-export interface DialogProps {
-  isOpen: boolean
-  onClose: () => void
-  children: ReactNode
-  title?: string
-  description?: string
-  className?: string
+export interface DialogProps extends React.PropsWithChildren {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  className?: string;
+  initialFocus?: React.RefObject<HTMLElement>;
 }
 
 export interface PaginationProps {
@@ -98,33 +98,42 @@ export interface ComboboxOption<T = unknown> {
 
 export interface SelectOption {
   label: string;
-  value: string | number;
-}
-
-export interface TableProps<T> {
-  data: T[]
-  columns: {
-    header: string | ReactNode
-    accessor: keyof T | ((item: T) => ReactNode)
-    className?: string
-  }[]
-  onRowClick?: (item: T) => void
-  className?: string
-  emptyState?: ReactNode
-  selectedRows?: string[]
-  onSelectionChange?: (selectedIds: string[]) => void
+  value: string;
 }
 
 export interface FilterOptions {
   status: SelectOption;
   priority: SelectOption;
-  hasActiveClients?: boolean;
-  minClients?: number;
-  minDevelopers?: number;
-  hasActiveTickets?: boolean;
+}
+
+export interface FilterField {
+  name: string;
+  label: string;
+  type: 'select';
+  options: Array<{ label: string; value: string; }>;
+}
+
+export interface FilterValues {
+  [key: string]: string;
 }
 
 export interface FilterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  values: FilterValues;
+  onApply: (newFilters: FilterOptions) => void;
+  onChange: (fieldName: string, value: string) => void;
+  initialFilters: FilterOptions;
+  fields: {
+    name: string;
+    label: string;
+    type: string;
+    options: { value: string; label: string; }[];
+  }[];
+}
+
+export interface FilterModalTicketsProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (filters: FilterOptions) => void;
@@ -138,12 +147,12 @@ export interface CreateTicketModalProps {
 }
 
 export interface SelectProps {
-  value: SelectOption
-  onChange: (value: SelectOption) => void
-  options: SelectOption[]
-  label?: string
-  error?: string
-  className?: string
+  value: SelectOption;
+  onChange: (value: SelectOption) => void;
+  options: SelectOption[];
+  label?: string;
+  error?: string;
+  className?: string;
 }
 
 export interface StatusProps {

@@ -1,13 +1,12 @@
 'use client'
-
-import type { CreateTicketModalProps, SessionUser, ApiError, UploadedFile, SelectOption } from './TicketTypes'
-import type { FormData as TicketFormData } from './TicketTypes'
+import type { CreateTicketModalProps, SessionUser, ApiError, UploadedFile, SelectOption } from '@/types/TicketTypes'
+import type { FormData as TicketFormData } from '@/types/TicketTypes'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { toast, ToastContainer } from 'react-toastify'
-import { ticketService } from '../../services/tickets.service'
-import { productService } from '../../services/products.service'
-import { clientsApi } from '../../services/clients'
+import { ticketService } from '@/services/tickets.service'
+import { productService } from '@/services/products.service'
+import { clientsApi } from '@/services/clients'
 import type { Client } from '@/types/clients'
 import TicketDetails from './TicketDetails'
 import ClientInfo from './ClientInfo'
@@ -91,10 +90,10 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
           const products = await productService.getProductsByClient(formData.clientCode);
           const options = [
             { label: 'Select product', value: '' },
-            ...products.map((product) => ({
+            ...(Array.isArray(products) ? products.map((product) => ({
               label: product.name || 'Unnamed Product',
               value: product.id
-            }))
+            })) : [])
           ];
           setProductOptions(options);
           setFormData(prev => ({ ...prev, product: '' }));
@@ -105,10 +104,10 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
           const products = await productService.getProductsByClient(formData.clientCode);
           const options = [
             { label: 'Select product', value: '' },
-            ...products.map((product) => ({
+            ...(Array.isArray(products) ? products.map((product) => ({
               label: product.name || 'Unnamed Product',
               value: product.id
-            }))
+            })) : [])
           ];
           setProductOptions(options);
           setFormData(prev => ({ ...prev, product: '' }));
@@ -369,6 +368,9 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
                   uploadedFiles={uploadedFiles}
                   handleFileUpload={handleFileUpload}
                   removeFile={removeFile}
+                  isAdmin={isAdmin}
+                  availableClients={availableClients}
+                  setFormData={setFormData}
                 />
               )}
 

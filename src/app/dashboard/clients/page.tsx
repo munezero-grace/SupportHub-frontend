@@ -21,7 +21,7 @@ import { clientsApi } from '@/services/clients'
 import { ClientFormModal } from '@/components/clients/ClientFormModal'
 import type { ClientFormData } from '@/validations/clientSchema'
 import type { UpdateClientDto } from '@/types/clients'
-import { FilterPopup } from '@/components/shared/FilterModal'
+import { FilterModal } from '@/components/shared/FilterModal'
 import { filterFields } from '@/constants/filterConfig'
 
 export default function ClientsPage() {
@@ -273,13 +273,26 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      <div className="bg-white  p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">
-        <SearchAndFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          placeholder="Search clients..."
-          onFilterClick={() => setIsFilterModalOpen(true)}
-        />
+      <div className="bg-white p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">
+        <div className="relative">
+          <SearchAndFilters
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Search clients..."
+            onFilterClick={() => setIsFilterModalOpen(true)}
+          />
+          {isFilterModalOpen && (
+            <FilterModal
+              isOpen={isFilterModalOpen}
+              onClose={() => setIsFilterModalOpen(false)}
+              fields={filterFields}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onApply={handleApplyFilters}
+              title="Filter Clients"
+            />
+          )}
+        </div>
 
         <div className="mx-4">
           {isLoading ? (
@@ -313,12 +326,12 @@ export default function ClientsPage() {
         initialData={
           selectedClient
             ? {
-                companyName: selectedClient.companyName,
-                contactName: selectedClient.user.firstName,
-                contactEmail: selectedClient.user.email,
-                supportTier: selectedClient.supportTier,
-                status: selectedClient.status,
-              }
+              companyName: selectedClient.companyName,
+              contactName: selectedClient.user.firstName,
+              contactEmail: selectedClient.user.email,
+              supportTier: selectedClient.supportTier,
+              status: selectedClient.status,
+            }
             : undefined
         }
         title="Edit Client"
@@ -366,16 +379,6 @@ export default function ClientsPage() {
           []
         }
         clientId={selectedClient ? String(selectedClient.id) : ''}
-      />
-
-      <FilterPopup
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        fields={filterFields}
-        values={filterValues}
-        onChange={handleFilterChange}
-        onApply={handleApplyFilters}
-        title="Filter"
       />
     </div>
   )

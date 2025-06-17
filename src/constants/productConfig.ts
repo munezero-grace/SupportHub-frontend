@@ -2,7 +2,6 @@
 import { SelectOption } from '@/types/interfaces/Props';
 
 export const PRODUCT_STATUS_OPTIONS = [
-  { label: 'All', value: 'all' },
   { label: 'active', value: 'active' },
   { label: 'inactive', value: 'inactive' }
 ];

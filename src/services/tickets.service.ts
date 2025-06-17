@@ -1,21 +1,8 @@
 import { axiosInstance } from '@/lib/api'
 import { AxiosError } from 'axios'
-
-interface TicketUpdateData {
-  ticketCode?: string
-  title?: string
-  status?: string
-  priority?: string
-  imageUrl?: string
-  clientId?: string
-  productId?: string
-  description?: string
-  contactName?: string
-  contactEmail?: string
-  contactPhone?: string
-  tags?: string
-  dueDate?: string
-}
+import { TicketUpdateData } from '@/types/TicketTypes'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { RESPONSE_STATUS } from '@/constants/errorMessages'
 
 const BASE_URL = '/api/tickets';
 
@@ -29,10 +16,18 @@ export const ticketService = {
       })
       return response.data
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        throw new Error(error.response.data.error)
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.UNAUTHORIZED };
+        }
+        if (error.response?.status === 403) {
+          return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.FORBIDDEN };
+        }
+        if (error.response?.data?.error) {
+          return { status: RESPONSE_STATUS.ERROR, message: error.response.data.error };
+        }
       }
-      throw error
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKET_CREATE_FAILED };
     }
   },
 
@@ -40,16 +35,23 @@ export const ticketService = {
     try {
       const response = await axiosInstance.get(BASE_URL);
       if (!response.data) {
-        throw new Error('No tickets found');
+        return [];
       }
-      return response.data;
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      if (response.data.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      }
+      if (response.data.tickets && Array.isArray(response.data.tickets)) {
+        return response.data.tickets;
+      }
+      return [];
     } catch (error) {
-      console.error('Error fetching tickets:', error);
       if (error instanceof AxiosError) {
-        const errorMessage = error.response?.data?.error || error.message;
-        throw new Error(errorMessage);
+        return { status: RESPONSE_STATUS.ERROR, message: error.response?.data?.error || ERROR_MESSAGES.TICKETS_FETCH_FAILED };
       }
-      throw new Error('Failed to fetch tickets. Please try again.');
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKETS_FETCH_FAILED };
     }
   },
 
@@ -58,10 +60,10 @@ export const ticketService = {
       const response = await axiosInstance.get(`${BASE_URL}/${id}`)
       return response.data
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        throw new Error(error.response.data.error)
+      if (error instanceof AxiosError) {
+        return { status: RESPONSE_STATUS.ERROR, message: error.response?.data?.error || ERROR_MESSAGES.TICKET_NOT_FOUND };
       }
-      throw error
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKET_NOT_FOUND };
     }
   },
 
@@ -74,10 +76,10 @@ export const ticketService = {
       })
       return response.data
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        throw new Error(error.response.data.error)
+      if (error instanceof AxiosError) {
+        return { status: RESPONSE_STATUS.ERROR, message: error.response?.data?.error || ERROR_MESSAGES.TICKET_UPDATE_FAILED };
       }
-      throw error
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKET_UPDATE_FAILED };
     }
   },
 
@@ -85,10 +87,10 @@ export const ticketService = {
     try {
       await axiosInstance.delete(`${BASE_URL}/${id}`)
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        throw new Error(error.response.data.error)
+      if (error instanceof AxiosError) {
+        return { status: RESPONSE_STATUS.ERROR, message: error.response?.data?.error || ERROR_MESSAGES.TICKET_DELETE_FAILED };
       }
-      throw error
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKET_DELETE_FAILED };
     }
   },
 }

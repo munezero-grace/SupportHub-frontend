@@ -1,6 +1,8 @@
 import { axiosInstance } from '@/lib/api';
 import { Product, ProductFormData } from '@/types/interfaces/product';
 import { AxiosError } from 'axios';
+import { ERROR_MESSAGES } from '@/constants/errorMessages';
+import { RESPONSE_STATUS } from '@/constants/errorMessages';
 
 const BASE_URL = '/api/products';
 
@@ -31,7 +33,6 @@ export const productService = {
 
             type ClientApiResponse = { data: Product[] } | Product[];
             const response = await axiosInstance.get<ClientApiResponse>(`${BASE_URL}/client/${clientCode}`);
-            console.log('Products for clientCode:', clientCode, response.data);
 
             if (Array.isArray(response.data)) {
                 return response.data;
@@ -41,14 +42,9 @@ export const productService = {
             }
             return [];
         } catch (error) {
-            console.error('Error in getProductsByClient:', error);
             if (error instanceof AxiosError) {
                 if (error.response?.status === 404) {
                     return [];
-                }
-                console.error('API Error response:', error.response?.data);
-                if (error.response?.data?.error) {
-                    console.error('API Error message:', error.response.data.error);
                 }
             }
             return [];
@@ -83,7 +79,7 @@ export const productService = {
         }
     },
 
-    createProduct: async (productData: ProductFormData): Promise<Product> => {
+    createProduct: async (productData: ProductFormData): Promise<Product | { status: string; message: string }> => {
         try {
             const normalizedData = {
                 ...productData,
@@ -95,16 +91,16 @@ export const productService = {
         } catch (error) {
             if (error instanceof AxiosError) {
                 if (error.response?.status === 401) {
-                    throw new Error('You must be logged in to perform this action');
+                    return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.UNAUTHORIZED };
                 }
                 if (error.response?.status === 403) {
-                    throw new Error('You do not have permission to perform this action');
+                    return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.FORBIDDEN };
                 }
                 if (error.response?.data?.message) {
-                    throw new Error(error.response.data.message);
+                    return { status: RESPONSE_STATUS.ERROR, message: error.response.data.message };
                 }
             }
-            throw new Error('Failed to create product');
+            return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.PRODUCT_CREATE_FAILED };
         }
     },
 

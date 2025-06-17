@@ -1,5 +1,6 @@
-import { Fragment } from 'react'
+import * as React from 'react'
 import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
+import { Fragment } from 'react'
 import { cn } from '@/lib/utils'
 import { DialogProps } from '@/types/interfaces/Props'
 
@@ -10,10 +11,16 @@ export function Dialog({
   title,
   description,
   className,
-}: DialogProps) {
+  initialFocus,
+}: DialogProps): React.ReactElement {
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <HeadlessDialog as="div" className="relative z-50" onClose={onClose}>
+      <HeadlessDialog
+        as="div"
+        className="relative z-50"
+        onClose={onClose}
+        initialFocus={initialFocus}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

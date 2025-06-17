@@ -1,4 +1,5 @@
 import { DefaultSession } from "next-auth"
+import { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -74,4 +75,23 @@ export type CustomUser = {
   providerId?: string;
   firstName?: string;
   lastName?: string;
+}
+
+
+export interface QueueItem {
+  resolve: (token: string) => void
+  reject: (error: AxiosError | Error) => void
+}
+
+export interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
+}
+
+export interface ErrorResponse {
+  message?: string
+}
+
+export interface LoginCredentials {
+  email: string
+  password: string
 }

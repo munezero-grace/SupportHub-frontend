@@ -6,18 +6,20 @@ import { Table } from '@/components/ui/Table';
 import { PlusIcon } from '@/components/icons/ActionIcons';
 import { ProductFormModal } from '@/components/products/ProductFormModal';
 import { Dialog } from '@/components/ui/Dialog';
-import { PRODUCT_STATUS_OPTIONS } from '@/constants/productConfig';
-import { filterProducts } from '@/constants/filterConfig';
+import { STATUS_OPTIONS } from '@/constants/productConfig';
 import { Product } from '@/types/interfaces/product';
-import { FilterModal } from '@/components/products/FilterModal';
 import { createProductHandlers } from '@/components/products/productHandlers';
 import ClientSelectionModal from '@/components/clients/ClientSelectionModal';
 import { productService } from '@/services/products.service';
 import { Client } from '@/types/clients';
 import { ClientResponse } from '@/types/clients/clientResponse';
-import { FilterOptions } from '@/types/interfaces/Props';
 import SearchAndFilters from '@/components/shared/SearchAndFilters';
 import { useRouter } from 'next/navigation';
+import { FilterModal } from '@/components/shared/FilterModal';
+
+interface ProductFilters {
+  status: string;
+}
 
 export default function ProductsAdminPage() {
   const router = useRouter();
@@ -27,13 +29,9 @@ export default function ProductsAdminPage() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
-  const [filters, setFilters] = useState<FilterOptions>({
-    status: PRODUCT_STATUS_OPTIONS[0],
-    priority: PRODUCT_STATUS_OPTIONS[0],
-    minClients: undefined,
-    minDevelopers: undefined,
-    hasActiveTickets: false,
-  } as FilterOptions);
+  const [filterValues, setFilterValues] = useState<ProductFilters>({
+    status: ''
+  });
 
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);
@@ -55,8 +53,7 @@ export default function ProductsAdminPage() {
       try {
         const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
         setProducts(productsWithActiveClients);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      } catch {
         setProducts([]);
       }
     };
@@ -112,8 +109,7 @@ export default function ProductsAdminPage() {
         try {
           const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
           setProducts(productsWithActiveClients);
-        } catch (error) {
-          console.error("Error fetching products:", error);
+        } catch {
           setProducts([]);
         }
       },
@@ -121,8 +117,20 @@ export default function ProductsAdminPage() {
       onNavigate: (path) => router.push(path)
     });
 
-  const handleFilterApply = (newFilters: FilterOptions) => setFilters(newFilters);
-  const filteredProducts = filterProducts(products, filters, searchTerm);
+  const handleFilterChange = (name: string, value: string): void => {
+    setFilterValues(prev => ({ ...prev, [name]: value }));
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      !filterValues.status ||
+      product.status.toLowerCase() === filterValues.status.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
   const columns = getProductColumns();
 
   const handleClientSelect = async (client: Client) => {
@@ -134,8 +142,7 @@ export default function ProductsAdminPage() {
       try {
         const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
         setProducts(productsWithActiveClients);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      } catch {
         setProducts([]);
       }
     }
@@ -150,16 +157,14 @@ export default function ProductsAdminPage() {
         try {
           const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
           setProducts(productsWithActiveClients);
-        } catch (error) {
-          console.error("Error fetching products:", error);
+        } catch {
           setProducts([]);
         }
         setIsClientModalOpen(false);
         setTimeout(() => {
           setIsClientModalOpen(true);
         }, 0);
-      } catch (error) {
-        console.error("Error removing client from product:", error);
+      } catch {
       }
     }
   };
@@ -168,48 +173,62 @@ export default function ProductsAdminPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Products</h1>
-          <p className="text-gray-500">Manage software products and assign clients and developers</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Manage your products and their configurations
+          </p>
         </div>
-        <div>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setSelectedProduct(null);
-              setIsAddModalOpen(true);
-            }}
-            className="!bg-black !text-white rounded-lg flex items-center gap-2"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Add Product
-          </Button>
-        </div>
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <PlusIcon className="w-5 h-5" />
+          Add Product
+        </Button>
       </div>
-      <div className="bg-white  p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">
-        <SearchAndFilters
-          searchQuery={searchTerm}
-          onSearchChange={setSearchTerm}
-          onFilterClick={() => setFilterModalOpen(true)}
-          placeholder="Search products..."
-        />
 
-        <div className="mx-4">
-          <div className="border border-gray-200 rounded-lg overflow-x-auto">
-            <Table
-              data={filteredProducts}
-              columns={columns}
-              className="w-full [&_th]:!text-gray-500 [&_td]:!text-gray-900 [&_th]:!font-medium [&_td]:!font-medium [&_th]:!p-4 [&_td]:!p-4 [&_tr]:border-b [&_tr:last-child]:border-b-0"
+      <div className="bg-white rounded-lg shadow">
+        <div className="relative">
+          <SearchAndFilters
+            searchQuery={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="Search products..."
+            onFilterClick={() => setFilterModalOpen(true)}
+          />
+          {filterModalOpen && (
+            <FilterModal
+              isOpen={filterModalOpen}
+              onClose={() => setFilterModalOpen(false)}
+              fields={[
+                {
+                  name: 'status',
+                  label: 'Status',
+                  type: 'select',
+                  options: STATUS_OPTIONS
+                }
+              ]}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onApply={() => setFilterModalOpen(false)}
+              title="Filter Products"
             />
-          </div>
+          )}
+        </div>
+        <div className="p-4">
+          <Table
+            data={filteredProducts}
+            columns={columns}
+            emptyState={
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg mb-2">No products found</p>
+                <p className="text-gray-400 text-sm">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            }
+          />
         </div>
       </div>
-
-      <FilterModal
-        isOpen={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
-        onApply={handleFilterApply}
-        initialFilters={filters}
-      />
 
       <ProductFormModal
         isOpen={isAddModalOpen}

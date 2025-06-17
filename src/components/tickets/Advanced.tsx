@@ -1,5 +1,5 @@
 import React from 'react'
-import { AdvancedProps } from './TicketTypes'
+import { AdvancedProps } from '@/types/TicketTypes'
 
 function Advanced({ formData, handleInputChange, isAdmin }: AdvancedProps) {
     const handleTagsInput = (value: string) => {

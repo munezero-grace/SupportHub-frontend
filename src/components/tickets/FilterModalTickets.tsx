@@ -1,93 +1,129 @@
+'use client'
+
+import * as React from 'react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
-import { Checkbox } from '@/components/ui/Checkbox'
-import { SelectOption } from '@/types/interfaces/Props'
-import { useState } from 'react'
-import { ClientsIcon } from '@/components/icons'
-import { FilterModalProps, FilterOptions } from '@/types/interfaces/Props'
-import { TICKET_PRIORITY_OPTIONS, TICKET_STATUS_OPTIONS } from '../../constants/TicketConst'
+import type { FilterModalTicketsProps, SelectOption } from '@/types/interfaces/Props'
+import { TICKET_PRIORITY_OPTIONS, TICKET_STATUS_OPTIONS } from '@/constants/ticketconfig'
 
 export function FilterModalTickets({
   isOpen,
   onClose,
   onApply,
-  initialFilters,
-}: FilterModalProps) {
-  const [filters, setFilters] = useState<FilterOptions>(initialFilters)
+  initialFilters
+}: FilterModalTicketsProps): React.ReactElement {
+  const [filters, setFilters] = React.useState(initialFilters)
+  const [isApplying, setIsApplying] = React.useState(false)
+  const initialFocusRef = React.useRef<HTMLButtonElement>(null)
 
-  const handleStatusChange = (value: SelectOption) => {
-    setFilters((prev) => ({ ...prev, status: value }))
-  }
+  const handleStatusChange = React.useCallback((option: SelectOption): void => {
+    setFilters(prev => ({ ...prev, status: option }))
+  }, [])
 
-  const handlePriorityChange = (value: SelectOption) => {
-    setFilters((prev) => ({ ...prev, priority: value }))
-  }
+  const handlePriorityChange = React.useCallback((option: SelectOption): void => {
+    setFilters(prev => ({ ...prev, priority: option }))
+  }, [])
 
-  const handleHasActiveClientsChange = (checked: boolean) => {
-    setFilters((prev) => ({ ...prev, hasActiveClients: checked }))
-  }
+  const handleApply = React.useCallback(async (): Promise<void> => {
+    try {
+      setIsApplying(true)
+      await onApply(filters)
+      onClose()
+    } catch (error) {
+      console.error('Error applying filters:', error)
+    } finally {
+      setIsApplying(false)
+    }
+  }, [filters, onApply, onClose])
 
-  const handleApply = () => {
-    onApply(filters)
-    onClose()
-  }
+  const handleReset = React.useCallback((): void => {
+    const resetFilters = {
+      status: TICKET_STATUS_OPTIONS[0],
+      priority: TICKET_PRIORITY_OPTIONS[0]
+    }
+    setFilters(resetFilters)
+    onApply(resetFilters)
+  }, [onApply])
 
-  const handleCancel = () => {
+  const handleClose = React.useCallback((): void => {
     setFilters(initialFilters)
     onClose()
-  }
+  }, [initialFilters, onClose])
+
+  const handleSubmit = React.useCallback((e: React.FormEvent): void => {
+    e.preventDefault()
+    void handleApply()
+  }, [handleApply])
+
+  const filterChanged = React.useMemo(() => {
+    return filters.status.value !== initialFilters.status.value ||
+      filters.priority.value !== initialFilters.priority.value
+  }, [filters, initialFilters])
 
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Filter Tickets"
-      className="w-[480px]"
+      className="max-w-md w-full"
+      description="Filter tickets by status and priority."
     >
-      <div className="p-6 space-y-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Status</label>
-          <Select
-            options={TICKET_STATUS_OPTIONS}
-            value={filters.status}
-            onChange={handleStatusChange}
-            className="w-full"
-          />
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        aria-label="Filter tickets form"
+      >
+        <div className="p-6 space-y-4">
+          <div className="space-y-1">
+            <Select
+              label="Status"
+              value={filters.status}
+              onChange={handleStatusChange}
+              options={TICKET_STATUS_OPTIONS}
+              className="w-full"
+              aria-label="Filter by ticket status"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Select
+              label="Priority"
+              value={filters.priority}
+              onChange={handlePriorityChange}
+              options={TICKET_PRIORITY_OPTIONS}
+              className="w-full"
+              aria-label="Filter by ticket priority"
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Priority</label>
-          <Select
-            options={TICKET_PRIORITY_OPTIONS}
-            value={filters.priority}
-            onChange={handlePriorityChange}
-            className="w-full"
-          />
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            checked={filters.hasActiveClients || false}
-            onCheckedChange={handleHasActiveClientsChange}
-            id="activeClients"
-          />
-          <label
-            htmlFor="activeClients"
-            className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2"
+        <div className="flex justify-end gap-2 px-6 pb-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            ref={initialFocusRef}
           >
-            <ClientsIcon className="w-4 h-4 text-blue-500" />
-            Has Active Clients
-          </label>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleReset}
+            disabled={!filterChanged || isApplying}
+          >
+            Reset
+          </Button>
+          <Button
+            type="submit"
+            loading={isApplying}
+            disabled={!filterChanged || isApplying}
+          >
+            Apply Filters
+          </Button>
         </div>
-      </div>
-
-      <div className="flex justify-end gap-2 px-6 py-4 border-t">
-        <Button variant="outline" onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleApply}>Apply Filters</Button>
-      </div>
+      </form>
     </Dialog>
   )
 }

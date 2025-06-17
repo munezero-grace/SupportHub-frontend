@@ -27,10 +27,7 @@ export default function Home() {
       </div>
     )
   }
-  if (status === 'authenticated') {
-    return null
-  }
-
+ 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       <ToastContainer />

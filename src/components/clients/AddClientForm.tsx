@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -7,10 +7,20 @@ import {
 } from '@/validations/clientSchema'
 import { useCreateClientMutation } from '@/hooks/useQueries'
 import { Button } from '@/components/ui/Button'
-import { SupportTier, Status, AddClientFormProps } from '@/types/clients'
+import {
+  SupportTier,
+  Status,
+  AddClientFormProps,
+  SelectOption,
+} from '@/types/clients'
+import Select from 'react-select'
+import { productsService } from '@/services/products.service'
+import { Product } from '@/types/interfaces/product'
 
 export function AddClientForm({ onSuccess }: AddClientFormProps) {
   const [error, setError] = useState('')
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<SelectOption[]>([])
   const createClientMutation = useCreateClientMutation()
 
   const form = useForm<ClientFormData>({
@@ -30,14 +40,24 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
     formState: { errors, isSubmitting },
   } = form
 
+  useEffect(() => {
+    productsService.getAll().then(setProducts).catch(console.error)
+  }, [])
+
   const submitForm = async (data: ClientFormData) => {
     try {
       setError('')
-      await createClientMutation.mutateAsync({
+      const client = await createClientMutation.mutateAsync({
         ...data,
         supportTier: data.supportTier as SupportTier,
         status: data.status as Status,
       })
+
+      if (selectedProducts.length > 0) {
+        for (const product of selectedProducts) {
+          await productsService.addClientToProduct(product.value, client.id)
+        }
+      }
       onSuccess()
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
@@ -79,6 +99,22 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
         register={register}
         error={errors.contactEmail?.message}
       />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Products
+        </label>
+        <Select
+          isMulti
+          options={products.map((p) => ({
+            value: p.id,
+            label: `${p.productCode} - ${p.name}`,
+          }))}
+          value={selectedProducts}
+          onChange={(newValue) => setSelectedProducts(Array.from(newValue as SelectOption[]))}
+          placeholder="Select products to assign"
+        />
+      </div>
 
       <SelectField
         id="supportTier"

@@ -10,7 +10,7 @@ import {
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import EditTicketModal from '@/components/tickets/EditTicketModal'
 import { Table } from '@/components/ui/Table'
-import { createTicketTableColumns } from "./ticketsTable"
+import { createTicketTableColumns } from "../../../components/tickets/ticketsTable"
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { FilterModal } from '@/components/shared/FilterModal'
 

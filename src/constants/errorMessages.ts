@@ -22,6 +22,8 @@ export const ERROR_MESSAGES = {
   INVALID_TICKET_ID: 'Invalid ticket ID provided',
   NETWORK_ERROR: 'Network error occurred',
   UNKNOWN_ERROR: 'An unexpected error occurred',
+  USER_ID_MISSING_IN_REQUEST: 'User ID missing in request',
+  COMPANY_NAME_REQUIRED: 'companyName is required',
 } as const;
 
 export const RESPONSE_STATUS = {

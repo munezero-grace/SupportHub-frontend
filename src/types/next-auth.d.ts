@@ -1,4 +1,6 @@
 import type { JWT as NextAuthJWT } from "next-auth/jwt"
+import { Client } from '@/types/auth'
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -12,6 +14,7 @@ declare module "next-auth" {
       provider: string
       providerId: string
       emailVerified?: Date | null
+      client?: Client
     }
   }
 

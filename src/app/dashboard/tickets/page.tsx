@@ -168,6 +168,11 @@ export default function TicketsPage() {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
+  const handleRowClick = (item: Ticket): void => {
+    setSelectedTicket(item);
+    setIsEditModalOpen(true);
+  };
+
   const enhancedColumns = createTicketTableColumns({
     onEdit: handleEditTicket,
     onDelete: handleDeleteTicket,
@@ -175,83 +180,79 @@ export default function TicketsPage() {
     isAdmin
   });
 
-  const handleRowClick = (item: Ticket): void => {
-    setSelectedTicket(item);
-    setIsEditModalOpen(true);
-  };
-
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Tickets</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Manage and track all support tickets
-            </p>
-          </div>
-          <div className="flex gap-4 w-full sm:w-auto">
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800"
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Tickets</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Manage and track all support tickets
+          </p>
+        </div>
+        <div className="flex gap-4 w-full sm:w-auto">
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              New Ticket
-            </Button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            New Ticket
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow">
+        <div className="relative">
+          <SearchAndFilters
+            searchQuery={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="Search tickets..."
+            onFilterClick={() => setIsFilterModalOpen(true)}
+          />
+          {isFilterModalOpen && (
+            <FilterModal
+              isOpen={isFilterModalOpen}
+              onClose={() => setIsFilterModalOpen(false)}
+              title="Filter Tickets"
+              fields={[
+                {
+                  name: 'status',
+                  label: 'Status',
+                  type: 'select',
+                  options: TICKET_STATUS_OPTIONS,
+                },
+                {
+                  name: 'priority',
+                  label: 'Priority',
+                  type: 'select',
+                  options: TICKET_PRIORITY_OPTIONS,
+                },
+              ]}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onApply={() => setIsFilterModalOpen(false)}
+            />
+          )}
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="relative">
-            <SearchAndFilters
-              searchQuery={searchTerm}
-              onSearchChange={setSearchTerm}
-              placeholder="Search tickets..."
-              onFilterClick={() => setIsFilterModalOpen(true)}
-            />
-            {isFilterModalOpen && (
-              <FilterModal
-                isOpen={isFilterModalOpen}
-                onClose={() => setIsFilterModalOpen(false)}
-                title="Filter Tickets"
-                fields={[
-                  {
-                    name: 'status',
-                    label: 'Status',
-                    type: 'select',
-                    options: TICKET_STATUS_OPTIONS,
-                  },
-                  {
-                    name: 'priority',
-                    label: 'Priority',
-                    type: 'select',
-                    options: TICKET_PRIORITY_OPTIONS,
-                  },
-                ]}
-                values={filterValues}
-                onChange={handleFilterChange}
-                onApply={() => setIsFilterModalOpen(false)}
-              />
-            )}
-          </div>
-
-          <div className="p-4">
+        <div className="p-4 overflow-hidden">
+          <div className="overflow-x-auto">
             <Table
               data={filteredTickets}
               columns={enhancedColumns}
               onRowClick={handleRowClick}
+              className="w-full min-w-[800px]"
               emptyState={
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg mb-2">No tickets found</p>
@@ -315,6 +316,6 @@ export default function TicketsPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

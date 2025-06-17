@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { TicketActions } from '@/components/tickets/TicketActions';
 import type { Ticket } from '@/types/interfaces/interface';
 
 type TicketHandlers = {
@@ -31,29 +31,11 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
         return <span className="text-sm text-gray-600 truncate block" title={ticket.client}>{ticket.client}</span>;
       }
 
-      if (!ticket.client) {
-        return <span className="text-sm text-gray-400">N/A</span>;
+      if (typeof ticket.client === 'object' && ticket.client?.companyName) {
+        return <span className="text-sm text-gray-600 truncate block" title={ticket.client.companyName}>{ticket.client.companyName}</span>;
       }
 
-      return (
-        <div className="flex flex-col gap-0.5">
-          <span className={`text-sm font-medium truncate ${ticket.client.status === 'active' ? 'text-gray-700' : 'text-gray-500'}`} title={ticket.client.companyName}>
-            {ticket.client.companyName}
-          </span>
-          {ticket.client.clientProducts && ticket.client.clientProducts.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              <span className="text-xs text-gray-600 truncate" title={ticket.client.clientProducts[0].product.name}>
-                {ticket.client.clientProducts[0].product.name}
-              </span>
-              {ticket.client.clientProducts.length > 1 && (
-                <span className="text-xs text-gray-500 whitespace-nowrap">
-                  +{ticket.client.clientProducts.length - 1}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      );
+      return <span className="text-sm text-gray-400">N/A</span>;
     },
     className: 'w-36',
   },
@@ -81,16 +63,16 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
   {
     header: 'Priority',
     accessor: (ticket: Ticket): ReactNode => {
-      const priority = ticket.priority.toLowerCase();
+      const priority = ticket.priority?.toLowerCase() || 'low';
       const displayPriority = priority.charAt(0).toUpperCase() + priority.slice(1);
       return (
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${priority === 'critical'
-            ? 'bg-red-100 text-red-700'
-            : priority === 'high'
-              ? 'bg-orange-100 text-orange-700'
-              : priority === 'medium'
-                ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-green-100 text-green-700'
+          ? 'bg-red-100 text-red-700'
+          : priority === 'high'
+            ? 'bg-orange-100 text-orange-700'
+            : priority === 'medium'
+              ? 'bg-yellow-100 text-yellow-700'
+              : 'bg-green-100 text-green-700'
           }`}>
           {displayPriority}
         </span>
@@ -104,8 +86,9 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
       if (!ticket.tags || ticket.tags.length === 0) return <span className="text-sm text-gray-400">-</span>;
 
       const MAX_VISIBLE_TAGS = 1;
-      const visibleTags = ticket.tags.slice(0, MAX_VISIBLE_TAGS);
-      const remainingCount = ticket.tags.length - MAX_VISIBLE_TAGS;
+      const tags = Array.isArray(ticket.tags) ? ticket.tags : [ticket.tags];
+      const visibleTags = tags.slice(0, MAX_VISIBLE_TAGS);
+      const remainingCount = tags.length - MAX_VISIBLE_TAGS;
 
       return (
         <div className="flex items-center gap-1 max-w-full flex-wrap">
@@ -147,22 +130,10 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
     header: 'Actions',
     accessor: (ticket: Ticket): ReactNode => (
       <div className="flex justify-end px-2">
-        <ActionMenu
-          items={[
-            {
-              label: 'View Details',
-              onClick: () => onEdit(ticket),
-            },
-            {
-              label: 'Edit Ticket',
-              onClick: () => onEdit(ticket),
-            },
-            {
-              label: 'Delete',
-              onClick: () => onDelete(ticket),
-              variant: 'danger',
-            },
-          ]}
+        <TicketActions
+          ticket={ticket}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </div>
     ),

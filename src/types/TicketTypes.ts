@@ -4,7 +4,9 @@ import type { Ticket } from '@/types/interfaces/interface'
 export type CreateTicketModalProps = {
   isOpen: boolean
   onClose: () => void
-  initialData?: Ticket | null
+  initialData?: FormData
+  isEditing?: boolean
+  ticketId?: string
 }
 
 export interface SessionUser {
@@ -76,7 +78,7 @@ export interface ClientInfoProps {
   availableClients: Client[]
   handleInputChange: (field: keyof FormData, value: string) => void
   setFormData: React.Dispatch<React.SetStateAction<FormData>>
- 
+
 }
 
 export interface SelectOption {
@@ -103,18 +105,34 @@ export interface TicketDetailsProps {
 }
 
 export interface TicketUpdateData {
-    ticketCode?: string
-    title?: string
-    status?: string
-    priority?: string
-    imageUrl?: string
-    clientId?: string
-    productId?: string
-    description?: string
-    contactName?: string
-    contactEmail?: string
-    contactPhone?: string
-    tags?: string
-    dueDate?: string
+  ticketCode?: string
+  title?: string
+  status?: string
+  priority?: string
+  imageUrl?: string
+  clientId?: string
+  productId?: string
+  description?: string
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
+  tags?: string
+  dueDate?: string
 }
 
+export interface PageProps {
+    params: Promise<{
+        ticketCode: string
+    }>
+}
+
+export interface Tag {
+    id: string;
+    name: string;
+}
+
+export interface TicketActionsProps {
+    ticket: Ticket
+    onEdit: (ticket: Ticket) => void
+    onDelete: (ticket: Ticket) => void
+}

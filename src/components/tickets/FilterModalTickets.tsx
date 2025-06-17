@@ -7,13 +7,22 @@ import { Select } from '@/components/ui/Select'
 import type { FilterModalTicketsProps, SelectOption } from '@/types/interfaces/Props'
 import { TICKET_PRIORITY_OPTIONS, TICKET_STATUS_OPTIONS } from '@/constants/ticketconfig'
 
+const ALL_OPTION: SelectOption = { label: 'All', value: '' }
+
 export function FilterModalTickets({
   isOpen,
   onClose,
   onApply,
-  initialFilters
+  initialFilters = { status: ALL_OPTION, priority: ALL_OPTION }
 }: FilterModalTicketsProps): React.ReactElement {
-  const [filters, setFilters] = React.useState(initialFilters)
+  const safeInitialFilters = {
+    status: initialFilters?.status || ALL_OPTION,
+    priority: initialFilters?.priority || ALL_OPTION
+  };
+  const [filters, setFilters] = React.useState({
+    status: safeInitialFilters.status,
+    priority: safeInitialFilters.priority
+  })
   const [isApplying, setIsApplying] = React.useState(false)
   const initialFocusRef = React.useRef<HTMLButtonElement>(null)
 
@@ -39,15 +48,18 @@ export function FilterModalTickets({
 
   const handleReset = React.useCallback((): void => {
     const resetFilters = {
-      status: TICKET_STATUS_OPTIONS[0],
-      priority: TICKET_PRIORITY_OPTIONS[0]
+      status: ALL_OPTION,
+      priority: ALL_OPTION
     }
     setFilters(resetFilters)
     onApply(resetFilters)
   }, [onApply])
 
   const handleClose = React.useCallback((): void => {
-    setFilters(initialFilters)
+    setFilters({
+      status: initialFilters.status || ALL_OPTION,
+      priority: initialFilters.priority || ALL_OPTION
+    })
     onClose()
   }, [initialFilters, onClose])
 
@@ -57,9 +69,11 @@ export function FilterModalTickets({
   }, [handleApply])
 
   const filterChanged = React.useMemo(() => {
-    return filters.status.value !== initialFilters.status.value ||
-      filters.priority.value !== initialFilters.priority.value
+    return filters.status.value !== initialFilters.status?.value ||
+      filters.priority.value !== initialFilters.priority?.value
   }, [filters, initialFilters])
+
+
 
   return (
     <Dialog
@@ -76,8 +90,9 @@ export function FilterModalTickets({
       >
         <div className="p-6 space-y-4">
           <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">Status</label>
             <Select
-              label="Status"
+              label="All"
               value={filters.status}
               onChange={handleStatusChange}
               options={TICKET_STATUS_OPTIONS}
@@ -87,8 +102,9 @@ export function FilterModalTickets({
           </div>
 
           <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">Priority</label>
             <Select
-              label="Priority"
+              label="All"
               value={filters.priority}
               onChange={handlePriorityChange}
               options={TICKET_PRIORITY_OPTIONS}

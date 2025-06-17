@@ -1,10 +1,9 @@
 import { Product } from '@/types/interfaces/product';
 import { FilterOptions } from '@/types/interfaces/Props';
 
-
 export const filterProducts = (products: Product[], filters: FilterOptions, searchTerm: string) => {
   return products.filter(product => {
-    if (filters.status.value !== 'all' && product.status !== filters.status.value) {
+    if (filters.status.value && product.status !== filters.status.value) {
       return false;
     }
 
@@ -21,23 +20,27 @@ export const filterProducts = (products: Product[], filters: FilterOptions, sear
   })
 }
 
+const STATUS_OPTIONS = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+];
+
+const SUPPORT_TIER_OPTIONS = [
+  { label: 'Standard', value: 'standard' },
+  { label: 'Premium', value: 'premium' },
+];
+
 export const filterFields = [
   {
     label: 'Status',
     name: 'status',
     type: 'select',
-    options: [
-      { label: 'Active', value: 'active' },
-      { label: 'Inactive', value: 'inactive' },
-    ],
+    options: STATUS_OPTIONS,
   },
   {
     label: 'Support Tier',
     name: 'supportTier',
     type: 'select',
-    options: [
-      { label: 'Standard', value: 'standard' },
-      { label: 'Premium', value: 'premium' },
-    ],
+    options: SUPPORT_TIER_OPTIONS,
   },
 ]

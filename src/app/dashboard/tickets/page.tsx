@@ -8,6 +8,7 @@ import {
   TICKET_PRIORITY_OPTIONS,
 } from '@/constants/ticketconfig'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
+import EditTicketModal from '@/components/tickets/EditTicketModal'
 import { Table } from '@/components/ui/Table'
 import { createTicketTableColumns } from "./ticketsTable"
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
@@ -86,6 +87,7 @@ export default function TicketsPage() {
 
         const tickets = Array.isArray(data) ? data : [];
         const mappedTickets = tickets.map((ticket: Record<string, unknown>): Ticket => ({
+          ...ticket,
           id: ticket.id as string,
           title: ticket.title as string,
           description: ticket.description as string | undefined,
@@ -126,8 +128,7 @@ export default function TicketsPage() {
           imageUrl: ticket.imageUrl as string | undefined
         }));
         setTickets(mappedTickets);
-      } catch (error) {
-        console.error('Error fetching tickets:', error);
+      } catch {
         setTickets([]);
       }
     };
@@ -135,9 +136,9 @@ export default function TicketsPage() {
   }, [])
 
   const handleEditTicket = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setIsEditModalOpen(true);
-  };
+    setSelectedTicket(ticket)
+    setIsEditModalOpen(true)
+  }
 
   const handleDeleteTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -272,25 +273,14 @@ export default function TicketsPage() {
       />
 
       {isEditModalOpen && selectedTicket && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.40)' }}
-        >
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Edit Ticket</h2>
-            <p>Editing ticket: {selectedTicket.title}</p>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                onClick={() => setIsEditModalOpen(false)}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button onClick={() => setIsEditModalOpen(false)}>Save</Button>
-            </div>
-          </div>
-        </div>
+        <EditTicketModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedTicket(null)
+          }}
+          ticket={selectedTicket}
+        />
       )}
 
       {isDeleteModalOpen && selectedTicket && (

@@ -14,8 +14,6 @@ export const createProductHandlers = ({
     setIsDeleteModalOpen,
     selectedProduct,
     refreshData,
-    openClientModal,
-    onNavigate
 }: ProductHandlerProps) => ({
     handleAddProduct: async (data: ProductFormData) => {
         try {
@@ -66,15 +64,30 @@ export const createProductHandlers = ({
     getProductColumns: (): TableProps<Product>['columns'] => [
         {
             header: 'ID',
-            accessor: 'productCode'
+            accessor: (product) => (
+                <div className="truncate max-w-[120px]" title={product.productCode}>
+                    {product.productCode}
+                </div>
+            ),
+            className: 'max-w-[120px]'
         },
         {
             header: 'Name',
-            accessor: 'name'
+            accessor: (product) => (
+                <div className="truncate max-w-[200px]" title={product.name}>
+                    {product.name}
+                </div>
+            ),
+            className: 'max-w-[200px]'
         },
         {
             header: 'Description',
-            accessor: 'description'
+            accessor: (product) => (
+                <div className="truncate max-w-xs" title={product.description}>
+                    {product.description}
+                </div>
+            ),
+            className: 'max-w-xs'
         },
         {
             header: 'Active Clients',
@@ -104,9 +117,9 @@ export const createProductHandlers = ({
         },
         {
             header: 'Status',
-            accessor: (item: Product) => (
-                <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${PRODUCT_STATUS_STYLES[item.status]}`}>
-                    {item.status}
+            accessor: (product: Product) => (
+                <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${PRODUCT_STATUS_STYLES[product.status]}`}>
+                    {product.status}
                 </span>
             )
         },
@@ -117,23 +130,20 @@ export const createProductHandlers = ({
                     items={[
                         {
                             label: 'View Details',
-                            onClick: () => onNavigate(`/dashboard/products/${product.productCode}`)
+                            onClick: () => {
+                            }
                         },
                         {
                             label: 'Edit Product',
                             onClick: () => {
-                                setSelectedProduct({
-                                    ...product,
-                                    name: product.name || '',
-                                    description: product.description || '',
-                                    status: product.status || 'active'
-                                });
+                                setSelectedProduct(product);
                                 setIsAddModalOpen(true);
                             }
                         },
                         {
                             label: 'Manage Clients',
-                            onClick: () => openClientModal(product)
+                            onClick: () => {
+                            }
                         },
                         {
                             label: 'View Tickets',

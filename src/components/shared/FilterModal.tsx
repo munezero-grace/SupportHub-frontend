@@ -65,7 +65,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   value={values[field.name] || ''}
                   onChange={(e) => onChange(field.name, e.target.value)}
                 >
-                  <option value="">{`All ${field.label}`}</option>
+                  <option value="">All</option>
                   {field.options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}

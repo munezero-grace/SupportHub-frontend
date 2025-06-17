@@ -32,7 +32,7 @@ export function Table<T extends { id: string | number }>({
                       key={index}
                       scope="col"
                       className={cn(
-                        'py-3.5 px-3 text-left text-sm font-semibold text-gray-900 whitespace-nowrap',
+                        'py-3.5 px-3 text-left text-sm font-semibold text-gray-900 whitespace-nowrap truncate',
                         column.className
                       )}
                     >
@@ -47,7 +47,8 @@ export function Table<T extends { id: string | number }>({
                     key={item.id}
                     className={cn(
                       'hover:bg-gray-50 transition-colors',
-                      onRowClick && 'cursor-pointer'
+                      onRowClick && 'cursor-pointer',
+                      'truncate'
                     )}
                     onClick={(e) => {
                       const target = e.target as HTMLElement;

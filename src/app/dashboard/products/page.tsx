@@ -21,6 +21,9 @@ interface ProductFilters {
   status: string;
 }
 
+const ALL_OPTION = { label: 'All', value: '' };
+const FILTER_STATUS_OPTIONS = [ALL_OPTION, ...STATUS_OPTIONS];
+
 export default function ProductsAdminPage() {
   const router = useRouter();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -170,67 +173,65 @@ export default function ProductsAdminPage() {
   };
 
   return (
-    <div>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Manage your products and their configurations
-            </p>
-          </div>
-          <Button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Add Product
-          </Button>
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Manage your products and their configurations
+          </p>
         </div>
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <PlusIcon className="w-5 h-5" />
+          Add Product
+        </Button>
+      </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="relative">
-            <SearchAndFilters
-              searchQuery={searchTerm}
-              onSearchChange={setSearchTerm}
-              placeholder="Search products..."
-              onFilterClick={() => setFilterModalOpen(true)}
-            />
-            {filterModalOpen && (
-              <FilterModal
-                isOpen={filterModalOpen}
-                onClose={() => setFilterModalOpen(false)}
-                fields={[
-                  {
-                    name: 'status',
-                    label: 'Status',
-                    type: 'select',
-                    options: STATUS_OPTIONS
-                  }
-                ]}
-                values={filterValues}
-                onChange={handleFilterChange}
-                onApply={() => setFilterModalOpen(false)}
-                title="Filter Products"
-              />
-            )}
-          </div>
-          <div className="p-4 overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table
-                data={filteredProducts}
-                className="w-full min-w-[800px]"
-                columns={columns}
-                emptyState={
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg mb-2">No products found</p>
-                    <p className="text-gray-400 text-sm">
-                      Try adjusting your search or filter criteria
-                    </p>
-                  </div>
+      <div className="bg-white rounded-lg shadow">
+        <div className="relative">
+          <SearchAndFilters
+            searchQuery={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="Search products..."
+            onFilterClick={() => setFilterModalOpen(true)}
+          />
+          {filterModalOpen && (
+            <FilterModal
+              isOpen={filterModalOpen}
+              onClose={() => setFilterModalOpen(false)}
+              fields={[
+                {
+                  name: 'status',
+                  label: 'Status',
+                  type: 'select',
+                  options: FILTER_STATUS_OPTIONS
                 }
-              />
-            </div>
+              ]}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onApply={() => setFilterModalOpen(false)}
+              title="Filter Products"
+            />
+          )}
+        </div>
+        <div className="p-4 overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table
+              data={filteredProducts}
+              className="w-full min-w-[800px]"
+              columns={columns}
+              emptyState={
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg mb-2">No products found</p>
+                  <p className="text-gray-400 text-sm">
+                    Try adjusting your search or filter criteria
+                  </p>
+                </div>
+              }
+            />
           </div>
         </div>
       </div>
@@ -243,6 +244,11 @@ export default function ProductsAdminPage() {
         }}
         onSubmit={selectedProduct ? handleEditProduct : handleAddProduct}
         title={selectedProduct ? "Edit Product" : "Add Product"}
+        initialData={selectedProduct ? {
+          name: selectedProduct.name,
+          description: selectedProduct.description,
+          status: selectedProduct.status as "active" | "inactive"
+        } : undefined}
       />
 
       <Dialog

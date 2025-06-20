@@ -103,7 +103,10 @@ export interface SelectOption {
 
 export interface FilterOptions {
   status: SelectOption;
-  priority: SelectOption;
+  priority?: SelectOption;
+  minClients?: number;
+  minDevelopers?: number;
+  hasActiveTickets?: boolean;
 }
 
 export interface FilterField {

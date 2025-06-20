@@ -7,7 +7,7 @@ import { PRODUCT_STATUS_OPTIONS } from '@/constants/productConfig';
 import { SelectOption } from '@/types/interfaces/Props';
 import { ClientsIcon, TicketIcon } from '@/components/icons';
 import { useState } from 'react';
-import { FilterModalProps, FilterOptions  } from '@/types/interfaces/Props';
+import { FilterModalProps, FilterOptions } from '@/types/interfaces/Props';
 
 export type { FilterOptions };
 
@@ -53,6 +53,7 @@ export function FilterModal({ isOpen, onClose, onApply, initialFilters }: Filter
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">Status</label>
           <Select
+            label="All"
             options={PRODUCT_STATUS_OPTIONS}
             value={filters.status}
             onChange={handleStatusChange}

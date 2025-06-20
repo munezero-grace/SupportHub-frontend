@@ -1,4 +1,3 @@
-
 import { SelectOption } from '@/types/interfaces/Props';
 
 export const PRODUCT_STATUS_OPTIONS = [

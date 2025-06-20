@@ -55,9 +55,9 @@ export const ticketService = {
     }
   },
 
-  getTicketById: async (id: string) => {
+  getTicketById: async (idOrCode: string) => {
     try {
-      const response = await axiosInstance.get(`${BASE_URL}/${id}`)
+      const response = await axiosInstance.get(`${BASE_URL}/code/${idOrCode}`)
       return response.data
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -67,12 +67,14 @@ export const ticketService = {
     }
   },
 
-  updateTicket: async (id: string, ticketData: TicketUpdateData) => {
+  updateTicket: async (id: string, ticketData: FormData | TicketUpdateData) => {
     try {
+      const headers = ticketData instanceof FormData
+        ? { 'Content-Type': 'multipart/form-data' }
+        : { 'Content-Type': 'application/json' };
+
       const response = await axiosInstance.put(`${BASE_URL}/${id}`, ticketData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
       return response.data
     } catch (error) {

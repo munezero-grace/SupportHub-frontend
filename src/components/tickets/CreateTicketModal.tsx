@@ -73,15 +73,22 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
           contactEmail: user.email || '',
         }))
       } else if (isUserAdmin) {
-        clientsApi.getAll().then((clients) => {
-          setAvailableClients(clients);
-        }).catch((error) => {
-          console.error('Error fetching clients:', error);
-          toast.error('Failed to fetch clients');
-        });
+        const fetchClients = async () => {
+          if (isAdmin) {
+            try {
+              const clients = await clientsApi.getAll();
+              const activeClients = clients.filter(client => client.status === 'active');
+              setAvailableClients(activeClients);
+            } catch {
+              toast.error('Failed to fetch clients');
+            }
+          }
+        };
+
+        fetchClients();
       }
     }
-  }, [isOpen, session])
+  }, [isOpen, session, isAdmin])
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -128,21 +135,42 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
 
   useEffect(() => {
     const fetchClients = async () => {
-      if (!isAdmin) return
+      if (isAdmin) {
+        try {
+          const clients = await clientsApi.getAll();
+          const activeClients = clients.filter(client => client.status === 'active');
+          setAvailableClients(activeClients);
+        } catch  {
+          toast.error('Failed to fetch clients');
+        }
+      }
+    };
 
-      try {
-        const clients = await clientsApi.getAll()
-        setAvailableClients(clients)
-      } catch (error) {
-        console.error('Failed to fetch clients:', error)
-        toast.error('Failed to load clients. Please try again.')
+    if (isOpen && session?.user) {
+      const user = session.user as SessionUser
+      const isUserAdmin = user.role === 'admin' || user.role === 'super_admin'
+      setIsAdmin(isUserAdmin)
+
+      if (!isUserAdmin && user) {
+        let contactName = ''
+        if (user.provider === 'google') {
+          contactName = `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        }
+        const companyName = user.client?.companyName || contactName
+
+        setFormData((prev) => ({
+          ...prev,
+          client: companyName,
+          clientId: user.client?.id || '',
+          clientCode: user.client?.clientCode || '',
+          contactName: contactName || companyName,
+          contactEmail: user.email || '',
+        }))
+      } else if (isUserAdmin) {
+        fetchClients();
       }
     }
-
-    if (isOpen) {
-      fetchClients()
-    }
-  }, [isOpen, isAdmin])
+  }, [isOpen, session, isAdmin])
 
   const handleInputChange = (field: keyof TicketFormData, value: string): void => {
     setFormData((prev) => ({
@@ -232,7 +260,6 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
         onClose()
       }, 1500)
     } catch (error: unknown) {
-      console.error('Error creating ticket:', error)
       const err = error as ApiError
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message)

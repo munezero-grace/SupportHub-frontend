@@ -53,10 +53,25 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
         status: data.status as Status,
       })
 
+      let allProductsAssigned = true
+      let assignError = ''
       if (selectedProducts.length > 0) {
         for (const product of selectedProducts) {
-          await productsService.addClientToProduct(product.value, client.id)
+          try {
+            await productsService.addClientToProduct(
+              product.value,
+              client.clientCode
+            )
+          } catch {
+            allProductsAssigned = false
+            assignError =
+              'Some products could not be assigned. Please try again.'
+          }
         }
+      }
+      if (!allProductsAssigned) {
+        setError(assignError)
+        return
       }
       onSuccess()
     } catch (err: unknown) {
@@ -111,7 +126,9 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
             label: `${p.productCode} - ${p.name}`,
           }))}
           value={selectedProducts}
-          onChange={(newValue) => setSelectedProducts(Array.from(newValue as SelectOption[]))}
+          onChange={(newValue) =>
+            setSelectedProducts(Array.from(newValue as SelectOption[]))
+          }
           placeholder="Select products to assign"
         />
       </div>

@@ -29,16 +29,16 @@ export default function ClientSelectionModal({
     }
   }, [isOpen])
 
-    const toggleClientSelection = (client: Client) => {
-      const clientId = client.id.toString()
-      if (!selectedClientIds.includes(clientId)) {
-        onSelectClient(client)
-      } else {
-        if (onRemoveClient) {
-          onRemoveClient(client)
-        }
+  const toggleClientSelection = (client: Client) => {
+    const clientId = client.id.toString()
+    if (!selectedClientIds.includes(clientId)) {
+      onSelectClient(client)
+    } else {
+      if (onRemoveClient) {
+        onRemoveClient(client)
       }
     }
+  }
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title="Select Clients">
@@ -61,7 +61,11 @@ export default function ClientSelectionModal({
               return (
                 <tr
                   key={client.id}
-                  className={isSelected ? 'bg-blue-100 cursor-pointer' : 'hover:bg-gray-100 cursor-pointer'}
+                  className={
+                    isSelected
+                      ? 'bg-blue-100 cursor-pointer'
+                      : 'hover:bg-gray-100 cursor-pointer'
+                  }
                   onClick={() => toggleClientSelection(client)}
                 >
                   <td className="p-2">{client.clientCode}</td>

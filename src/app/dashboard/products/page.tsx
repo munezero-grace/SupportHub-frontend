@@ -1,176 +1,194 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
-import { PlusIcon } from '@/components/icons/ActionIcons';
-import { ProductFormModal } from '@/components/products/ProductFormModal';
-import { Dialog } from '@/components/ui/Dialog';
-import { STATUS_OPTIONS } from '@/constants/productConfig';
-import { Product } from '@/types/interfaces/product';
-import { createProductHandlers } from '@/components/products/productHandlers';
-import ClientSelectionModal from '@/components/clients/ClientSelectionModal';
-import { productService } from '@/services/products.service';
-import { Client } from '@/types/clients';
-import { ClientResponse } from '@/types/clients/clientResponse';
-import SearchAndFilters from '@/components/shared/SearchAndFilters';
-import { useRouter } from 'next/navigation';
-import { FilterModal } from '@/components/shared/FilterModal';
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Table } from '@/components/ui/Table'
+import { PlusIcon } from '@/components/icons/ActionIcons'
+import { ProductFormModal } from '@/components/products/ProductFormModal'
+import { Dialog } from '@/components/ui/Dialog'
+import { STATUS_OPTIONS } from '@/constants/productConfig'
+import { Product } from '@/types/interfaces/product'
+import { createProductHandlers } from '@/components/products/productHandlers'
+import ClientSelectionModal from '@/components/clients/ClientSelectionModal'
+import { productService } from '@/services/products.service'
+import { Client } from '@/types/clients'
+import { ClientResponse } from '@/types/clients/clientResponse'
+import SearchAndFilters from '@/components/shared/SearchAndFilters'
+import { useRouter } from 'next/navigation'
+import { FilterModal } from '@/components/shared/FilterModal'
 
 interface ProductFilters {
-  status: string;
+  status: string
 }
 
-const ALL_OPTION = { label: 'All', value: '' };
-const FILTER_STATUS_OPTIONS = [ALL_OPTION, ...STATUS_OPTIONS];
+const ALL_OPTION = { label: 'All', value: '' }
+const FILTER_STATUS_OPTIONS = [ALL_OPTION, ...STATUS_OPTIONS]
 
 export default function ProductsAdminPage() {
-  const router = useRouter();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+  const router = useRouter()
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [products, setProducts] = useState<Product[]>([])
   const [filterValues, setFilterValues] = useState<ProductFilters>({
-    status: ''
-  });
+    status: '',
+  })
 
-  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
-  const [selectedClients, setSelectedClients] = useState<Client[]>([]);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false)
+  const [selectedClients, setSelectedClients] = useState<Client[]>([])
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
 
   useEffect(() => {
     if (selectedProduct) {
-      const savedClientsKey = `selectedClients_${selectedProduct.id}`;
+      const savedClientsKey = `selectedClients_${selectedProduct.id}`
       if (selectedClients.length > 0) {
-        localStorage.setItem(savedClientsKey, JSON.stringify(selectedClients));
+        localStorage.setItem(savedClientsKey, JSON.stringify(selectedClients))
       } else {
-        localStorage.removeItem(savedClientsKey);
+        localStorage.removeItem(savedClientsKey)
       }
     }
-  }, [selectedClients, selectedProduct]);
+  }, [selectedClients, selectedProduct])
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
-        setProducts(productsWithActiveClients);
+        const productsWithActiveClients =
+          await productService.fetchProductsWithActiveClients()
+        setProducts(productsWithActiveClients)
       } catch {
-        setProducts([]);
+        setProducts([])
       }
-    };
-    fetchProducts();
-  }, []);
+    }
+    fetchProducts()
+  }, [])
 
   const openClientModal = (product: Product) => {
-    setSelectedProduct(product);
+    setSelectedProduct(product)
 
-    const savedClientsKey = `selectedClients_${product.id}`;
-    const savedClients = localStorage.getItem(savedClientsKey);
+    const savedClientsKey = `selectedClients_${product.id}`
+    const savedClients = localStorage.getItem(savedClientsKey)
     if (savedClients) {
-      setSelectedClients(JSON.parse(savedClients));
+      setSelectedClients(JSON.parse(savedClients))
     } else {
       const initialSelectedClients: Client[] = product.clientProducts
         ? product.clientProducts.map((cp) => {
-          const clientData = cp as unknown as ClientResponse;
-          return {
-            id: String(clientData.id),
-            clientCode: clientData.clientCode,
-            name: clientData.name,
-            contactName: clientData.contactName,
-            companyName: clientData.companyName,
-            products: clientData.products,
-            supportTier: clientData.supportTier,
-            activeTickets: clientData.activeTickets,
-            status: clientData.status,
-            createdAt: clientData.createdAt,
-            updatedAt: clientData.updatedAt,
-            user: clientData.user,
-            userId: clientData.userId,
-            clientProducts: clientData.clientProducts,
-          };
-        })
-        : [];
-      setSelectedClients(initialSelectedClients);
+            const clientData = cp as unknown as ClientResponse
+            return {
+              id: String(clientData.id),
+              clientCode: clientData.clientCode,
+              name: clientData.name,
+              contactName: clientData.contactName,
+              companyName: clientData.companyName,
+              products: clientData.products,
+              supportTier: clientData.supportTier,
+              activeTickets: clientData.activeTickets,
+              status: clientData.status,
+              createdAt: clientData.createdAt,
+              updatedAt: clientData.updatedAt,
+              user: clientData.user,
+              userId: clientData.userId,
+              clientProducts: clientData.clientProducts,
+            }
+          })
+        : []
+      setSelectedClients(initialSelectedClients)
     }
 
     const initialSelectedProductIds = product.clientProducts
-      ? product.clientProducts.map((cp) => String((cp as unknown as ClientResponse).id))
-      : [];
-    setSelectedProductIds(initialSelectedProductIds);
-    setIsClientModalOpen(true);
-  };
+      ? product.clientProducts.map((cp) =>
+          String((cp as unknown as ClientResponse).id)
+        )
+      : []
+    setSelectedProductIds(initialSelectedProductIds)
+    setIsClientModalOpen(true)
+  }
 
-  const { handleAddProduct, handleEditProduct, handleDeleteProduct, getProductColumns } =
-    createProductHandlers({
-      setSelectedProduct,
-      setIsAddModalOpen,
-      setIsDeleteModalOpen,
-      selectedProduct,
-      refreshData: async () => {
-        try {
-          const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
-          setProducts(productsWithActiveClients);
-        } catch {
-          setProducts([]);
-        }
-      },
-      openClientModal,
-      onNavigate: (path) => router.push(path)
-    });
+  const {
+    handleAddProduct,
+    handleEditProduct,
+    handleDeleteProduct,
+    getProductColumns,
+  } = createProductHandlers({
+    setSelectedProduct,
+    setIsAddModalOpen,
+    setIsDeleteModalOpen,
+    selectedProduct,
+    refreshData: async () => {
+      try {
+        const productsWithActiveClients =
+          await productService.fetchProductsWithActiveClients()
+        setProducts(productsWithActiveClients)
+      } catch {
+        setProducts([])
+      }
+    },
+    openClientModal,
+    onNavigate: (path) => router.push(path),
+  })
 
   const handleFilterChange = (name: string, value: string): void => {
-    setFilterValues(prev => ({ ...prev, [name]: value }));
-  };
+    setFilterValues((prev) => ({ ...prev, [name]: value }))
+  }
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
 
     const matchesStatus =
       !filterValues.status ||
-      product.status.toLowerCase() === filterValues.status.toLowerCase();
+      product.status.toLowerCase() === filterValues.status.toLowerCase()
 
-    return matchesSearch && matchesStatus;
-  });
-  const columns = getProductColumns();
+    return matchesSearch && matchesStatus
+  })
+  const columns = getProductColumns()
 
   const handleClientSelect = async (client: Client) => {
-    const exists = selectedClients.find((c) => c.id === client.id);
+    const exists = selectedClients.find((c) => c.id === client.id)
     if (!exists && selectedProduct) {
-      await productService.addClientToProduct(String(selectedProduct.id), String(client.id));
-      setSelectedClients([...selectedClients, client]);
-      setSelectedProductIds([...selectedProductIds, String(client.id)]);
+      await productService.addClientToProduct(
+        String(selectedProduct.id),
+        String(client.id)
+      )
+      setSelectedClients([...selectedClients, client])
+      setSelectedProductIds([...selectedProductIds, String(client.id)])
       try {
-        const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
-        setProducts(productsWithActiveClients);
+        const productsWithActiveClients =
+          await productService.fetchProductsWithActiveClients()
+        setProducts(productsWithActiveClients)
       } catch {
-        setProducts([]);
+        setProducts([])
       }
     }
-  };
+  }
 
   const handleClientRemove = async (client: Client) => {
     if (selectedProduct) {
       try {
-        await productService.removeClientFromProduct(String(selectedProduct.id), String(client.id));
-        setSelectedClients(selectedClients.filter((c) => c.id !== client.id));
-        setSelectedProductIds(selectedProductIds.filter((id) => id !== String(client.id)));
+        await productService.removeClientFromProduct(
+          String(selectedProduct.id),
+          String(client.id)
+        )
+        setSelectedClients(selectedClients.filter((c) => c.id !== client.id))
+        setSelectedProductIds(
+          selectedProductIds.filter((id) => id !== String(client.id))
+        )
         try {
-          const productsWithActiveClients = await productService.fetchProductsWithActiveClients();
-          setProducts(productsWithActiveClients);
+          const productsWithActiveClients =
+            await productService.fetchProductsWithActiveClients()
+          setProducts(productsWithActiveClients)
         } catch {
-          setProducts([]);
+          setProducts([])
         }
-        setIsClientModalOpen(false);
+        setIsClientModalOpen(false)
         setTimeout(() => {
-          setIsClientModalOpen(true);
-        }, 0);
-      } catch {
-      }
+          setIsClientModalOpen(true)
+        }, 0)
+      } catch {}
     }
-  };
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -207,8 +225,8 @@ export default function ProductsAdminPage() {
                   name: 'status',
                   label: 'Status',
                   type: 'select',
-                  options: FILTER_STATUS_OPTIONS
-                }
+                  options: FILTER_STATUS_OPTIONS,
+                },
               ]}
               values={filterValues}
               onChange={handleFilterChange}
@@ -225,7 +243,9 @@ export default function ProductsAdminPage() {
               columns={columns}
               emptyState={
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg mb-2">No products found</p>
+                  <p className="text-gray-500 text-lg mb-2">
+                    No products found
+                  </p>
                   <p className="text-gray-400 text-sm">
                     Try adjusting your search or filter criteria
                   </p>
@@ -239,36 +259,41 @@ export default function ProductsAdminPage() {
       <ProductFormModal
         isOpen={isAddModalOpen}
         onClose={() => {
-          setIsAddModalOpen(false);
-          setSelectedProduct(null);
+          setIsAddModalOpen(false)
+          setSelectedProduct(null)
         }}
         onSubmit={selectedProduct ? handleEditProduct : handleAddProduct}
-        title={selectedProduct ? "Edit Product" : "Add Product"}
-        initialData={selectedProduct ? {
-          name: selectedProduct.name,
-          description: selectedProduct.description,
-          status: selectedProduct.status as "active" | "inactive"
-        } : undefined}
+        title={selectedProduct ? 'Edit Product' : 'Add Product'}
+        initialData={
+          selectedProduct
+            ? {
+                name: selectedProduct.name,
+                description: selectedProduct.description,
+                status: selectedProduct.status as 'active' | 'inactive',
+              }
+            : undefined
+        }
       />
 
       <Dialog
         isOpen={isDeleteModalOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedProduct(null);
+          setIsDeleteModalOpen(false)
+          setSelectedProduct(null)
         }}
         title="Delete Product"
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Are you sure you want to delete this product? This action cannot be undone.
+            Are you sure you want to delete this product? This action cannot be
+            undone.
           </p>
           <div className="flex justify-end gap-3">
             <Button
               variant="outline"
               onClick={() => {
-                setIsDeleteModalOpen(false);
-                setSelectedProduct(null);
+                setIsDeleteModalOpen(false)
+                setSelectedProduct(null)
               }}
             >
               Cancel
@@ -288,5 +313,5 @@ export default function ProductsAdminPage() {
         selectedClientIds={selectedClients.map((c) => String(c.id))}
       />
     </div>
-  );
+  )
 }

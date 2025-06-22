@@ -1,5 +1,11 @@
 'use client'
-import type { CreateTicketModalProps, SessionUser, ApiError, UploadedFile, SelectOption } from '@/types/TicketTypes'
+import type {
+  CreateTicketModalProps,
+  SessionUser,
+  ApiError,
+  UploadedFile,
+  SelectOption,
+} from '@/types/TicketTypes'
 import type { FormData as TicketFormData } from '@/types/TicketTypes'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -12,7 +18,9 @@ import TicketDetails from './TicketDetails'
 import ClientInfo from './ClientInfo'
 import Advanced from './Advanced'
 
-function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
+type Props = CreateTicketModalProps & { onTicketCreated?: () => void }
+
+function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<
     'ticketDetails' | 'clientInfo' | 'advanced'
@@ -37,7 +45,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     dueDate: '',
     estimatedTime: '',
     tags: '',
-    internalNotes: ''
+    internalNotes: '',
   })
 
   const priorityOptions: SelectOption[] = [
@@ -48,7 +56,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
   ]
 
   const [productOptions, setProductOptions] = useState<SelectOption[]>([
-    { label: 'Select product', value: '' }
+    { label: 'Select product', value: '' },
   ])
 
   useEffect(() => {
@@ -76,16 +84,18 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
         const fetchClients = async () => {
           if (isAdmin) {
             try {
-              const clients = await clientsApi.getAll();
-              const activeClients = clients.filter(client => client.status === 'active');
-              setAvailableClients(activeClients);
+              const clients = await clientsApi.getAll()
+              const activeClients = clients.filter(
+                (client) => client.status === 'active'
+              )
+              setAvailableClients(activeClients)
             } catch {
-              toast.error('Failed to fetch clients');
+              toast.error('Failed to fetch clients')
             }
           }
-        };
+        }
 
-        fetchClients();
+        fetchClients()
       }
     }
   }, [isOpen, session, isAdmin])
@@ -94,42 +104,50 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     const fetchProducts = async () => {
       try {
         if (!isAdmin && formData.clientCode) {
-          const products = await productService.getProductsByClient(formData.clientCode);
+          const products = await productService.getProductsByClient(
+            formData.clientCode
+          )
           const options = [
             { label: 'Select product', value: '' },
-            ...(Array.isArray(products) ? products.map((product) => ({
-              label: product.name || 'Unnamed Product',
-              value: product.id
-            })) : [])
-          ];
-          setProductOptions(options);
-          setFormData(prev => ({ ...prev, product: '' }));
-          return;
+            ...(Array.isArray(products)
+              ? products.map((product) => ({
+                  label: product.name || 'Unnamed Product',
+                  value: product.id,
+                }))
+              : []),
+          ]
+          setProductOptions(options)
+          setFormData((prev) => ({ ...prev, product: '' }))
+          return
         }
 
         if (isAdmin && formData.clientCode) {
-          const products = await productService.getProductsByClient(formData.clientCode);
+          const products = await productService.getProductsByClient(
+            formData.clientCode
+          )
           const options = [
             { label: 'Select product', value: '' },
-            ...(Array.isArray(products) ? products.map((product) => ({
-              label: product.name || 'Unnamed Product',
-              value: product.id
-            })) : [])
-          ];
-          setProductOptions(options);
-          setFormData(prev => ({ ...prev, product: '' }));
-          return;
+            ...(Array.isArray(products)
+              ? products.map((product) => ({
+                  label: product.name || 'Unnamed Product',
+                  value: product.id,
+                }))
+              : []),
+          ]
+          setProductOptions(options)
+          setFormData((prev) => ({ ...prev, product: '' }))
+          return
         }
-        setProductOptions([{ label: 'Select product', value: '' }]);
-        setFormData(prev => ({ ...prev, product: '' }));
+        setProductOptions([{ label: 'Select product', value: '' }])
+        setFormData((prev) => ({ ...prev, product: '' }))
       } catch {
-        setProductOptions([{ label: 'Select product', value: '' }]);
-        setFormData(prev => ({ ...prev, product: '' }));
+        setProductOptions([{ label: 'Select product', value: '' }])
+        setFormData((prev) => ({ ...prev, product: '' }))
       }
     }
 
     if (isOpen) {
-      fetchProducts();
+      fetchProducts()
     }
   }, [formData.clientCode, isAdmin, isOpen])
 
@@ -137,14 +155,16 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     const fetchClients = async () => {
       if (isAdmin) {
         try {
-          const clients = await clientsApi.getAll();
-          const activeClients = clients.filter(client => client.status === 'active');
-          setAvailableClients(activeClients);
-        } catch  {
-          toast.error('Failed to fetch clients');
+          const clients = await clientsApi.getAll()
+          const activeClients = clients.filter(
+            (client) => client.status === 'active'
+          )
+          setAvailableClients(activeClients)
+        } catch {
+          toast.error('Failed to fetch clients')
         }
       }
-    };
+    }
 
     if (isOpen && session?.user) {
       const user = session.user as SessionUser
@@ -167,12 +187,15 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
           contactEmail: user.email || '',
         }))
       } else if (isUserAdmin) {
-        fetchClients();
+        fetchClients()
       }
     }
   }, [isOpen, session, isAdmin])
 
-  const handleInputChange = (field: keyof TicketFormData, value: string): void => {
+  const handleInputChange = (
+    field: keyof TicketFormData,
+    value: string
+  ): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -214,29 +237,29 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
 
     setLoading(true)
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('ticketCode', `TICKET-${Date.now()}`);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('status', 'new');
-      formDataToSend.append('priority', formData.priority);
-      formDataToSend.append('contactName', formData.contactName);
-      formDataToSend.append('contactEmail', formData.contactEmail);
-      formDataToSend.append('contactPhone', formData.contactPhone);
-      formDataToSend.append('clientId', formData.clientId);
-      formDataToSend.append('clientCode', formData.clientCode);
+      const formDataToSend = new FormData()
+      formDataToSend.append('ticketCode', `TICKET-${Date.now()}`)
+      formDataToSend.append('title', formData.title)
+      formDataToSend.append('description', formData.description)
+      formDataToSend.append('status', 'new')
+      formDataToSend.append('priority', formData.priority)
+      formDataToSend.append('contactName', formData.contactName)
+      formDataToSend.append('contactEmail', formData.contactEmail)
+      formDataToSend.append('contactPhone', formData.contactPhone)
+      formDataToSend.append('clientId', formData.clientId)
+      formDataToSend.append('clientCode', formData.clientCode)
       if (formData.product) {
-        formDataToSend.append('product', formData.product);
+        formDataToSend.append('product', formData.product)
       }
-      if (formData.dueDate) formDataToSend.append('dueDate', formData.dueDate);
+      if (formData.dueDate) formDataToSend.append('dueDate', formData.dueDate)
       if (uploadedFiles.length > 0) {
         uploadedFiles.forEach((fileItem) => {
-          formDataToSend.append('files', fileItem.file);
-        });
+          formDataToSend.append('files', fileItem.file)
+        })
       }
-      formDataToSend.append('estimatedTime', formData.estimatedTime);
-      formDataToSend.append('internalNotes', formData.internalNotes);
-      formDataToSend.append('tags', formData.tags || '');
+      formDataToSend.append('estimatedTime', formData.estimatedTime)
+      formDataToSend.append('internalNotes', formData.internalNotes)
+      formDataToSend.append('tags', formData.tags || '')
 
       await ticketService.createTicket(formDataToSend)
       toast.success('Ticket created successfully!')
@@ -256,10 +279,11 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
         dueDate: '',
         estimatedTime: '',
         tags: '',
-        internalNotes: ''
+        internalNotes: '',
       })
       setUploadedFiles([])
 
+      if (onTicketCreated) onTicketCreated()
       setTimeout(() => {
         onClose()
       }, 1500)
@@ -275,18 +299,16 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleFileUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     const files = event.target.files
     if (files) {
       const maxFileSize = 2 * 1024 * 1024 // 2MB
       const validFiles: UploadedFile[] = []
       const invalidFiles: string[] = []
 
-      const allowedTypes = [
-        /^image\//, 
-        'video/mp4',
-        'application/pdf'
-      ]
+      const allowedTypes = [/^image\//, 'video/mp4', 'application/pdf']
 
       Array.from(files).forEach((file) => {
         const isValidType = allowedTypes.some((type) => {
@@ -310,7 +332,9 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
 
       if (invalidFiles.length > 0) {
         toast.error(
-          `The selected files are invalid or too large: ${invalidFiles.join(', ')}`
+          `The selected files are invalid or too large: ${invalidFiles.join(
+            ', '
+          )}`
         )
       }
 
@@ -364,10 +388,11 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
 
           <div className="flex border-b border-gray-200 flex-col sm:flex-row">
             <button
-              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${activeTab === 'ticketDetails'
-                ? 'text-gray-900 bg-white'
-                : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-                }`}
+              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                activeTab === 'ticketDetails'
+                  ? 'text-gray-900 bg-white'
+                  : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+              }`}
               onClick={() => setActiveTab('ticketDetails')}
             >
               Ticket Details
@@ -376,10 +401,11 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
               )}
             </button>
             <button
-              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${activeTab === 'clientInfo'
-                ? 'text-gray-900 bg-white'
-                : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-                }`}
+              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                activeTab === 'clientInfo'
+                  ? 'text-gray-900 bg-white'
+                  : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+              }`}
               onClick={() => setActiveTab('clientInfo')}
             >
               Client Info
@@ -389,10 +415,11 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
             </button>
             {isAdmin && (
               <button
-                className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${activeTab === 'advanced'
-                  ? 'text-gray-900 bg-white'
-                  : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-                  }`}
+                className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                  activeTab === 'advanced'
+                    ? 'text-gray-900 bg-white'
+                    : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+                }`}
                 onClick={() => setActiveTab('advanced')}
               >
                 Advanced

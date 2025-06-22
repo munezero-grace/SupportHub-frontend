@@ -105,7 +105,7 @@ export default function ClientsPage() {
     try {
       await productService.removeClientFromProduct(
         String(product.id),
-        String(selectedClient.id)
+        selectedClient.clientCode
       )
       refetch()
     } catch (error: unknown) {
@@ -123,7 +123,7 @@ export default function ClientsPage() {
     if (!selectedClient) return
 
     try {
-      await clientsApi.delete(selectedClient.clientCode)
+      await clientsApi.softDelete(selectedClient.id)
       toast.success('Client deleted successfully')
       setIsDeleteModalOpen(false)
       setSelectedClient(null)
@@ -326,12 +326,12 @@ export default function ClientsPage() {
         initialData={
           selectedClient
             ? {
-              companyName: selectedClient.companyName,
-              contactName: selectedClient.user.firstName,
-              contactEmail: selectedClient.user.email,
-              supportTier: selectedClient.supportTier,
-              status: selectedClient.status,
-            }
+                companyName: selectedClient.companyName,
+                contactName: selectedClient.user.firstName,
+                contactEmail: selectedClient.user.email,
+                supportTier: selectedClient.supportTier,
+                status: selectedClient.status,
+              }
             : undefined
         }
         title="Edit Client"
@@ -378,7 +378,7 @@ export default function ClientsPage() {
           selectedClient?.clientProducts?.map((cp) => String(cp.product?.id)) ||
           []
         }
-        clientId={selectedClient ? String(selectedClient.id) : ''}
+        clientId={selectedClient ? selectedClient.clientCode : ''}
       />
     </div>
   )

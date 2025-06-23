@@ -35,13 +35,11 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600 mt-1">Manage your account settings and configure system preferences</p>
         </div>
 
-        {/* Tab Navigation */}
         <div className="bg-white shadow rounded-lg">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">
@@ -61,7 +59,7 @@ const SettingsPage = () => {
             </nav>
           </div>
 
-          {/* Tab Content */}
+         
           <div>
             {renderTabContent()}
           </div>

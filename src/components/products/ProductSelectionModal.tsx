@@ -21,7 +21,8 @@ export default function ProductSelectionModal({
       productService
         .getProducts()
         .then((data) => {
-          const clientProducts = data.filter((product) =>
+          const activeProducts = data.filter((product) => product.status === 'active')
+          const clientProducts = activeProducts.filter((product) =>
             selectedProductIds.includes(product.id)
           )
           setProducts(clientProducts)

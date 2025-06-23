@@ -110,15 +110,15 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
           const options = [
             { label: 'Select product', value: '' },
             ...(Array.isArray(products)
-              ? products.map((product) => ({
+              ? products.filter((product) => product.status === 'active').map((product) => ({
                   label: product.name || 'Unnamed Product',
-                  value: product.id,
+                  value: product.id
                 }))
-              : []),
-          ]
-          setProductOptions(options)
-          setFormData((prev) => ({ ...prev, product: '' }))
-          return
+              : [])
+          ];
+          setProductOptions(options);
+          setFormData(prev => ({ ...prev, product: '' }));
+          return;
         }
 
         if (isAdmin && formData.clientCode) {
@@ -128,15 +128,15 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
           const options = [
             { label: 'Select product', value: '' },
             ...(Array.isArray(products)
-              ? products.map((product) => ({
+              ? products.filter((product) => product.status === 'active').map((product) => ({
                   label: product.name || 'Unnamed Product',
-                  value: product.id,
+                  value: product.id
                 }))
-              : []),
-          ]
-          setProductOptions(options)
-          setFormData((prev) => ({ ...prev, product: '' }))
-          return
+              : [])
+          ];
+          setProductOptions(options);
+          setFormData(prev => ({ ...prev, product: '' }));
+          return;
         }
         setProductOptions([{ label: 'Select product', value: '' }])
         setFormData((prev) => ({ ...prev, product: '' }))

@@ -58,14 +58,14 @@ export function Table<T extends { id: string | number }>({
                       onRowClick?.(item);
                     }}
                   >
-                    {columns.map((column, index) => {
+                    {columns.map((column, colIndex) => {
                       const content = typeof column.accessor === 'function'
                         ? column.accessor(item)
                         : item[column.accessor as keyof T]
 
                       return (
                         <td
-                          key={index}
+                          key={colIndex}
                           className={cn(
                             'py-4 px-3 text-sm text-gray-900 whitespace-nowrap',
                             column.className

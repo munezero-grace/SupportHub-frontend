@@ -4,6 +4,7 @@ export interface ProductHandlerProps {
     setSelectedProduct: (product: Product | null) => void;
     setIsAddModalOpen: (isOpen: boolean) => void;
     setIsDeleteModalOpen: (isOpen: boolean) => void;
+    setIsManageClientsModalOpen: (isOpen: boolean) => void;
     selectedProduct: Product | null;
     refreshData?: () => void;
     openClientModal: (product: Product) => void;

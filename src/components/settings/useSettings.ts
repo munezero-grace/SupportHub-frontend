@@ -3,20 +3,8 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { SUCCESS_MESSAGES } from '@/constants/successMessages'
-import { updateUserSettings, getUserSettings } from '@/services/api.service'
-
-type SettingsState = {
-  clientCode: string
-  companyName: string
-  companyDomain: string
-  firstName: string
-  lastName: string
-  fullName: string
-  email: string
-  emailNotifications: boolean
-  slackNotifications: boolean
-  profilePicture: string | null
-}
+import settingsService from '@/services/settings.service'
+import type { SettingsState, ApiResponse } from '@/types/settings'
 
 const initialSettings: SettingsState = {
   clientCode: '',
@@ -45,14 +33,16 @@ export const useSettings = () => {
 
     const fetchSettings = async () => {
       try {
-        const response = await getUserSettings()
-        const data = response.data.data
+        const response = await settingsService.getUserSettings()
+        const data = (response.data && 'data' in response.data ? response.data.data : response.data) as ApiResponse<SettingsState>['data']
+        
         const user = session.user as {
           firstName?: string
           lastName?: string
           name?: string
           email?: string
         }
+        const client = data.Clients && data.Clients.length > 0 ? data.Clients[0] : null
         setSettings((prev) => {
           let firstName = data.firstName || user.firstName || ''
           let lastName = data.lastName || user.lastName || ''
@@ -61,15 +51,16 @@ export const useSettings = () => {
             firstName = nameParts[0] || ''
             lastName = nameParts.slice(1).join(' ') || ''
           }
-          return {
+          const newSettings = {
             ...prev,
             firstName,
             lastName,
             email: user.email || '',
-            clientCode: data.clientCode || '',
-            companyName: data.companyName || '',
-            companyDomain: data.companyDomain || '',
+            clientCode: client?.clientCode || '',
+            companyName: client?.companyName || '',
+            companyDomain: client?.companyDomain || '',
           }
+          return newSettings
         })
       } catch {
         toast.error(ERROR_MESSAGES.UNKNOWN_ERROR)
@@ -100,13 +91,25 @@ export const useSettings = () => {
 
     setIsLoading(true)
 
-    try {
-      await updateUserSettings({
+      try {
+      await settingsService.updateUserSettings({
         companyName: settings.companyName,
         companyDomain: settings.companyDomain,
         firstName: settings.firstName,
         lastName: settings.lastName,
       })
+
+      const response = await settingsService.getUserSettings()
+      const data = response.data
+      const client = data.Clients && data.Clients.length > 0 ? data.Clients[0] : null
+      setSettings((prev) => ({
+        ...prev,
+        firstName: data.firstName || prev.firstName,
+        lastName: data.lastName || prev.lastName,
+        clientCode: client?.clientCode || prev.clientCode,
+        companyName: client?.companyName || prev.companyName,
+        companyDomain: client?.companyDomain || prev.companyDomain,
+      }))
 
       toast.success(SUCCESS_MESSAGES.CLIENT_UPDATED)
     } catch (error) {

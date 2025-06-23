@@ -41,7 +41,9 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
   } = form
 
   useEffect(() => {
-    productsService.getAll().then(setProducts).catch(console.error)
+    productsService.getAll().then((allProducts) => {
+      setProducts(allProducts.filter((p) => p.status === 'active'));
+    }).catch(console.error)
   }, [])
 
   const submitForm = async (data: ClientFormData) => {

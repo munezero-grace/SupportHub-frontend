@@ -67,9 +67,9 @@ export const productService = {
         }
     },
 
-    getProduct: async (productCode: string): Promise<Product> => {
+    getProduct: async (id: string): Promise<Product> => {
         try {
-            const response = await axiosInstance.get<Product>(`${BASE_URL}/${productCode}`);
+            const response = await axiosInstance.get<Product>(`${BASE_URL}/id/${id}`);
             return response.data;
         } catch (error) {
             if (error instanceof AxiosError && error.response?.data?.error) {

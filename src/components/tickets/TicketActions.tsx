@@ -12,7 +12,7 @@ export function TicketActions({ ticket, onEdit, onDelete }: TicketActionsProps) 
             items={[
                 {
                     label: 'View Details',
-                    onClick: () => router.push(`/dashboard/tickets/${ticket.ticketCode || ticket.id}`),
+                    onClick: () => router.push(`/dashboard/tickets/${ticket.id}`),
                 },
                 {
                     label: 'Edit Ticket',

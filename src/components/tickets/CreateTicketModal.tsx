@@ -229,7 +229,11 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
         formDataToSend.append('product', formData.product);
       }
       if (formData.dueDate) formDataToSend.append('dueDate', formData.dueDate);
-      if (uploadedFiles.length > 0) formDataToSend.append('file', uploadedFiles[0].file);
+      if (uploadedFiles.length > 0) {
+        uploadedFiles.forEach((fileItem) => {
+          formDataToSend.append('files', fileItem.file);
+        });
+      }
       formDataToSend.append('estimatedTime', formData.estimatedTime);
       formDataToSend.append('internalNotes', formData.internalNotes);
       formDataToSend.append('tags', formData.tags || '');
@@ -274,12 +278,27 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const files = event.target.files
     if (files) {
-      const maxFileSize = 10 * 1024 * 1024
+      const maxFileSize = 2 * 1024 * 1024 // 2MB
       const validFiles: UploadedFile[] = []
       const invalidFiles: string[] = []
 
+      const allowedTypes = [
+        /^image\//, 
+        'video/mp4',
+        'application/pdf'
+      ]
+
       Array.from(files).forEach((file) => {
-        if (file.size > maxFileSize) {
+        const isValidType = allowedTypes.some((type) => {
+          if (type instanceof RegExp) {
+            return type.test(file.type)
+          }
+          return file.type === type
+        })
+
+        if (!isValidType) {
+          invalidFiles.push(`${file.name} (invalid file type)`)
+        } else if (file.size > maxFileSize) {
           invalidFiles.push(`${file.name} (too large)`)
         } else {
           validFiles.push({
@@ -291,7 +310,7 @@ function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
 
       if (invalidFiles.length > 0) {
         toast.error(
-          `The following files are too large: ${invalidFiles.join(', ')}`
+          `The selected files are invalid or too large: ${invalidFiles.join(', ')}`
         )
       }
 

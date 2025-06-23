@@ -88,23 +88,29 @@ const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       return !!user
     }, async jwt({ token, user, account, profile }) {
-      if (user) {
-        const customUser = user as CustomUser
-        token.id = customUser.id
-        token.role = customUser.role || 'user'
-        token.accessToken = customUser.token || token.accessToken || ''
-        token.provider = customUser.provider || account?.provider || token.provider || ''
-        token.providerId = customUser.providerId || token.providerId || ''
-        token.email = customUser.email || token.email
-        token.client = customUser.client
-        if (customUser.firstName && customUser.lastName) {
-          token.name = `${customUser.firstName} ${customUser.lastName}`
+        if (user) {
+          const customUser = user as CustomUser
+          token.id = customUser.id
+          token.role = customUser.role || 'user'
+          token.accessToken = customUser.token || token.accessToken || ''
+          token.provider = customUser.provider || account?.provider || token.provider || ''
+          token.providerId = customUser.providerId || token.providerId || ''
+          token.email = customUser.email || token.email
+          token.client = customUser.client || undefined
+          if (customUser.contactName) {
+            token.name = customUser.contactName
+          } else if (customUser.firstName || customUser.lastName) {
+            token.name = `${customUser.firstName ?? ''}${customUser.lastName ? ' ' + customUser.lastName : ''}`.trim()
+          } else if (customUser.name) {
+            token.name = customUser.name
+          }
         }
-      }
 
       if (account?.provider === 'google') {
         const payload = {
-          email: profile?.email,
+          sub: profile?.sub ?? '',
+          name: profile?.name ?? '',
+          email: profile?.email ?? '',
           firstName: profile?.name ? splitName(profile.name).firstName : '',
           lastName: profile?.name ? splitName(profile.name).lastName : '',
           providerId: account.providerAccountId,
@@ -132,7 +138,7 @@ const authOptions: NextAuthOptions = {
 
       return token
     },
-    async session({ session, token }) {
+async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
@@ -141,7 +147,7 @@ const authOptions: NextAuthOptions = {
         session.user.providerId = token.providerId as string
         session.user.email = token.email as string
         session.user.name = token.name as string || ''
-        session.user.client = token.client
+        session.user.client = token.client as undefined 
       }
       return session
     },

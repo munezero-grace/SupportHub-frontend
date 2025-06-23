@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+    baseURL: process.env.NNEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -25,3 +25,12 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export const updateUserSettings = async (settings: { companyName: string; companyDomain: string; firstName?: string; lastName?: string }) => {
+    return axiosInstance.put('/users/settings', settings);
+};
+
+export const getUserSettings = async () => {
+    return axiosInstance.get('/users/settings');
+};
+

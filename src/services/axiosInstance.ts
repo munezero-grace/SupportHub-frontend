@@ -17,7 +17,7 @@ const processQueue = (
 ) => {
   failedQueue.forEach((prom) => {
     if (error) {
-      prom.reject(error)
+      prom.reject(error?.message || String(error))
     } else {
       prom.resolve(token as string)
     }
@@ -54,6 +54,9 @@ axiosInstance.interceptors.response.use(
           const token = await new Promise<string>((resolve, reject) => {
             failedQueue.push({ resolve, reject })
           })
+          if (!originalRequest.headers) {
+            originalRequest.headers = {}
+          }
           originalRequest.headers['Authorization'] = `Bearer ${token}`
           return axiosInstance(originalRequest)
         } catch (err) {

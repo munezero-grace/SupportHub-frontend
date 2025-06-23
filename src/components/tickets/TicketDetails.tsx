@@ -157,15 +157,14 @@ function TicketDetails({
                     </svg>
                     <div className="text-gray-600">Click to upload files</div>
                     <div className="text-xs text-gray-500 mt-1">
-                        Max file size: 10MB • Images, Videos, PDFs, Documents
-                        supported
+                        Max file size: 2MB • Images, .mp4 Videos, PDFs supported
                     </div>
                 </div>
 
                 <input
                     type="file"
                     multiple
-                    accept="image/*,video/*,.pdf,.doc,.docx"
+                    accept="image/*,video/*,.pdf"
                     className="hidden"
                     id="file-upload"
                     onChange={handleFileUpload}

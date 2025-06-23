@@ -1,97 +1,51 @@
-import { DefaultSession } from "next-auth"
-import { AxiosError, InternalAxiosRequestConfig } from 'axios'
-
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string
-      role: string
-      token: string
-      accessToken: string
-      provider: string
-      providerId: string
-      firstName?: string
-      lastName?: string
-      client?: {
-        id: string;
-        clientCode: string;
-        companyName: string | null;
-      }
-    } & DefaultSession["user"]
-  }
-
-  interface User {
-    id: string
-    role: string
-    token?: string
-    accessToken?: string
-    provider: string
-    providerId: string
-    firstName?: string
-    lastName?: string
-  }
+import type { AxiosRequestConfig } from 'axios'
+export interface Client {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  supportTier?: string;
+  status?: string;
+  userId?: string;
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string
-    role: string
-    token: string
-    accessToken: string
-    provider: string
-    providerId: string
-    client?: {
-      id: string;
-      clientCode: string;
-      companyName: string;
-    }
-  }
-}
-
-export interface GoogleProfile {
-  given_name?: string
-  family_name?: string
-  sub?: string
-  picture?: string
-  email?: string
-  name?: string
-  role?: string
-  emailVerified?: Date | null
-}
-
-export type CustomUser = {
+export interface CustomUser {
   id: string;
-  client?: {
-    id: string;
-    clientCode: string;
-    companyName: string;
-  };
   email: string;
-  name?: string | null;
-  image?: string | null;
-  token?: string;
-  role?: string;
-  provider?: string;
-  providerId?: string;
   firstName?: string;
   lastName?: string;
-}
-
-
-export interface QueueItem {
-  resolve: (token: string) => void
-  reject: (error: AxiosError | Error) => void
-}
-
-export interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean
-}
-
-export interface ErrorResponse {
-  message?: string
+  contactName?: string;
+  name?: string;
+  role: string;
+  token?: string;
+  provider?: string;
+  providerId?: string;
+  client?: Client;
 }
 
 export interface LoginCredentials {
-  email: string
-  password: string
+  email: string;
+  password: string;
+}
+
+
+
+export interface GoogleProfile {
+  sub: string;
+  name: string;
+  email: string;
+  picture?: string;
+  role?: string;
+}
+
+export interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+}
+
+export interface ErrorResponse {
+  message?: string;
+}
+
+export interface QueueItem {
+  resolve: (value: string) => void;
+  reject: (reason?: string) => void;
 }

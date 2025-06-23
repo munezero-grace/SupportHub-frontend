@@ -1,4 +1,4 @@
-import { axiosInstance } from '@/lib/api';
+import { axiosInstance } from '@/lib/api'
 import { Client, CreateClientDto, UpdateClientDto } from '../types/clients'
 
 const BASE_URL = '/api/clients'
@@ -39,17 +39,27 @@ export const clientsApi = {
     await axiosInstance.delete(`${BASE_URL}/${clientCode}`)
   },
 
+  softDelete: async (clientId: string) => {
+    await axiosInstance.patch(`${BASE_URL}/${clientId}/soft-delete`)
+  },
+
   getProductsForClient: async (clientCode: string) => {
-    const { data } = await axiosInstance.get(`/api/clients/${clientCode}/products`)
+    const { data } = await axiosInstance.get(
+      `/api/clients/${clientCode}/products`
+    )
     return data
   },
 
   addProductToClient: async (clientCode: string, productId: string) => {
-    const { data } = await axiosInstance.post(`/api/clients/${clientCode}/products/${productId}`)
+    const { data } = await axiosInstance.post(
+      `/api/clients/${clientCode}/products/${productId}`
+    )
     return data
   },
 
   removeProductFromClient: async (clientCode: string, productId: string) => {
-    await axiosInstance.delete(`/api/clients/${clientCode}/products/${productId}`)
-  }
+    await axiosInstance.delete(
+      `/api/clients/${clientCode}/products/${productId}`
+    )
+  },
 }

@@ -7,6 +7,7 @@ export type CreateTicketModalProps = {
   initialData?: FormData
   isEditing?: boolean
   ticketId?: string
+  onTicketCreated?: () => void | Promise<void>
 }
 
 export interface SessionUser {

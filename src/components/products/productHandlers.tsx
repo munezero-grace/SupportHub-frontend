@@ -140,7 +140,9 @@ export const createProductHandlers = ({
           items={[
             {
               label: 'View Details',
-              onClick: () => {},
+              onClick: () => {
+                      window.location.href = `/dashboard/products/${product.id}`;
+                    },
             },
             {
               label: 'Edit Product',

@@ -34,17 +34,8 @@ export const ticketService = {
   getUserTickets: async () => {
     try {
       const response = await axiosInstance.get(BASE_URL);
-      if (!response.data) {
-        return [];
-      }
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      if (response.data.data && Array.isArray(response.data.data)) {
+      if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
-      }
-      if (response.data.tickets && Array.isArray(response.data.tickets)) {
-        return response.data.tickets;
       }
       return [];
     } catch (error) {
@@ -55,9 +46,9 @@ export const ticketService = {
     }
   },
 
-  getTicketById: async (idOrCode: string) => {
+  getTicketById: async (id: string) => {
     try {
-      const response = await axiosInstance.get(`${BASE_URL}/code/${idOrCode}`)
+      const response = await axiosInstance.get(`${BASE_URL}/${id}`)
       return response.data
     } catch (error) {
       if (error instanceof AxiosError) {

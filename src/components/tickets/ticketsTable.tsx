@@ -80,47 +80,15 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
     },
     className: 'w-24',
   },
-  {
-    header: 'Tags',
-    accessor: (ticket: Ticket): ReactNode => {
-      if (!ticket.tags || ticket.tags.length === 0) return <span className="text-sm text-gray-400">-</span>;
-
-      const MAX_VISIBLE_TAGS = 1;
-      const tags = Array.isArray(ticket.tags) ? ticket.tags : [ticket.tags];
-      const visibleTags = tags.slice(0, MAX_VISIBLE_TAGS);
-      const remainingCount = tags.length - MAX_VISIBLE_TAGS;
-
-      return (
-        <div className="flex items-center gap-1 max-w-full flex-wrap">
-          {visibleTags.map((tag, index) => (
-            <span
-              key={index}
-              className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700 truncate max-w-[80px]"
-              title={tag}
-            >
-              {tag}
-            </span>
-          ))}
-          {remainingCount > 0 && (
-            <span
-              className="text-xs font-medium text-gray-500 whitespace-nowrap"
-              title={ticket.tags.slice(MAX_VISIBLE_TAGS).join(', ')}
-            >
-              +{remainingCount} more
-            </span>
-          )}
-        </div>
-      );
-    },
-    className: 'w-28',
-  },
+  
   {
     header: 'Due Date',
     accessor: (ticket: Ticket): ReactNode => (
       <span className="text-sm text-gray-600">
         {ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('en-US', {
           month: 'short',
-          day: 'numeric'
+          day: 'numeric',
+          year: 'numeric',
         }) : '-'}
       </span>
     ),

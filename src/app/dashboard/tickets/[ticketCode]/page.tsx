@@ -9,20 +9,22 @@ import type { PageProps } from '@/types/TicketTypes'
 import type { Ticket } from '@/types/interfaces/interface'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export default function TicketDetailsPage({ params }: PageProps) {
     const router = useRouter()
     const queryClient = useQueryClient()
     const { ticketCode } = React.use(params)
+    const ticketId = ticketCode
     const [selectedStatus, setSelectedStatus] = useState('')
     const [selectedPriority, setSelectedPriority] = useState('')
-
+    const { user } = useCurrentUser();
+    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
-        queryKey: ['ticket', ticketCode],
-        queryFn: () => ticketService.getTicketById(ticketCode),
+        queryKey: ['ticket', ticketId],
+        queryFn: () => ticketService.getTicketById(ticketId),
         retry: 1
     })
-
     React.useEffect(() => {
         if (response) {
             const ticketData = 'data' in response ? response.data : response
@@ -30,22 +32,26 @@ export default function TicketDetailsPage({ params }: PageProps) {
             setSelectedPriority(ticketData.priority || '')
         }
     }, [response])
-
     const updateMutation = useMutation({
         mutationFn: (updateData: { status?: string; priority?: string }) =>
-            ticketService.updateTicket(ticketCode, updateData),
+            ticketService.updateTicket(ticketId, updateData),
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['ticket', ticketCode] })
+            queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
             const updatedTicket = data?.data || data
             setSelectedStatus(updatedTicket.status || '')
             setSelectedPriority(updatedTicket.priority || '')
         }
     })
-
     const handleUpdateTicket = () => {
-        const updateData: { status?: string; priority?: string } = {}
-        if (selectedStatus) updateData.status = selectedStatus
-        if (selectedPriority) updateData.priority = selectedPriority
+        const updateData: { status?: string; priority?: string } = {
+            status: selectedStatus,
+            priority: selectedPriority
+        };
+        Object.keys(updateData).forEach(key => {
+            if (!updateData[key as keyof typeof updateData]) {
+                delete updateData[key as keyof typeof updateData];
+            }
+        });
         if (Object.keys(updateData).length > 0) {
             updateMutation.mutate(updateData)
         }
@@ -84,7 +90,9 @@ export default function TicketDetailsPage({ params }: PageProps) {
         const statusColors: Record<string, string> = {
             new: 'bg-blue-100 text-blue-800',
             active: 'bg-green-100 text-green-800',
-            'in progress': 'bg-blue-500 text-white',
+            in_progress: 'bg-blue-500 text-white',
+            assigned: 'bg-purple-100 text-purple-800',
+            awaiting_client: 'bg-orange-100 text-orange-800',
             pending: 'bg-yellow-100 text-yellow-800',
             resolved: 'bg-gray-100 text-gray-800',
             closed: 'bg-red-100 text-red-800',
@@ -100,6 +108,10 @@ export default function TicketDetailsPage({ params }: PageProps) {
             low: 'bg-green-100 text-green-700'
         }
         return priorityColors[priority?.toLowerCase()] || 'bg-green-500 text-white'
+    }
+
+    const formatStatusDisplay = (status: string) => {
+        return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
     }
 
     return (
@@ -133,7 +145,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                             ticket.status
                         )} px-3 py-1 rounded-2xl text-sm font-medium capitalize`}
                     >
-                        {ticket.status}
+                        {formatStatusDisplay(ticket.status)}
                     </span>
                 </div>
             </div>
@@ -208,7 +220,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                             ticket.status
                                         )} px-2.5 py-1 rounded-2xl text-xs font-semibold capitalize`}
                                     >
-                                        {ticket.status}
+                                        {formatStatusDisplay(ticket.status)}
                                     </span>
                                 </div>
 
@@ -283,7 +295,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                             </div>
                         </div>
                     </div>
-
+                    {isAdmin && (
                     <div className="bg-white rounded-lg border border-gray-200">
                         <div className="p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
@@ -296,9 +308,10 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                 >
                                     <option value="">Select Status</option>
                                     <option value="new">New</option>
-                                    <option value="in progress">In Progress</option>
+                                    <option value="assigned">Assigned</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="awaiting_client">Awaiting Client</option>
                                     <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
                                 </select>
 
                                 <select
@@ -323,6 +336,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                             </div>
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
         </div>

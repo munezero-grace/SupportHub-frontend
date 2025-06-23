@@ -125,9 +125,9 @@ export default function ProductsAdminPage() {
       }
     },
     openClientModal,
+    setIsManageClientsModalOpen: setIsClientModalOpen,
     onNavigate: (path) => router.push(path),
   })
-
   const handleFilterChange = (name: string, value: string): void => {
     setFilterValues((prev) => ({ ...prev, [name]: value }))
   }

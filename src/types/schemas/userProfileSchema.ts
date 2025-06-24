@@ -1,14 +1,7 @@
-import * as z from 'zod'
+import { z } from 'zod'
 
 export const userProfileSchema = z.object({
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
-  email: z.string().email()
-});
-
-
-export const companyProfileSchema = z.object({
-  id: z.string(),
-  companyName: z.string().optional(),
-  companyDomain: z.string().nullable(),
-});
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+})

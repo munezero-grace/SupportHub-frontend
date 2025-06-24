@@ -107,4 +107,3 @@ export interface FilterModalProps {
   onApply: () => void
   title?: string
 }
-

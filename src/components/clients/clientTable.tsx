@@ -40,7 +40,7 @@ export function ClientTable({ clients, searchQuery }: ClientTableProps) {
         </thead>
         <tbody className="divide-y divide-gray-200">
           {clients.map((client) => (
-            <ClientListItem key={client.clientCode} client={client} />
+            <ClientListItem key={client.id} client={client} />
           ))}
           {clients.length === 0 && (
             <tr>

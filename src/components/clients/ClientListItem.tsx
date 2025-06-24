@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { axiosInstance } from '@/lib/api'
+import axiosInstance from '@/services/axios-instance.service'
 
 interface ClientListItemProps {
   client: Client
@@ -27,7 +27,7 @@ const ClientListItem: FC<ClientListItemProps> = ({
     setIsLoading(true)
 
     try {
-      await axiosInstance.patch(`/clients/${client.clientCode}/status`)
+      await axiosInstance.patch(`/clients/${client.id}/status`)
 
       const updatedStatus = client.status === 'active' ? 'inactive' : 'active'
 
@@ -106,11 +106,11 @@ const ClientListItem: FC<ClientListItemProps> = ({
           items={[
             {
               label: 'View Details',
-              onClick: () => router.push(`/clients/${client.clientCode}`),
+              onClick: () => router.push(`/clients/${client.id}`),
             },
             {
               label: 'Edit Client',
-              onClick: () => router.push(`/clients/${client.clientCode}/edit`),
+              onClick: () => router.push(`/clients/${client.id}/edit`),
             },
             {
               label: 'Manage Products',
@@ -121,7 +121,7 @@ const ClientListItem: FC<ClientListItemProps> = ({
             {
               label: 'View Tickets',
               onClick: () =>
-                router.push(`/clients/${client.clientCode}/tickets`),
+                router.push(`/clients/${client.id}/tickets`),
             },
             {
               label:

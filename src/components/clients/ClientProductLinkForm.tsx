@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Select from 'react-select'
 import { productsService } from '@/services/products.service'
-import { clientsApi as clientsService } from '@/services/clients'
+import { clientService } from '@/services/clients.service'
 import { Product } from '@/types/interfaces/product'
 import { Client, SelectOption, FormData } from '@/types/clients'
 import { schema } from '@/types/schemas/clientSchema'
@@ -26,18 +26,26 @@ export default function ClientProductLinkForm() {
 
   useEffect(() => {
     productsService.getAll().then(setProducts).catch(console.error)
-    clientsService.getAll().then(setClients).catch(console.error)
+    clientService.getAll().then(setClients).catch(console.error)
   }, [])
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await productsService.addClientToProduct(data.productId, data.clientId)
-      const successMessage = response?.message 
+      const response = await productsService.addClientToProduct(
+        data.productId,
+        data.clientId
+      )
+      const successMessage = response?.message
       toast.success(successMessage)
       reset()
     } catch (error: unknown) {
-      const errorResponse = error as { response?: { data?: { message?: string } }; message?: string }
-      toast.error(errorResponse?.response?.data?.message || errorResponse?.message)
+      const errorResponse = error as {
+        response?: { data?: { message?: string } }
+        message?: string
+      }
+      toast.error(
+        errorResponse?.response?.data?.message || errorResponse?.message
+      )
     }
   }
   const productOptions = products.map((p) => ({
@@ -47,7 +55,7 @@ export default function ClientProductLinkForm() {
 
   const clientOptions = clients.map((c) => ({
     value: c.id,
-    label: `${c.clientCode} - ${c.companyName}`,
+    label: c.clientCode,
   })) as SelectOption[]
 
   return (

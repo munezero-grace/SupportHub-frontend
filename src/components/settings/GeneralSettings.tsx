@@ -1,43 +1,28 @@
 import React from 'react'
 import PersonnelProfileSection from './PersonnelProfileSection'
 import CompanyProfileSection from './CompanyProfileSection'
-import SaveButton from './SaveButton'
-import { useSettings } from './useSettings'
+import { getUserProfile } from '@/services/settings.service'
+import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 
 const GeneralSettings: React.FC = () => {
-  const {
-    settings,
-    isLoading,
-    isAdmin,
-    handleInputChange,
-    handleProfilePictureChange,
-    handleSave,
-  } = useSettings()
+  const { data: session } = useSession()
+  const { data: user } = useQuery({
+    queryKey: ['get-user-profile'],
+    queryFn: getUserProfile,
+  })
+  const isAdmin = session?.user?.role === 'super_admin'
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-md shadow space-y-8 max-w-full overflow-x-auto">
-      <PersonnelProfileSection
-        firstName={settings.firstName}
-        lastName={settings.lastName}
-        email={settings.email}
-        clientCode={settings.clientCode}
-        profilePicture={settings.profilePicture}
-        isAdmin={isAdmin}
-        onProfilePictureChange={handleProfilePictureChange}
-        onFirstNameChange={(value) => handleInputChange('firstName', value)}
-        onLastNameChange={(value) => handleInputChange('lastName', value)}
-      />
+    <>
+      {user && (
+        <div className="bg-white p-4 sm:p-6 rounded-md shadow space-y-8 max-w-full overflow-x-auto">
+          <PersonnelProfileSection data={user} />
 
-      {!isAdmin && (
-        <CompanyProfileSection
-          companyName={settings.companyName}
-          companyDomain={settings.companyDomain}
-          onInputChange={handleInputChange}
-        />
+          {!isAdmin && <CompanyProfileSection data={user?.data?.Clients[0]} />}
+        </div>
       )}
-
-      <SaveButton onSave={handleSave} isLoading={isLoading} />
-    </div>
+    </>
   )
 }
 

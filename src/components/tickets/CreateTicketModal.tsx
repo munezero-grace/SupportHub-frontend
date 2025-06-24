@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react'
 import { toast, ToastContainer } from 'react-toastify'
 import { ticketService } from '@/services/tickets.service'
 import { productService } from '@/services/products.service'
-import { clientsApi } from '@/services/clients'
+import { clientService } from '@/services/clients.service'
 import type { Client } from '@/types/clients'
 import TicketDetails from './TicketDetails'
 import ClientInfo from './ClientInfo'
@@ -84,7 +84,7 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
         const fetchClients = async () => {
           if (isAdmin) {
             try {
-              const clients = await clientsApi.getAll()
+              const clients = await clientService.getAll()
               const activeClients = clients.filter(
                 (client) => client.status === 'active'
               )
@@ -110,15 +110,17 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
           const options = [
             { label: 'Select product', value: '' },
             ...(Array.isArray(products)
-              ? products.filter((product) => product.status === 'active').map((product) => ({
-                  label: product.name || 'Unnamed Product',
-                  value: product.id
-                }))
-              : [])
-          ];
-          setProductOptions(options);
-          setFormData(prev => ({ ...prev, product: '' }));
-          return;
+              ? products
+                  .filter((product) => product.status === 'active')
+                  .map((product) => ({
+                    label: product.name || 'Unnamed Product',
+                    value: product.id,
+                  }))
+              : []),
+          ]
+          setProductOptions(options)
+          setFormData((prev) => ({ ...prev, product: '' }))
+          return
         }
 
         if (isAdmin && formData.clientCode) {
@@ -128,15 +130,17 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
           const options = [
             { label: 'Select product', value: '' },
             ...(Array.isArray(products)
-              ? products.filter((product) => product.status === 'active').map((product) => ({
-                  label: product.name || 'Unnamed Product',
-                  value: product.id
-                }))
-              : [])
-          ];
-          setProductOptions(options);
-          setFormData(prev => ({ ...prev, product: '' }));
-          return;
+              ? products
+                  .filter((product) => product.status === 'active')
+                  .map((product) => ({
+                    label: product.name || 'Unnamed Product',
+                    value: product.id,
+                  }))
+              : []),
+          ]
+          setProductOptions(options)
+          setFormData((prev) => ({ ...prev, product: '' }))
+          return
         }
         setProductOptions([{ label: 'Select product', value: '' }])
         setFormData((prev) => ({ ...prev, product: '' }))
@@ -155,7 +159,7 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
     const fetchClients = async () => {
       if (isAdmin) {
         try {
-          const clients = await clientsApi.getAll()
+          const clients = await clientService.getAll()
           const activeClients = clients.filter(
             (client) => client.status === 'active'
           )

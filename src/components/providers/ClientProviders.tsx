@@ -1,14 +1,14 @@
-"use client"
-import React from "react";
-import { SessionProvider } from "next-auth/react";
-import QueryProvider from "./QueryProvider";
+'use client'
+import React from 'react'
+import { SessionProvider } from 'next-auth/react'
+import { Provider } from '@/providers/QueryProvider'
 
-export default function ClientProviders({ children }: { children: React.ReactNode }) {
+const ClientProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <SessionProvider>
-      <QueryProvider>
-        {children}
-      </QueryProvider>
+      <Provider>{children}</Provider>
     </SessionProvider>
-  );
+  )
 }
+
+export { ClientProviders }

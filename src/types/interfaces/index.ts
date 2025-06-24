@@ -22,3 +22,12 @@ export type User = {
   email: string;
   roles: string[];
 };
+
+export interface ApiError {
+  response?: {
+    data?: {
+      details?: { field: string; message: string }[];
+      message?: string;
+    };
+  };
+}

@@ -1,7 +1,7 @@
 'use client'
 
+import { Provider } from '@/providers/QueryProvider'
 import { SessionProvider } from 'next-auth/react'
-import QueryProvider from '@/providers/QueryProvider'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -12,10 +12,10 @@ export default function ClientProvider({
 }) {
   return (
     <SessionProvider>
-      <QueryProvider>
+      <Provider>
         {children}
         <ToastContainer />
-      </QueryProvider>
+      </Provider>
     </SessionProvider>
   )
 }

@@ -1,28 +1,110 @@
 'use client'
-import React, { useState } from 'react'
-import { notificationEvents } from '../../constants/integrationEvents'
+import React, { useEffect } from 'react'
+import { notificationEvents } from '@/constants/integrationEvents'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import settingsService from '@/services/settings.service'
+import type { SlackSettings, ApiResponse } from '../../types/settings'
+import { SUCCESS_MESSAGES } from '@/constants/successMessages'
+import { useForm, Controller } from 'react-hook-form'
 
 const IntegrationsSettings = () => {
-  const [slackSettings, setSlackSettings] = useState({
-    webhookUrl: 'https://hooks.slack.com/services/...',
-    defaultChannel: '#support',
-    newTickets: false,
-    ticketAssignments: false,
-    statusChanges: false,
+  const { user } = useCurrentUser()
+  const queryClient = useQueryClient()
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: {  },
+  } = useForm<SlackSettings>({
+    defaultValues: {
+      slackWebhookUrl: '',
+      newTickets: false,
+      ticketAssignments: false,
+      statusChanges: false,
+    },
   })
 
-  const handleSlackChange = (
-    field: keyof typeof slackSettings,
-    value: string | boolean
-  ) => {
-    setSlackSettings((prev) => ({ ...prev, [field]: value }))
+  const {
+    data,
+    isLoading: queryLoading,
+    isError,
+  } = useQuery<ApiResponse<SlackSettings>>({
+    queryKey: ['slackSettings'],
+    queryFn: () => settingsService.getSlackSettings(),
+    retry: false,
+  })
+
+  const mutation = useMutation({
+    mutationFn: settingsService.updateSlackSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['slackSettings'] })
+      toast.success(SUCCESS_MESSAGES.WEBHOOK_SAVED_SUCCESSFULLY)
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ?? 'Failed to save Slack settings.'
+      )
+    },
+  })
+
+  useEffect(() => {
+    if (data?.data) {
+      reset(data.data)
+    }
+  }, [data, reset])
+
+  const onSubmit = (formData: SlackSettings) => {
+    mutation.mutate(formData)
   }
 
-  const handleSave = () => {}
+  const watchedValues = watch()
+
+  const handleToggleSave = async (field: keyof SlackSettings, value: boolean) => {
+    if (field === 'newTickets' && user?.role !== 'super_admin') return
+
+    const updatedData = {
+      ...watchedValues,
+      [field]: value,
+    }
+
+    mutation.mutate(updatedData)
+
+    if (field === 'newTickets') {
+      if (value) {
+        toast.success(SUCCESS_MESSAGES.NEW_TICKET_SLACK_NOTIFICATION_ENABLED)
+      } else {
+        toast.success(SUCCESS_MESSAGES.NEW_TICKET_SLACK_NOTIFICATION_DISABLED)
+      }
+    } else if (field === 'statusChanges') {
+      if (value) {
+        toast.success(SUCCESS_MESSAGES.SLACK_NOTIFICATION_ENABLED)
+      } else {
+        toast.success(SUCCESS_MESSAGES.SLACK_NOTIFICATION_DISABLED)
+      }
+    }
+  }
+
+  if (queryLoading) {
+    return <div>Loading Slack settings...</div>
+  }
+
+  if (isError) {
+    return <div>Failed to load Slack settings.</div>
+  }
 
   return (
-    <div className="bg-white">
-      <div className="p-6">
+    <div className="space-y-6">
+      <ToastContainer />
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white p-6 rounded-md shadow-md"
+      >
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Slack Integration
         </h2>
@@ -30,85 +112,76 @@ const IntegrationsSettings = () => {
           Configure Slack notifications for ticket events
         </p>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Slack Webhook URL
-            </label>
-            <input
-              type="text"
-              value={slackSettings.webhookUrl}
-              onChange={(e) => handleSlackChange('webhookUrl', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Slack Webhook URL
+          </label>
+          <input
+            type="text"
+            {...register('slackWebhookUrl')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Default Channel
-            </label>
-            <input
-              type="text"
-              value={slackSettings.defaultChannel}
-              onChange={(e) =>
-                handleSlackChange('defaultChannel', e.target.value)
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div className="pt-4">
+          <button
+            type="submit"
+            disabled={mutation.status === 'pending'}
+            className="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
+          >
+            {mutation.status === 'pending' ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
 
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Notification Events
-            </p>
-            <div className="space-y-3">
-              {notificationEvents.map(({ label, field }) => (
+      <div className="bg-white p-6 rounded-md shadow-md border border-gray-300">
+        <p className="text-sm font-medium text-gray-700 mb-2">
+          Notification Events
+        </p>
+        <div className="space-y-3">
+          {notificationEvents.map(({ label, field }) => (
+            <Controller
+              key={field}
+              name={field as keyof SlackSettings}
+              control={control}
+              render={({ field: controllerField }) => (
                 <label
-                  key={field}
                   className="flex items-center space-x-3 cursor-pointer"
+                  onClick={async () => {
+                    if (field === 'newTickets' && user?.role !== 'super_admin')
+                      return
+                    if (field === 'newTickets' || field === 'statusChanges') {
+                      const newValue = !controllerField.value
+                      await handleToggleSave(field as keyof SlackSettings, newValue)
+                      controllerField.onChange(newValue)
+                    } else {
+                      controllerField.onChange(!controllerField.value)
+                    }
+                  }}
                 >
                   <div
-                    onClick={() =>
-                      handleSlackChange(
-                        field as keyof typeof slackSettings,
-                        !slackSettings[field as keyof typeof slackSettings]
-                      )
-                    }
-                    className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out border border-gray-400 ${
-                      slackSettings[field as keyof typeof slackSettings]
-                        ? 'bg-white'
-                        : 'bg-black'
+                    className={`w-16 h-8 flex items-center rounded-full p-1 duration-300 ease-in-out border border-gray-400 relative select-none cursor-pointer ${
+                      controllerField.value ? 'bg-white' : 'bg-black'
                     }`}
                     style={{
-                      backgroundColor: slackSettings[
-                        field as keyof typeof slackSettings
-                      ]
-                        ? '#fff'
-                        : '#000',
+                      backgroundColor: controllerField.value ? '#fff' : '#000',
                     }}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full shadow-md transform duration-300 ease-in-out ${
-                        slackSettings[field as keyof typeof slackSettings]
-                          ? 'translate-x-6 bg-black'
-                          : 'bg-white'
-                      }`}
-                    />
+                      className={`w-7 h-7 rounded-full shadow-md transform duration-300 ease-in-out absolute top-0.5 ${
+                        controllerField.value
+                          ? 'translate-x-8 bg-black text-white'
+                          : 'bg-black left-0.5 text-white'
+                      } flex items-center justify-center text-xs font-semibold select-none`}
+                    >
+                      {controllerField.value ? 'ON' : 'OFF'}
+                    </div>
                   </div>
                   <span className="select-none">{label}</span>
                 </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4">
-            <button
-              onClick={handleSave}
-              className="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Save Changes
-            </button>
-          </div>
+              )}
+            />
+          ))}
         </div>
       </div>
     </div>

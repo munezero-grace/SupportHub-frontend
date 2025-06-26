@@ -23,6 +23,7 @@ export function ActionMenu({ items, className }: ActionMenuProps) {
   return (    
     <div className="relative" ref={menuRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'p-1 rounded-lg hover:bg-gray-100 transition-colors',
@@ -82,6 +83,7 @@ export function ActionMenu({ items, className }: ActionMenuProps) {
             </div>
             {items.map((item, index) => (
               <button
+                type="button"
                 key={index}
                 onClick={() => {
                   item.onClick();

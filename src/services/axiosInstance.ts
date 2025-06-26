@@ -2,8 +2,11 @@ import axios, { AxiosError} from 'axios'
 import { ExtendedAxiosRequestConfig, ErrorResponse, QueueItem } from '@/types/auth'
 import { getSession, signOut } from 'next-auth/react'
 
+const baseURLRaw = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
+const baseURL = baseURLRaw.endsWith('/api') ? baseURLRaw : baseURLRaw + '/api'
+
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
+  baseURL: baseURL,
   headers: {
   },
 })

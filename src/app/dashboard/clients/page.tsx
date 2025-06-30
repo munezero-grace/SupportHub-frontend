@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
-import { useClients } from '@/hooks/useClientQueries'
 import { AddClientButton } from '@/components/clients/AddClientButton'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import ProductSelectionModal from '@/components/products/ProductSelectionModal'
-import { Product } from '@/types/interfaces/product'
-import { Client, SupportTier, Status } from '@/types/clients'
-import { productService } from '@/services/products.service'
+import type { ClientFormData } from '@/validations/clientSchema'
+import type { UpdateClientDto } from '@/types/clients'
+import { FilterModal } from '@/components/shared/FilterModal'
+import { filterFields } from '@/constants/filterConfig'
 import { toast } from 'react-toastify'
 import { Table } from '@/components/ui/Table'
 import { Badge } from '@/components/ui/Badge'
@@ -17,17 +17,17 @@ import { useRouter } from 'next/navigation'
 import { UserCircleIcon } from '@heroicons/react/24/solid'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
-import { clientsApi } from '@/services/clients'
+import { clientService } from '@/services/clients.service'
 import { ClientFormModal } from '@/components/clients/ClientFormModal'
-import type { ClientFormData } from '@/validations/clientSchema'
-import type { UpdateClientDto } from '@/types/clients'
-import { FilterModal } from '@/components/shared/FilterModal'
-import { filterFields } from '@/constants/filterConfig'
+import { productService } from '@/services/products.service'
+import { Client, SupportTier, Status } from '@/types/clients'
+import { Product } from '@/types/interfaces/product'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '@/hooks/useQueries'
 
 export default function ClientsPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const { data: clients, isLoading, error, refetch } = useClients()
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -36,6 +36,16 @@ export default function ClientsPage() {
   const [filterValues, setFilterValues] = useState({
     status: '',
     supportTier: '',
+  })
+
+  const {
+    data: clients,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.clients,
+    queryFn: clientService.getAll,
   })
 
   const handleFilterChange = (name: string, value: string) => {
@@ -48,7 +58,7 @@ export default function ClientsPage() {
 
   const filteredClients = useMemo(
     () =>
-      clients?.filter(
+      (Array.isArray(clients) ? clients : []).filter(
         (client) =>
           (client.companyName
             .toLowerCase()
@@ -62,8 +72,18 @@ export default function ClientsPage() {
           (filterValues.supportTier
             ? client.supportTier === filterValues.supportTier
             : true)
-      ) ?? [],
+      ),
     [clients, searchQuery, filterValues]
+  )
+
+  const sortedClients = useMemo(
+    () =>
+      filteredClients.slice().sort((a, b) => {
+        const aNum = parseInt(a.clientCode.replace(/\D/g, ''))
+        const bNum = parseInt(b.clientCode.replace(/\D/g, ''))
+        return aNum - bNum
+      }),
+    [filteredClients]
   )
 
   const handleManageProducts = (client: Client) => {
@@ -87,7 +107,7 @@ export default function ClientsPage() {
         supportTier: formData.supportTier as SupportTier,
         status: formData.status as Status,
       }
-      await clientsApi.update(selectedClient.clientCode, updateData)
+      await clientService.update(selectedClient.id, updateData)
       toast.success('Client updated successfully')
       setIsEditModalOpen(false)
       setSelectedClient(null)
@@ -105,7 +125,7 @@ export default function ClientsPage() {
     try {
       await productService.removeClientFromProduct(
         String(product.id),
-        selectedClient.clientCode
+        selectedClient.id
       )
       refetch()
     } catch (error: unknown) {
@@ -123,7 +143,7 @@ export default function ClientsPage() {
     if (!selectedClient) return
 
     try {
-      await clientsApi.softDelete(selectedClient.id)
+      await clientService.softDelete(selectedClient.id)
       toast.success('Client deleted successfully')
       setIsDeleteModalOpen(false)
       setSelectedClient(null)
@@ -229,8 +249,7 @@ export default function ClientsPage() {
           items={[
             {
               label: 'View Details',
-              onClick: () =>
-                router.push(`/dashboard/clients/${client.clientCode}`),
+              onClick: () => router.push(`/dashboard/clients/${client.id}`),
             },
             {
               label: 'Edit Client',
@@ -243,7 +262,7 @@ export default function ClientsPage() {
             {
               label: 'View Tickets',
               onClick: () =>
-                router.push(`/dashboard/clients/${client.clientCode}/tickets`),
+                router.push(`/dashboard/clients/${client.id}/tickets`),
             },
             {
               label: 'Delete',
@@ -302,7 +321,7 @@ export default function ClientsPage() {
           ) : (
             <div className="border border-gray-200 rounded-lg overflow-x-auto">
               <Table
-                data={filteredClients}
+                data={sortedClients}
                 columns={columns}
                 className="w-full [&_th]:!text-gray-500 [&_td]:!text-gray-900 [&_th]:!font-medium [&_td]:!font-medium [&_th]:!p-4 [&_td]:!p-4 [&_tr]:border-b [&_tr:last-child]:border-b-0"
                 emptyState={
@@ -378,7 +397,7 @@ export default function ClientsPage() {
           selectedClient?.clientProducts?.map((cp) => String(cp.product?.id)) ||
           []
         }
-        clientId={selectedClient ? selectedClient.clientCode : ''}
+        clientId={selectedClient ? selectedClient.id : ''}
       />
     </div>
   )

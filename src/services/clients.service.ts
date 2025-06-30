@@ -1,9 +1,9 @@
-import { axiosInstance } from '@/lib/api'
 import { Client, CreateClientDto, UpdateClientDto } from '../types/clients'
+import axiosInstance from '@/services/axios-instance.service'
 
-const BASE_URL = '/api/clients'
+const BASE_URL = '/clients'
 
-export const clientsApi = {
+export const clientService = {
   getAll: async () => {
     const { data } = await axiosInstance.get<{
       status: string
@@ -12,9 +12,9 @@ export const clientsApi = {
     return data.data
   },
 
-  getById: async (clientCode: string) => {
+  getById: async (id: string) => {
     const { data } = await axiosInstance.get<{ status: string; data: Client }>(
-      `${BASE_URL}/${clientCode}`
+      `${BASE_URL}/${id}`
     )
     return data.data
   },
@@ -27,39 +27,39 @@ export const clientsApi = {
     return data.data
   },
 
-  update: async (clientCode: string, updateData: UpdateClientDto) => {
+  update: async (id: string, updateData: UpdateClientDto) => {
     const { data } = await axiosInstance.patch<{
       status: string
       data: Client
-    }>(`${BASE_URL}/${clientCode}`, updateData)
+    }>(`${BASE_URL}/${id}`, updateData)
     return data.data
   },
 
-  delete: async (clientCode: string) => {
-    await axiosInstance.delete(`${BASE_URL}/${clientCode}`)
+  delete: async (id: string) => {
+    await axiosInstance.delete(`${BASE_URL}/${id}`)
   },
 
   softDelete: async (clientId: string) => {
     await axiosInstance.patch(`${BASE_URL}/${clientId}/soft-delete`)
   },
 
-  getProductsForClient: async (clientCode: string) => {
+  getProductsForClient: async (id: string) => {
     const { data } = await axiosInstance.get(
-      `/api/clients/${clientCode}/products`
+      `/api/clients/${id}/products`
     )
     return data
   },
 
-  addProductToClient: async (clientCode: string, productId: string) => {
+  addProductToClient: async (id: string, productId: string) => {
     const { data } = await axiosInstance.post(
-      `/api/clients/${clientCode}/products/${productId}`
+      `/clients/${id}/products/${productId}`
     )
     return data
   },
 
-  removeProductFromClient: async (clientCode: string, productId: string) => {
+  removeProductFromClient: async (id: string, productId: string) => {
     await axiosInstance.delete(
-      `/api/clients/${clientCode}/products/${productId}`
+      `/api/clients/${id}/products/${productId}`
     )
   },
 }

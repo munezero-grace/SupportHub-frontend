@@ -16,12 +16,14 @@ import {
 import Select from 'react-select'
 import { productsService } from '@/services/products.service'
 import { Product } from '@/types/interfaces/product'
+import { useQueryClient } from '@tanstack/react-query'
 
 export function AddClientForm({ onSuccess }: AddClientFormProps) {
   const [error, setError] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProducts, setSelectedProducts] = useState<SelectOption[]>([])
   const createClientMutation = useCreateClientMutation()
+  const queryClient = useQueryClient()
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
@@ -41,9 +43,12 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
   } = form
 
   useEffect(() => {
-    productsService.getAll().then((allProducts) => {
-      setProducts(allProducts.filter((p) => p.status === 'active'));
-    }).catch(console.error)
+    productsService
+      .getAll()
+      .then((allProducts) => {
+        setProducts(allProducts.filter((p) => p.status === 'active'))
+      })
+      .catch(console.error)
   }, [])
 
   const submitForm = async (data: ClientFormData) => {
@@ -60,10 +65,7 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
       if (selectedProducts.length > 0) {
         for (const product of selectedProducts) {
           try {
-            await productsService.addClientToProduct(
-              product.value,
-              client.clientCode
-            )
+            await productsService.addClientToProduct(product.value, client.id)
           } catch {
             allProductsAssigned = false
             assignError =
@@ -71,6 +73,9 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
           }
         }
       }
+
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
       if (!allProductsAssigned) {
         setError(assignError)
         return

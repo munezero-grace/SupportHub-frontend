@@ -13,7 +13,7 @@ export function mapTickets(tickets: Record<string, unknown>[]): Ticket[] {
             ? {
                 id: (ticket.client as Record<string, unknown>).id as string,
                 companyName: (ticket.client as Record<string, unknown>).companyName as string,
-                clientCode: (ticket.client as Record<string, unknown>).clientCode as string,
+                clientCode: (ticket.client as Record<string, unknown>).clientCode as string, 
                 status: (ticket.client as Record<string, unknown>).status as string,
                 clientProducts: (ticket.client as Record<string, unknown>).clientProducts as Array<{
                     product: {

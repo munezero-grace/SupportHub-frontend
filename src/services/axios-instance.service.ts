@@ -1,5 +1,9 @@
-import axios, { AxiosError} from 'axios'
-import { ExtendedAxiosRequestConfig, ErrorResponse, QueueItem } from '@/types/auth'
+import axios, { AxiosError } from 'axios'
+import {
+  ExtendedAxiosRequestConfig,
+  ErrorResponse,
+  QueueItem,
+} from '@/types/auth'
 import { getSession, signOut } from 'next-auth/react'
 
 const baseURLRaw = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'

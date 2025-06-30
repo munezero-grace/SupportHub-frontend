@@ -5,10 +5,8 @@ import { ProfilePictureUploadProps } from '@/types/interfaces/Settings'
 
 const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
   profilePicture,
-  onPhotoChange,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-
   const handlePhotoClick = () => {
     fileInputRef.current?.click()
   }
@@ -16,8 +14,6 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const imageUrl = URL.createObjectURL(file)
-      onPhotoChange(imageUrl)
     }
   }
 

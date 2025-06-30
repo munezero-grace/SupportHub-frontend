@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getDashboardStats, getRecentTickets, pingBackend } from '@/lib/api'
-import { PingResponse, Stats, Ticket } from '@/types/interfaces/interface'
-import { ticketService } from '../services/services'
-import { clientsApi } from '../services'
+// import { getDashboardStats, getRecentTickets, pingBackend } from '@/lib/api'
+import { Ticket } from '@/types/interfaces/interface'
+import { ticketService } from '@/services/tickets.service'
+import { clientService } from '@/services/clients.service'
 import type { Client, CreateClientDto, UpdateClientDto } from '../types/clients'
 import { CreateTicketData, UpdateTicketData } from '@/types/interfaces/Data'
 
@@ -15,39 +15,39 @@ export const queryKeys = {
   products: ['products'],
 } as const
 
-export function usePingQuery() {
-  return useQuery<PingResponse | null>({
-    queryKey: queryKeys.ping,
-    queryFn: pingBackend,
-  })
-}
+// export function usePingQuery() {
+//   return useQuery<PingResponse | null>({
+//     queryKey: queryKeys.ping,
+//     queryFn: pingBackend,
+//   })
+// }
 
-export function useDashboardStatsQuery() {
-  return useQuery<Stats[]>({
-    queryKey: queryKeys.dashboardStats,
-    queryFn: getDashboardStats,
+// export function useDashboardStatsQuery() {
+//   return useQuery<Stats[]>({
+//     queryKey: queryKeys.dashboardStats,
+//     queryFn: getDashboardStats,
 
-    staleTime: 5 * 60 * 1000,
-  })
-}
+//     staleTime: 5 * 60 * 1000,
+//   })
+// }
 
-export function useRecentTicketsQuery() {
-  return useQuery<Ticket[]>({
-    queryKey: queryKeys.recentTickets,
-    queryFn: getRecentTickets,
-    staleTime: 30 * 1000,
-  })
-}
+// export function useRecentTicketsQuery() {
+//   return useQuery<Ticket[]>({
+//     queryKey: queryKeys.recentTickets,
+//     queryFn: getRecentTickets,
+//     staleTime: 30 * 1000,
+//   })
+// }
 
-export function useTicketsQuery() {
-  return useQuery<Ticket[], Error>({
-    queryKey: queryKeys.tickets,
-    queryFn: ticketService.getTickets,
-    staleTime: 30 * 1000,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  })
-}
+// export function useTicketsQuery() {
+//   return useQuery<Ticket[], Error>({
+//     queryKey: queryKeys.tickets,
+//     queryFn: ticketService.getTickets,
+//     staleTime: 30 * 1000,
+//     retry: 1,
+//     refetchOnWindowFocus: false,
+//   })
+// }
 
 export function useTicketQuery(id: string) {
   return useQuery<Ticket, Error>({
@@ -85,8 +85,8 @@ export const useUpdateTicketMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, changes }: UpdateTicketData) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { id, ...changes };
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      return { id, ...changes }
     },
     onSuccess: (data) => {
       queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
@@ -123,7 +123,7 @@ export const useDeleteTicketMutation = () => {
 export function useClientsQuery() {
   return useQuery<Client[], Error>({
     queryKey: queryKeys.clients,
-    queryFn: clientsApi.getAll,
+    queryFn: clientService.getAll,
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000,
   })
@@ -133,7 +133,7 @@ export function useCreateClientMutation() {
   const queryClient = useQueryClient()
 
   return useMutation<Client, Error, CreateClientDto>({
-    mutationFn: clientsApi.create,
+    mutationFn: clientService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.clients })
     },
@@ -148,7 +148,8 @@ export function useUpdateClientMutation() {
     Error,
     { clientCode: string; data: UpdateClientDto }
   >({
-    mutationFn: ({ clientCode, data }) => clientsApi.update(clientCode, data),
+    mutationFn: ({ clientCode, data }) =>
+      clientService.update(clientCode, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.clients })
     },
@@ -160,16 +161,16 @@ export function useDeleteClientMutation() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return id;
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      return id
     },
     onSuccess: (deletedId) => {
       queryClient.setQueryData<Ticket[]>(queryKeys.tickets, (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.filter(ticket => ticket.id !== deletedId);
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tickets });
-      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets });
+        if (!oldData) return oldData
+        return oldData.filter((ticket) => ticket.id !== deletedId)
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tickets })
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentTickets })
     },
   })
 }

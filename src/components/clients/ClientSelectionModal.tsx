@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Client } from '@/types/clients'
-import { clientsApi } from '@/services/clients'
+import { clientService } from '@/services/clients.service'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { ClientSelectionModalProps } from '@/types/interfaces/Props'
@@ -20,7 +20,7 @@ export default function ClientSelectionModal({
   useEffect(() => {
     if (isOpen) {
       setLoading(true)
-      clientsApi
+      clientService
         .getAll()
         .then((data) => {
           setClients(data)
@@ -57,7 +57,9 @@ export default function ClientSelectionModal({
           </thead>
           <tbody>
             {clients.map((client) => {
-              const isSelected = selectedClientIds.includes(client.id.toString())
+              const isSelected = selectedClientIds.includes(
+                client.id.toString()
+              )
               return (
                 <tr
                   key={client.id}

@@ -10,7 +10,7 @@ import {
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import EditTicketModal from '@/components/tickets/EditTicketModal'
 import { Table } from '@/components/ui/Table'
-import { createTicketTableColumns } from "../../../components/tickets/ticketsTable"
+import { createTicketTableColumns } from '../../../components/tickets/ticketsTable'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { FilterModal } from '@/components/shared/FilterModal'
 import { mapTickets } from '@/utils/mapTickets'
@@ -22,11 +22,13 @@ export default function TicketsPage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filterValues, setFilterValues] = useState({
     status: '',
-    priority: ''
+    priority: '',
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(
+    undefined
+  )
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -41,27 +43,32 @@ export default function TicketsPage() {
       const data = await ticketService.getUserTickets()
       const mappedTickets: Ticket[] = mapTicketsSimple(data)
       setTickets(mappedTickets)
-    } catch {
-    }
+    } catch {}
   }
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const data = await ticketService.getUserTickets();
-        const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
-        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        const data = await ticketService.getUserTickets()
+        const userRole =
+          localStorage.getItem('userRole') || sessionStorage.getItem('userRole')
+        const userId =
+          localStorage.getItem('userId') || sessionStorage.getItem('userId')
 
-        setIsAdmin(userRole?.includes('admin') || userRole?.includes('super_admin') || false);
-        setCurrentUserId(userId || undefined);
+        setIsAdmin(
+          userRole?.includes('admin') ||
+            userRole?.includes('super_admin') ||
+            false
+        )
+        setCurrentUserId(userId || undefined)
 
-        const tickets = Array.isArray(data) ? data : [];
-        const mappedTickets = mapTickets(tickets);
-        setTickets(mappedTickets);
+        const tickets = Array.isArray(data) ? data : []
+        const mappedTickets = mapTickets(tickets)
+        setTickets(mappedTickets)
       } catch {
-        setTickets([]);
+        setTickets([])
       }
-    };
-    fetchTickets();
+    }
+    fetchTickets()
   }, [])
 
   const handleEditTicket = (ticket: Ticket) => {
@@ -70,45 +77,61 @@ export default function TicketsPage() {
   }
 
   const handleDeleteTicket = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setIsDeleteModalOpen(true);
-  };
+    setSelectedTicket(ticket)
+    setIsDeleteModalOpen(true)
+  }
 
   const handleFilterChange = (name: string, value: string) => {
-    setFilterValues(prev => ({ ...prev, [name]: value }));
-  };
+    setFilterValues((prev) => ({ ...prev, [name]: value }))
+  }
 
   const filteredTickets = tickets.filter((ticket) => {
-    const clientName = typeof ticket.client === 'string' ? ticket.client : ticket.client?.companyName || '';
-    const productName = typeof ticket.product === 'string' ? ticket.product : ticket.product?.name || '';
+    const clientName =
+      typeof ticket.client === 'string'
+        ? ticket.client
+        : ticket.client?.companyName || ''
+    const productName =
+      typeof ticket.product === 'string'
+        ? ticket.product
+        : ticket.product?.name || ''
 
     const matchesSearch =
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      productName.toLowerCase().includes(searchTerm.toLowerCase());
+      productName.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus =
       !filterValues.status ||
-      ticket.status.toLowerCase() === filterValues.status.toLowerCase();
+      ticket.status.toLowerCase() === filterValues.status.toLowerCase()
 
     const matchesPriority =
       !filterValues.priority ||
-      ticket.priority.toLowerCase() === filterValues.priority.toLowerCase();
+      ticket.priority.toLowerCase() === filterValues.priority.toLowerCase()
 
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+    return matchesSearch && matchesStatus && matchesPriority
+  })
 
   const handleRowClick = (item: Ticket): void => {
-    setSelectedTicket(item);
-    setIsEditModalOpen(true);
-  };
+    setSelectedTicket(item)
+    setIsEditModalOpen(true)
+  }
+
+  const handleTicketCreated = async () => {
+    try {
+      const data = await ticketService.getUserTickets()
+      const mappedTickets: Ticket[] = mapTickets(data)
+      setTickets(mappedTickets)
+    } catch {
+      setTickets([])
+    }
+  }
 
   const enhancedColumns = createTicketTableColumns({
     onEdit: handleEditTicket,
     onDelete: handleDeleteTicket,
     currentUserId,
-    isAdmin
-  });
+    isAdmin,
+  })
 
   return (
     <div className="space-y-6">
@@ -199,6 +222,7 @@ export default function TicketsPage() {
       <CreateTicketModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onTicketCreated={handleTicketCreated}
       />
 
       {isEditModalOpen && selectedTicket && (

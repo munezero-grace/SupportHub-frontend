@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import GeneralSettings from 'src/components/settings/GeneralSettings'
+import GeneralSettings from '@/components/settings/GeneralSettings'
 import IntegrationsSettings from '@/components/settings/IntegrationsSettings'
 import UsersSettings from '@/components/settings/UsersSettings'
 

@@ -34,6 +34,7 @@ const authOptions: NextAuthOptions = {
         }
       },
     }),
+
     CredentialsProvider({
       id: 'credentials',
       name: 'credentials',
@@ -46,23 +47,25 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) return null
 
-        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
+        const backendUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
 
         try {
           const response = await axios.post(`${backendUrl}/api/auth/login`, {
             email: credentials.email,
-            password: credentials.password
-          });
+            password: credentials.password,
+          })
 
-          const { token } = response.data;
+          const { token, hasChangedPassword } = response.data
 
           if (token) {
             const base64Payload = token.split('.')[1]
             const userData = JSON.parse(
               Buffer.from(base64Payload, 'base64').toString()
             )
+
             return {
               ...userData,
               token,
@@ -70,11 +73,15 @@ const authOptions: NextAuthOptions = {
               provider: 'credentials',
               firstName: userData.firstName,
               lastName: userData.lastName,
-              name: userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : undefined
+              hasChangedPassword: hasChangedPassword || false,
+              name:
+                userData.firstName && userData.lastName
+                  ? `${userData.firstName} ${userData.lastName}`
+                  : undefined,
             }
           }
 
-          return null;
+          return null
         } catch (error) {
           if (error instanceof AxiosError) {
             throw new Error(JSON.stringify({ ...error.response?.data }))
@@ -84,28 +91,47 @@ const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
   callbacks: {
     async signIn({ user }) {
       return !!user
-    }, async jwt({ token, user, account, profile }) {
-        if (user) {
-          const customUser = user as CustomUser
-          token.id = customUser.id
-          token.role = customUser.role || 'user'
-          token.accessToken = customUser.token || token.accessToken || ''
-          token.provider = customUser.provider || account?.provider || token.provider || ''
-          token.providerId = customUser.providerId || token.providerId || ''
-          token.email = customUser.email || token.email
-          token.client = customUser.client || undefined
-          if (customUser.contactName) {
-            token.name = customUser.contactName
-          } else if (customUser.firstName || customUser.lastName) {
-            token.name = `${customUser.firstName ?? ''}${customUser.lastName ? ' ' + customUser.lastName : ''}`.trim()
-          } else if (customUser.name) {
-            token.name = customUser.name
-          }
-        }
+    },
 
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        const customUser = user as CustomUser
+
+        token.id = customUser.id
+        token.role = customUser.role || 'user'
+        token.accessToken = customUser.token || token.accessToken || ''
+        token.provider = customUser.provider || account?.provider || ''
+        token.providerId = customUser.providerId || ''
+        token.email = customUser.email || token.email
+        token.client = customUser.client || undefined
+        token.hasChangedPassword = customUser.hasChangedPassword ?? false
+
+        /**
+         * ❌ FIXED ISSUE:
+         * Before: (customUser as Record<string, unknown>).hasChangedPassword
+         * - invalid cast
+         * - TypeScript blocked production build
+         *
+         * ✅ Now safely read property with nullish coalescing
+         */
+        token.hasChangedPassword = customUser.hasChangedPassword ?? false
+
+        if (customUser.contactName) {
+          token.name = customUser.contactName
+        } else if (customUser.firstName || customUser.lastName) {
+          token.name = `${customUser.firstName ?? ''}${
+            customUser.lastName ? ' ' + customUser.lastName : ''
+          }`.trim()
+        } else if (customUser.name) {
+          token.name = customUser.name
+        }
+      }
+
+      // Google login handling
       if (account?.provider === 'google') {
         const payload = {
           sub: profile?.sub ?? '',
@@ -119,11 +145,13 @@ const authOptions: NextAuthOptions = {
 
         try {
           const data = await socialSignup(payload)
+
           if (data.token) {
             const base64Payload = data.token.split('.')[1]
             const decodedUser = JSON.parse(
               Buffer.from(base64Payload, 'base64').toString()
             )
+
             return {
               ...token,
               ...decodedUser,
@@ -131,14 +159,15 @@ const authOptions: NextAuthOptions = {
             }
           }
         } catch (error) {
-          console.error("Error in social signup:", error)
+          console.error('Error in social signup:', error)
           return token
         }
       }
 
       return token
     },
-async session({ session, token }) {
+
+    async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
@@ -146,23 +175,26 @@ async session({ session, token }) {
         session.user.provider = token.provider as string
         session.user.providerId = token.providerId as string
         session.user.email = token.email as string
-        session.user.name = token.name as string || ''
-        session.user.client = token.client as undefined 
+        session.user.name = (token.name as string) || ''
+        session.user.client = token.client as undefined
+        session.user.hasChangedPassword = token.hasChangedPassword as boolean
       }
       return session
     },
   },
+
   pages: {
     signIn: '/',
     error: '/',
-    signOut: '/'
+    signOut: '/',
   },
+
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 }
-
 
 const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

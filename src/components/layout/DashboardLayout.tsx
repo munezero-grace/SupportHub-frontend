@@ -11,7 +11,6 @@ import { DashboardLayoutProps } from '@/types/interfaces/Props'
 import { useMobileMenu } from '@/context/MobileMenuContext'
 import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
 
-
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -19,19 +18,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu()
   const { data: session, status } = useSession({
     required: true,
-    onUnauthenticated() {
-     
-    },
+    onUnauthenticated() {},
   })
-  
 
   const isAdmin = session?.user?.role === 'super_admin'
-  
 
   const filteredNavigation = navigation.filter(
     (item) => !item.adminOnly || (item.adminOnly && isAdmin)
   )
-
 
   useEffect(() => {
     const handleResize = () => {
@@ -90,13 +84,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="h-16 flex items-center px-4 border-b border-[#E5E7EB]">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <Image
-              src="/BP Ticket.png"
-              alt="BP Ticket"
+              src="/Support Hub.png"
+              alt="Support Hub"
               width={40}
               height={40}
               priority
             />
-            <span className="text-[#111827] text-lg font-bold">BP Ticket</span>
+            <span className="text-[#111827] text-lg font-bold">
+              Support Hub
+            </span>
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto py-4">
@@ -140,12 +136,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="h-16 flex items-center justify-between px-5 bg-white border-b border-[#E5E7EB]">
           <div className="flex items-center md:hidden">
             <span className="text-[#111827] text-xl font-bold p-2.5 ml-8">
-              BP Ticket
+              Support Hub
             </span>
           </div>
           <div className="hidden md:flex md:items-center">
             <span className="text-[#111827] text-xl font-bold p-2.5">
-              BP Ticket
+              Support Hub
             </span>
           </div>
           <div className="flex items-center gap-4">

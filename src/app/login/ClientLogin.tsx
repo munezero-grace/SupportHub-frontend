@@ -1,16 +1,19 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { useState, FormEvent } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
+import ChangePasswordModal from '@/components/auth/ChangePasswordModal'
 
 const BPTicketLogin: React.FC = () => {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const { data: session } = useSession()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,7 +29,17 @@ const BPTicketLogin: React.FC = () => {
         const errorData = JSON.parse(result.error)
         setError(errorData.message || 'Login failed')
       } else if (result?.ok) {
-        window.location.href = '/dashboard'
+        // Check if user needs to change password
+        const hasChangedPassword = (session?.user as Record<string, unknown>)
+          ?.hasChangedPassword
+        if (!hasChangedPassword) {
+          setShowPasswordModal(true)
+          setTimeout(() => {
+            window.location.href = '/dashboard'
+          }, 2000)
+        } else {
+          window.location.href = '/dashboard'
+        }
       }
     } catch (err) {
       setError('An error occurred during login')
@@ -37,20 +50,20 @@ const BPTicketLogin: React.FC = () => {
   return (
     <>
       <Head>
-        <title>BP Ticket - Client Login</title>
+        <title>Support Hub - Client Login</title>
       </Head>
 
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Image
-            src="/BP Ticket.png"
-            alt="BP Ticket Logo"
+            src="/Support Hub.png"
+            alt="Support Hub Logo"
             width={80}
             height={80}
             className="object-contain mx-auto"
           />
           <h1 className="text-3xl font-bold text-center text-black mt-4">
-            BP Ticket
+            Support Hub
           </h1>
           <h2 className="mt-2 text-center text-lg font-medium text-gray-400">
             Client Support Portal
@@ -140,6 +153,11 @@ const BPTicketLogin: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </>
   )
 }

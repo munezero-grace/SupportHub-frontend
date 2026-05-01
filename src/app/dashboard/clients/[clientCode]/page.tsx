@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeftIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { SupportTier, Status } from '@/types/clients'
@@ -15,12 +15,12 @@ import type { ClientFormData } from '@/validations/clientSchema'
 import type { UpdateClientDto } from '@/types/clients'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-export default function ClientDetailsPage({
-  params,
-}: {
-  params: { clientCode: string }
-}) {
+export default function ClientDetailsPage() {
   const router = useRouter()
+  const params = useParams()
+  const clientCode = Array.isArray(params?.clientCode)
+    ? params.clientCode[0]
+    : params?.clientCode || ''
   const queryClient = useQueryClient()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
@@ -29,9 +29,9 @@ export default function ClientDetailsPage({
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['client', params.clientCode],
-    queryFn: () => clientService.getById(params.clientCode),
-    enabled: !!params.clientCode,
+    queryKey: ['client', clientCode],
+    queryFn: () => clientService.getById(clientCode),
+    enabled: !!clientCode,
   })
 
   const updateClientMutation = useMutation({

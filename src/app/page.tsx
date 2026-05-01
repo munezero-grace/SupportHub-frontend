@@ -34,14 +34,14 @@ export default function Home() {
       <div className="flex flex-col items-center mb-12">
         <div className="mb-3">
           <Image
-            src="/BP Ticket.png"
-            alt="BP Ticket Logo"
+            src="/Support Hub.png"
+            alt="Support Hub Logo"
             width={64}
             height={64}
             className="object-contain"
           />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">BP Ticket</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Support Hub</h1>
         <p className="text-base text-gray-500 font-normal">
           Support Ticket Management
         </p>

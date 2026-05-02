@@ -5,6 +5,7 @@ export interface NavItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   adminOnly?: boolean
+  visibleTo?: string[]
 }
 
 export interface Settings {

@@ -10,6 +10,8 @@ export {
   SettingsIcon,
   AvatarIcon,
   TuneIcon,
+  TeamIcon,
+  TasksIcon,
 } from './CommonIcons';
 
 export {

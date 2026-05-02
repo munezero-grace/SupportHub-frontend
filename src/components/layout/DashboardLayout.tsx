@@ -26,10 +26,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   })
 
   const isAdmin = session?.user?.role === 'super_admin'
+  const userRole = session?.user?.role || ''
 
-  const filteredNavigation = navigation.filter(
-    (item) => !item.adminOnly || (item.adminOnly && isAdmin)
-  )
+  const filteredNavigation = navigation.filter((item) => {
+    if (item.visibleTo) return item.visibleTo.includes(userRole)
+    if (item.adminOnly) return isAdmin
+    return true
+  })
 
   useEffect(() => {
     const handleResize = () => {

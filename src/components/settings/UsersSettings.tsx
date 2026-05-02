@@ -40,14 +40,32 @@ const UsersSettings = () => {
     },
   })
 
+  const reactivateMutation = useMutation({
+    mutationFn: (user: User) => userService.reactivate(user.id),
+    onSuccess: () => {
+      toast.success('User reactivated successfully')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+    onError: (error: unknown) => {
+      const err = error as { message?: string }
+      toast.error(err?.message || 'Error reactivating user')
+    },
+  })
+
   const columns = [
     {
       header: 'Name',
-      accessor: (user: User) => `${user.firstName} ${user.lastName}`,
+      accessor: (user: User) => (
+        <span className={user.deletedAt ? 'text-gray-400' : ''}>
+          {user.firstName} {user.lastName}
+        </span>
+      ),
     },
     {
       header: 'Email',
-      accessor: (user: User) => user.email,
+      accessor: (user: User) => (
+        <span className={user.deletedAt ? 'text-gray-400' : ''}>{user.email}</span>
+      ),
     },
     {
       header: 'Role',
@@ -56,7 +74,7 @@ const UsersSettings = () => {
           {user.roles.map((role) => (
             <span
               key={role}
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${ROLE_STYLES[role] ?? 'bg-gray-100 text-gray-600'}`}
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${user.deletedAt ? 'bg-gray-100 text-gray-400' : (ROLE_STYLES[role] ?? 'bg-gray-100 text-gray-600')}`}
             >
               {formatRole(role)}
             </span>
@@ -65,16 +83,22 @@ const UsersSettings = () => {
       ),
     },
     {
+      header: 'Status',
+      accessor: (user: User) => (
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${user.deletedAt ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+          {user.deletedAt ? 'Deactivated' : 'Active'}
+        </span>
+      ),
+    },
+    {
       header: 'Actions',
       accessor: (user: User) => (
         <ActionMenu
-          items={[
-            {
-              label: 'Deactivate',
-              variant: 'danger' as const,
-              onClick: () => setConfirmUser(user),
-            },
-          ]}
+          items={
+            user.deletedAt
+              ? [{ label: 'Reactivate', onClick: () => reactivateMutation.mutate(user) }]
+              : [{ label: 'Deactivate', variant: 'danger' as const, onClick: () => setConfirmUser(user) }]
+          }
         />
       ),
     },

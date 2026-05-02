@@ -8,4 +8,7 @@ export const userService = {
   async softDelete(userId: string) {
     await axiosInstance.delete(`/users/${userId}/soft-delete`)
   },
+  async reactivate(userId: string) {
+    await axiosInstance.post(`/users/${userId}/restore`)
+  },
 }

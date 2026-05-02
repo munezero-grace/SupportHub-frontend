@@ -21,6 +21,7 @@ export type User = {
   lastName: string;
   email: string;
   roles: string[];
+  deletedAt?: string | null;
 };
 
 export interface ApiError {

@@ -16,6 +16,9 @@ import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { FilterModal } from '@/components/shared/FilterModal'
 import { mapTickets } from '@/utils/mapTickets'
 import { mapTicketsSimple } from '@/utils/mapTicketsSimple'
+import { Pagination } from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 10
 
 export default function TicketsPage() {
   const { data: session } = useSession()
@@ -30,6 +33,7 @@ export default function TicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const isAdmin = session?.user?.role === 'super_admin' || session?.user?.role === 'ticket_manager'
   const currentUserId = session?.user?.id
@@ -115,6 +119,12 @@ export default function TicketsPage() {
     }
   }
 
+  const totalPages = Math.max(1, Math.ceil(filteredTickets.length / PAGE_SIZE))
+  const paginatedTickets = filteredTickets.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+
   const enhancedColumns = createTicketTableColumns({
     onEdit: handleEditTicket,
     onDelete: handleDeleteTicket,
@@ -191,7 +201,7 @@ export default function TicketsPage() {
         <div className="p-4 overflow-hidden">
           <div className="overflow-x-auto">
             <Table
-              data={filteredTickets}
+              data={paginatedTickets}
               columns={enhancedColumns}
               onRowClick={handleRowClick}
               className="w-full min-w-[800px]"
@@ -205,6 +215,11 @@ export default function TicketsPage() {
               }
             />
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       </div>
 

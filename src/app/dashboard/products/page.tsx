@@ -16,6 +16,9 @@ import { ClientResponse } from '@/types/clients/clientResponse'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { useRouter } from 'next/navigation'
 import { FilterModal } from '@/components/shared/FilterModal'
+import { Pagination } from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 10
 
 interface ProductFilters {
   status: string
@@ -39,6 +42,7 @@ export default function ProductsAdminPage() {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
   const [selectedClients, setSelectedClients] = useState<Client[]>([])
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -126,6 +130,12 @@ export default function ProductsAdminPage() {
 
     return matchesSearch && matchesStatus
   })
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+
   const columns = getProductColumns()
 
   const handleClientSelect = async (client: Client) => {
@@ -221,7 +231,7 @@ export default function ProductsAdminPage() {
         <div className="p-4 overflow-hidden">
           <div className="overflow-x-auto">
             <Table
-              data={filteredProducts}
+              data={paginatedProducts}
               className="w-full min-w-[800px]"
               columns={columns}
               emptyState={
@@ -236,6 +246,11 @@ export default function ProductsAdminPage() {
               }
             />
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       </div>
 

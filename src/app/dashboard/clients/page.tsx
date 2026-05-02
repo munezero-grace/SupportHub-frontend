@@ -24,6 +24,9 @@ import { Client, SupportTier, Status } from '@/types/clients'
 import { Product } from '@/types/interfaces/product'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/hooks/useQueries'
+import { Pagination } from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 10
 
 export default function ClientsPage() {
   const router = useRouter()
@@ -37,6 +40,7 @@ export default function ClientsPage() {
     status: '',
     supportTier: '',
   })
+  const [currentPage, setCurrentPage] = useState(1)
 
   const {
     data: clients,
@@ -84,6 +88,12 @@ export default function ClientsPage() {
         return aNum - bNum
       }),
     [filteredClients]
+  )
+
+  const totalPages = Math.max(1, Math.ceil(sortedClients.length / PAGE_SIZE))
+  const paginatedClients = sortedClients.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
   )
 
   const handleManageProducts = (client: Client) => {
@@ -321,7 +331,7 @@ export default function ClientsPage() {
           ) : (
             <div className="border border-gray-200 rounded-lg overflow-x-auto">
               <Table
-                data={sortedClients}
+                data={paginatedClients}
                 columns={columns}
                 className="w-full [&_th]:!text-gray-500 [&_td]:!text-gray-900 [&_th]:!font-medium [&_td]:!font-medium [&_th]:!p-4 [&_td]:!p-4 [&_tr]:border-b [&_tr:last-child]:border-b-0"
                 emptyState={
@@ -329,6 +339,11 @@ export default function ClientsPage() {
                     ? 'No clients found matching your search'
                     : 'No clients found. Add your first client!'
                 }
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
               />
             </div>
           )}

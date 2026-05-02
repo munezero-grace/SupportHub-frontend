@@ -22,7 +22,7 @@ import { ClientFormModal } from '@/components/clients/ClientFormModal'
 import { productService } from '@/services/products.service'
 import { Client, SupportTier, Status } from '@/types/clients'
 import { Product } from '@/types/interfaces/product'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/hooks/useQueries'
 import { Pagination } from '@/components/ui/Pagination'
 
@@ -30,6 +30,7 @@ const PAGE_SIZE = 10
 
 export default function ClientsPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -109,20 +110,32 @@ export default function ClientsPage() {
   const handleEditSubmit = async (formData: ClientFormData) => {
     if (!selectedClient) return
 
+    const updateData: UpdateClientDto = {
+      companyName: formData.companyName,
+      contactName: formData.contactName,
+      contactEmail: formData.contactEmail,
+      supportTier: formData.supportTier as SupportTier,
+      status: formData.status as Status,
+    }
+
+    // Immediately update the cache so the table reflects the change at once
+    const previousClients = queryClient.getQueryData<Client[]>(queryKeys.clients)
+    queryClient.setQueryData<Client[]>(queryKeys.clients, (old) =>
+      (old ?? []).map((c) =>
+        c.id === selectedClient.id ? { ...c, ...updateData } : c
+      )
+    )
+
+    setIsEditModalOpen(false)
+    setSelectedClient(null)
+
     try {
-      const updateData: UpdateClientDto = {
-        companyName: formData.companyName,
-        contactName: formData.contactName,
-        contactEmail: formData.contactEmail,
-        supportTier: formData.supportTier as SupportTier,
-        status: formData.status as Status,
-      }
       await clientService.update(selectedClient.id, updateData)
       toast.success('Client updated successfully')
-      setIsEditModalOpen(false)
-      setSelectedClient(null)
       refetch()
     } catch (error) {
+      // Roll back the optimistic update on failure
+      queryClient.setQueryData(queryKeys.clients, previousClients)
       console.error('Error updating client:', error)
       const err = error as { response?: { data?: { message?: string } } }
       toast.error(err?.response?.data?.message || 'Error updating client')

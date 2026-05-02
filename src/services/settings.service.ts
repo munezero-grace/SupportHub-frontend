@@ -8,10 +8,6 @@ export const getUserProfile = async (): Promise<IUserProfile> => {
   return response.data
 }
 
-export const getUserSettings = async () => {
-  return axiosInstance.get('/users/settings')
-}
-
 export const updateUserProfile = async (data: Partial<User>) => {
   const response = await axiosInstance.put('/users/profile', data)
   return response.data
@@ -27,7 +23,7 @@ export const updateUserCompanyProfile = async (
 export const getSlackSettings = async (): Promise<
   ApiResponse<SlackSettings>
 > => {
-  const response = await axiosInstance.get('/settings/slack-integrations')
+  const response = await axiosInstance.get('/settings/slack-integration')
   return response.data
 }
 
@@ -40,7 +36,6 @@ export const updateSlackSettings = async (
 
 const settingsService = {
   getUserProfile,
-  getUserSettings,
   updateUserProfile,
   updateUserCompanyProfile,
   getSlackSettings,

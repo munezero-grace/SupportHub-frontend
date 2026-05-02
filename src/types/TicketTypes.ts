@@ -136,4 +136,5 @@ export interface TicketActionsProps {
     ticket: Ticket
     onEdit: (ticket: Ticket) => void
     onDelete: (ticket: Ticket) => void
+    onAssign?: (ticket: Ticket) => void
 }

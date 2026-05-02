@@ -5,11 +5,12 @@ import type { Ticket } from '@/types/interfaces/interface';
 type TicketHandlers = {
   onEdit: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
+  onAssign?: (ticket: Ticket) => void;
   isAdmin?: boolean;
   currentUserId?: string;
 };
 
-export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) => [
+export const createTicketTableColumns = ({ onEdit, onDelete, onAssign }: TicketHandlers) => [
   {
     header: 'ID ↑↓',
     accessor: (ticket: Ticket): ReactNode => (
@@ -102,6 +103,7 @@ export const createTicketTableColumns = ({ onEdit, onDelete }: TicketHandlers) =
           ticket={ticket}
           onEdit={onEdit}
           onDelete={onDelete}
+          onAssign={onAssign}
         />
       </div>
     ),

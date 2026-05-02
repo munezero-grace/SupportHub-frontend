@@ -11,6 +11,7 @@ import {
 } from '@/constants/ticketconfig'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import EditTicketModal from '@/components/tickets/EditTicketModal'
+import AssignTicketModal from '@/components/tickets/AssignTicketModal'
 import { Table } from '@/components/ui/Table'
 import { createTicketTableColumns } from '../../../components/tickets/ticketsTable'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
@@ -35,6 +36,7 @@ export default function TicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
   const isAdmin = session?.user?.role === 'super_admin' || session?.user?.role === 'ticket_manager'
@@ -69,6 +71,11 @@ export default function TicketsPage() {
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket)
     setIsEditModalOpen(true)
+  }
+
+  const handleAssignTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket)
+    setIsAssignModalOpen(true)
   }
 
   const handleDeleteTicket = (ticket: Ticket) => {
@@ -135,6 +142,7 @@ export default function TicketsPage() {
   const enhancedColumns = createTicketTableColumns({
     onEdit: handleEditTicket,
     onDelete: handleDeleteTicket,
+    onAssign: isAdmin ? handleAssignTicket : undefined,
     currentUserId,
     isAdmin,
   })
@@ -244,6 +252,19 @@ export default function TicketsPage() {
             setSelectedTicket(null)
           }}
           ticket={selectedTicket}
+        />
+      )}
+
+      {isAssignModalOpen && selectedTicket && (
+        <AssignTicketModal
+          isOpen={isAssignModalOpen}
+          onClose={() => {
+            setIsAssignModalOpen(false)
+            setSelectedTicket(null)
+          }}
+          ticketId={selectedTicket.id}
+          ticketTitle={selectedTicket.title}
+          onAssigned={handleTicketCreated}
         />
       )}
 

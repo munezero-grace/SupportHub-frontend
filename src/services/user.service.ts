@@ -11,4 +11,8 @@ export const userService = {
   async reactivate(userId: string) {
     await axiosInstance.post(`/users/${userId}/restore`)
   },
+  async getTeamMembers() {
+    const response = await axiosInstance.get('/users/team')
+    return response.data.data
+  },
 }

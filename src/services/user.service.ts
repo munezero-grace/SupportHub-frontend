@@ -6,6 +6,6 @@ export const userService = {
     return response.data.data
   },
   async softDelete(userId: string) {
-    await axiosInstance.patch(`/users/${userId}/soft-delete`)
+    await axiosInstance.delete(`/users/${userId}/soft-delete`)
   },
 }

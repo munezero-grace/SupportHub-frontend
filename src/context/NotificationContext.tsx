@@ -45,9 +45,11 @@ function saveToStorage(notifications: AppNotification[]) {
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const lastCheckRef = useRef<string>(localStorage.getItem(LAST_CHECK_KEY) || new Date().toISOString())
+  const lastCheckRef = useRef<string>(new Date().toISOString())
 
   useEffect(() => {
+    const saved = localStorage.getItem(LAST_CHECK_KEY)
+    if (saved) lastCheckRef.current = saved
     setNotifications(loadFromStorage())
   }, [])
 

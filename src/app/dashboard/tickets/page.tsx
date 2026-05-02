@@ -1,6 +1,7 @@
 'use client'
 import type { Ticket } from '@/types/interfaces/interface'
 import React, { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/Button'
 import { ticketService } from '@/services/tickets.service'
 import {
@@ -17,6 +18,7 @@ import { mapTickets } from '@/utils/mapTickets'
 import { mapTicketsSimple } from '@/utils/mapTicketsSimple'
 
 export default function TicketsPage() {
+  const { data: session } = useSession()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -25,13 +27,12 @@ export default function TicketsPage() {
     priority: '',
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(
-    undefined
-  )
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const isAdmin = session?.user?.role === 'super_admin' || session?.user?.role === 'ticket_manager'
+  const currentUserId = session?.user?.id
 
   const handleDelete = async () => {
     if (!selectedTicket) return
@@ -49,18 +50,6 @@ export default function TicketsPage() {
     const fetchTickets = async () => {
       try {
         const data = await ticketService.getUserTickets()
-        const userRole =
-          localStorage.getItem('userRole') || sessionStorage.getItem('userRole')
-        const userId =
-          localStorage.getItem('userId') || sessionStorage.getItem('userId')
-
-        setIsAdmin(
-          userRole?.includes('admin') ||
-            userRole?.includes('super_admin') ||
-            false
-        )
-        setCurrentUserId(userId || undefined)
-
         const tickets = Array.isArray(data) ? data : []
         const mappedTickets = mapTickets(tickets)
         setTickets(mappedTickets)

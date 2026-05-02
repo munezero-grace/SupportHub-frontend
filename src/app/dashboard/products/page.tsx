@@ -41,17 +41,6 @@ export default function ProductsAdminPage() {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
 
   useEffect(() => {
-    if (selectedProduct) {
-      const savedClientsKey = `selectedClients_${selectedProduct.id}`
-      if (selectedClients.length > 0) {
-        localStorage.setItem(savedClientsKey, JSON.stringify(selectedClients))
-      } else {
-        localStorage.removeItem(savedClientsKey)
-      }
-    }
-  }, [selectedClients, selectedProduct])
-
-  useEffect(() => {
     const fetchProducts = async () => {
       try {
         const productsWithActiveClients =
@@ -67,34 +56,28 @@ export default function ProductsAdminPage() {
   const openClientModal = (product: Product) => {
     setSelectedProduct(product)
 
-    const savedClientsKey = `selectedClients_${product.id}`
-    const savedClients = localStorage.getItem(savedClientsKey)
-    if (savedClients) {
-      setSelectedClients(JSON.parse(savedClients))
-    } else {
-      const initialSelectedClients: Client[] = product.clientProducts
-        ? product.clientProducts.map((cp) => {
-            const clientData = cp as unknown as ClientResponse
-            return {
-              id: String(clientData.id),
-              clientCode: clientData.clientCode,
-              name: clientData.name,
-              contactName: clientData.contactName,
-              companyName: clientData.companyName,
-              products: clientData.products,
-              supportTier: clientData.supportTier,
-              activeTickets: clientData.activeTickets,
-              status: clientData.status,
-              createdAt: clientData.createdAt,
-              updatedAt: clientData.updatedAt,
-              user: clientData.user,
-              userId: clientData.userId,
-              clientProducts: clientData.clientProducts,
-            }
-          })
-        : []
-      setSelectedClients(initialSelectedClients)
-    }
+    const initialSelectedClients: Client[] = product.clientProducts
+      ? product.clientProducts.map((cp) => {
+          const clientData = cp as unknown as ClientResponse
+          return {
+            id: String(clientData.id),
+            clientCode: clientData.clientCode,
+            name: clientData.name,
+            contactName: clientData.contactName,
+            companyName: clientData.companyName,
+            products: clientData.products,
+            supportTier: clientData.supportTier,
+            activeTickets: clientData.activeTickets,
+            status: clientData.status,
+            createdAt: clientData.createdAt,
+            updatedAt: clientData.updatedAt,
+            user: clientData.user,
+            userId: clientData.userId,
+            clientProducts: clientData.clientProducts,
+          }
+        })
+      : []
+    setSelectedClients(initialSelectedClients)
 
     const initialSelectedProductIds = product.clientProducts
       ? product.clientProducts.map((cp) =>

@@ -1,78 +1,186 @@
-"use client"
+'use client'
 
-import { Button } from '@/components/ui/Button'
-import { reports } from '@/constants/reports'
+import { useEffect, useState } from 'react'
+import { dashboardAPI } from '@/services/dashboard.service'
+import { DashboardData } from '@/types/dashboard.types'
+
+const STATUS_COLORS: Record<string, string> = {
+  new: 'bg-blue-100 text-blue-700',
+  in_progress: 'bg-yellow-100 text-yellow-700',
+  awaiting_client: 'bg-orange-100 text-orange-700',
+  resolved: 'bg-green-100 text-green-700',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'New',
+  in_progress: 'In Progress',
+  awaiting_client: 'Awaiting Client',
+  resolved: 'Resolved',
+}
 
 export default function ReportsPage() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await dashboardAPI.getAllDashboardData()
+        setData(result)
+      } catch {
+        setError('Failed to load report data.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Loading reports...</p>
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-500">{error || 'No data available.'}</p>
+      </div>
+    )
+  }
+
+  const { overview, tickets, clients, products } = data
+
+  const totalTickets = overview?.stats?.totalTickets ?? 0
+  const openTickets = overview?.stats?.openTickets ?? 0
+  const resolvedCount = tickets?.resolved?.length ?? 0
+
+  const statusCounts = [
+    { key: 'new', count: tickets?.new?.length ?? 0 },
+    { key: 'in_progress', count: tickets?.in_progress?.length ?? 0 },
+    { key: 'awaiting_client', count: tickets?.awaiting_client?.length ?? 0 },
+    { key: 'resolved', count: resolvedCount },
+  ]
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-700">Reports</h1>
-          <p className="text-gray-600">Generate and view support operation reports</p>
-        </div>
-        <div className="space-x-3">
-          <Button variant="outline">Schedule Report</Button>
-          <Button>Generate Report</Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">Reports</h1>
+        <p className="text-gray-500 text-sm mt-1">Live overview of support operations</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="text-green-600 mb-2">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-700">Performance</h3>
-          <p className="text-gray-600 text-sm mt-1">Response times and SLA metrics</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="text-blue-600 mb-2">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-700">Satisfaction</h3>
-          <p className="text-gray-600 text-sm mt-1">Client feedback analysis</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="text-purple-600 mb-2">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-700">Analytics</h3>
-          <p className="text-gray-600 text-sm mt-1">Trend analysis and insights</p>
-        </div>
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total Tickets" value={totalTickets} color="border-blue-500" />
+        <StatCard label="Open Tickets" value={openTickets} color="border-yellow-500" />
+        <StatCard label="Resolved Tickets" value={resolvedCount} color="border-green-500" />
+        <StatCard label="Total Clients" value={clients?.totalClients ?? 0} color="border-purple-500" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-bold text-gray-700">Available Reports</h2>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {reports.map((report) => (
-            <div key={report.id} className="p-6 hover:bg-gray-50">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-gray-700">{report.name}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{report.description}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span>Last generated: {report.lastGenerated}</span>
-                    <span>Frequency: {report.frequency}</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">Download</Button>
-                  <Button size="sm">View</Button>
-                </div>
-              </div>
+      {/* Tickets by Status */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Tickets by Status</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {statusCounts.map(({ key, count }) => (
+            <div key={key} className="flex flex-col items-center p-4 rounded-lg bg-gray-50">
+              <span className={`text-xs font-medium px-2 py-1 rounded-full mb-2 ${STATUS_COLORS[key]}`}>
+                {STATUS_LABELS[key]}
+              </span>
+              <span className="text-3xl font-bold text-gray-800">{count}</span>
             </div>
           ))}
         </div>
+
+        {totalTickets > 0 && (
+          <div className="mt-6">
+            <p className="text-sm text-gray-500 mb-2">Distribution</p>
+            <div className="flex h-4 rounded-full overflow-hidden">
+              {statusCounts.map(({ key, count }) => {
+                const pct = totalTickets > 0 ? (count / totalTickets) * 100 : 0
+                const bgColors: Record<string, string> = {
+                  new: 'bg-blue-400',
+                  in_progress: 'bg-yellow-400',
+                  awaiting_client: 'bg-orange-400',
+                  resolved: 'bg-green-400',
+                }
+                return pct > 0 ? (
+                  <div
+                    key={key}
+                    className={`${bgColors[key]} transition-all`}
+                    style={{ width: `${pct}%` }}
+                    title={`${STATUS_LABELS[key]}: ${count}`}
+                  />
+                ) : null
+              })}
+            </div>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {statusCounts.map(({ key, count }) => {
+                const dotColors: Record<string, string> = {
+                  new: 'bg-blue-400',
+                  in_progress: 'bg-yellow-400',
+                  awaiting_client: 'bg-orange-400',
+                  resolved: 'bg-green-400',
+                }
+                return (
+                  <div key={key} className="flex items-center gap-1 text-xs text-gray-500">
+                    <span className={`w-2 h-2 rounded-full ${dotColors[key]}`} />
+                    {STATUS_LABELS[key]} ({count})
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Clients & Products */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Summary</h2>
+          <div className="space-y-3">
+            <SummaryRow label="Total Clients" value={clients?.totalClients ?? 0} />
+            <SummaryRow label="Active Clients" value={clients?.activeClients ?? 0} />
+            <SummaryRow label="Premium Clients" value={clients?.premiumClients ?? 0} />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Product Summary</h2>
+          <div className="space-y-3">
+            <SummaryRow label="Total Products" value={products?.totalProducts ?? 0} />
+            <SummaryRow label="Active Products" value={products?.activeProducts ?? 0} />
+            <SummaryRow
+              label="Most Active Product"
+              value={products?.mostActiveProduct?.name ?? '—'}
+              sub={products?.mostActiveProduct ? `${products.mostActiveProduct.ticketCount} tickets` : undefined}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${color}`}>
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-3xl font-bold text-gray-800 mt-1">{value}</p>
+    </div>
+  )
+}
+
+function SummaryRow({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-600">{label}</span>
+      <div className="text-right">
+        <span className="text-sm font-semibold text-gray-800">{value}</span>
+        {sub && <p className="text-xs text-gray-400">{sub}</p>}
       </div>
     </div>
   )

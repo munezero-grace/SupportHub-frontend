@@ -10,11 +10,15 @@ import { signOut, useSession } from 'next-auth/react'
 import { DashboardLayoutProps } from '@/types/interfaces/Props'
 import { useMobileMenu } from '@/context/MobileMenuContext'
 import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
+import { useNotifications } from '@/context/NotificationContext'
+import { NotificationDropdown } from '@/components/ui/NotificationDropdown'
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
+  const { unreadCount } = useNotifications()
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu()
   const { data: session, status } = useSession({
     required: true,
@@ -146,22 +150,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <svg
-                className="w-6 h-6 text-[#4B5563] cursor-pointer"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              <button
+                type="button"
+                onClick={() => setShowNotifications((v) => !v)}
+                className="relative p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                aria-label="Notifications"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0h-6"
-                />
-              </svg>
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-xs font-medium text-white bg-black rounded-full">
-                3
-              </span>
+                <svg
+                  className="w-6 h-6 text-[#4B5563]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0h-6"
+                  />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[1rem] h-4 px-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+              />
             </div>
 
             <div className="relative profile-menu-container" ref={profileRef}>

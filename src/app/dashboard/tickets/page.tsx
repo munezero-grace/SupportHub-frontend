@@ -2,6 +2,7 @@
 import type { Ticket } from '@/types/interfaces/interface'
 import React, { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useNotifications } from '@/context/NotificationContext'
 import { Button } from '@/components/ui/Button'
 import { ticketService } from '@/services/tickets.service'
 import {
@@ -22,6 +23,7 @@ const PAGE_SIZE = 10
 
 export default function TicketsPage() {
   const { data: session } = useSession()
+  const { addNotification } = useNotifications()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -109,11 +111,16 @@ export default function TicketsPage() {
     setIsEditModalOpen(true)
   }
 
-  const handleTicketCreated = async () => {
+  const handleTicketCreated = async (ticketTitle?: string) => {
     try {
       const data = await ticketService.getUserTickets()
       const mappedTickets: Ticket[] = mapTickets(data)
       setTickets(mappedTickets)
+      addNotification({
+        type: 'new_ticket',
+        title: 'Ticket Created',
+        description: ticketTitle ? `"${ticketTitle}" has been submitted.` : 'A new support ticket has been submitted.',
+      })
     } catch {
       setTickets([])
     }

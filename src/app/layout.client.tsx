@@ -4,6 +4,7 @@ import { Provider } from '@/providers/QueryProvider'
 import { SessionProvider } from 'next-auth/react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { NotificationProvider } from '@/context/NotificationContext'
 
 export default function ClientProvider({
   children,
@@ -13,8 +14,10 @@ export default function ClientProvider({
   return (
     <SessionProvider>
       <Provider>
-        {children}
-        <ToastContainer />
+        <NotificationProvider>
+          {children}
+          <ToastContainer />
+        </NotificationProvider>
       </Provider>
     </SessionProvider>
   )

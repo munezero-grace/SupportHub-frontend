@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { TicketActions } from '@/components/tickets/TicketActions';
+import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge';
 import type { Ticket } from '@/types/interfaces/interface';
 
 type TicketHandlers = {
@@ -82,6 +83,13 @@ export const createTicketTableColumns = ({ onEdit, onDelete, onAssign }: TicketH
     className: 'w-24',
   },
   
+  {
+    header: 'Score',
+    accessor: (ticket: Ticket): ReactNode => (
+      <PriorityScoreBadge score={ticket.priorityScore} variant="compact" />
+    ),
+    className: 'w-32',
+  },
   {
     header: 'Due Date',
     accessor: (ticket: Ticket): ReactNode => (

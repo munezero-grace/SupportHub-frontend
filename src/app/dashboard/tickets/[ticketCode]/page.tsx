@@ -10,6 +10,7 @@ import type { Ticket } from '@/types/interfaces/interface'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge'
 
 export default function TicketDetailsPage({ params }: PageProps) {
     const router = useRouter()
@@ -231,6 +232,18 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     >
                                         {ticket.priority || 'Low'}
                                     </span>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-bold text-gray-600">Priority Score</span>
+                                        {ticket.lastScoredAt && (
+                                            <span className="text-[10px] text-gray-400">
+                                                scored {formatDate(ticket.lastScoredAt)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
                                 </div>
 
                                 <div className="flex justify-between items-center">

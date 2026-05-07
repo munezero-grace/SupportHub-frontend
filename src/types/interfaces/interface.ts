@@ -62,6 +62,8 @@ export interface Ticket {
   createdAt?: string;
   created?: string;
   lastUpdated?: string;
+  priorityScore?: number;
+  lastScoredAt?: string;
 }
 
 export interface User {

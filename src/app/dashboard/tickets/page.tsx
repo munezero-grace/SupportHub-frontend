@@ -32,6 +32,7 @@ export default function TicketsPage() {
     status: '',
     priority: '',
   })
+  const [sortByScore, setSortByScore] = useState<'none' | 'desc' | 'asc'>('none')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -113,6 +114,18 @@ export default function TicketsPage() {
     return matchesSearch && matchesStatus && matchesPriority
   })
 
+  const sortedTickets = sortByScore === 'none'
+    ? filteredTickets
+    : [...filteredTickets].sort((a, b) => {
+        const aHas = typeof a.priorityScore === 'number'
+        const bHas = typeof b.priorityScore === 'number'
+        if (!aHas && !bHas) return 0
+        if (!aHas) return 1
+        if (!bHas) return -1
+        const diff = (a.priorityScore as number) - (b.priorityScore as number)
+        return sortByScore === 'desc' ? -diff : diff
+      })
+
   const handleRowClick = (item: Ticket): void => {
     setSelectedTicket(item)
     setIsEditModalOpen(true)
@@ -133,8 +146,8 @@ export default function TicketsPage() {
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(filteredTickets.length / PAGE_SIZE))
-  const paginatedTickets = filteredTickets.slice(
+  const totalPages = Math.max(1, Math.ceil(sortedTickets.length / PAGE_SIZE))
+  const paginatedTickets = sortedTickets.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   )
@@ -187,6 +200,24 @@ export default function TicketsPage() {
             placeholder="Search tickets..."
             onFilterClick={() => setIsFilterModalOpen(true)}
           />
+          <div className="px-4 pb-2 flex items-center gap-2">
+            <label htmlFor="sort-by-score" className="text-xs font-medium text-gray-600">
+              Sort by score:
+            </label>
+            <select
+              id="sort-by-score"
+              value={sortByScore}
+              onChange={(e) => {
+                setSortByScore(e.target.value as 'none' | 'desc' | 'asc')
+                setCurrentPage(1)
+              }}
+              className="text-xs px-2 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="none">Default</option>
+              <option value="desc">Highest first</option>
+              <option value="asc">Lowest first</option>
+            </select>
+          </div>
           {isFilterModalOpen && (
             <FilterModal
               isOpen={isFilterModalOpen}

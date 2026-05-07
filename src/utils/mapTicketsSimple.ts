@@ -33,6 +33,8 @@ export function mapTicketsSimple(data: Ticket[]): Ticket[] {
         estimatedTime: ticket.estimatedTime,
         assignee: ticket.assignee,
         internalNotes: ticket.internalNotes,
-        imageUrl: ticket.imageUrl
+        imageUrl: ticket.imageUrl,
+        priorityScore: ticket.priorityScore,
+        lastScoredAt: ticket.lastScoredAt
     }));
 }

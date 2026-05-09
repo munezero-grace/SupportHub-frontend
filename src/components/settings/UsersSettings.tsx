@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { userService } from '@/services/user.service'
 import { User } from '@/types/interfaces'
+import CreateUserModal from './CreateUserModal'
 
 const ROLE_STYLES: Record<string, string> = {
   super_admin: 'bg-red-100 text-red-700',
@@ -21,6 +22,7 @@ function formatRole(role: string) {
 const UsersSettings = () => {
   const queryClient = useQueryClient()
   const [confirmUser, setConfirmUser] = useState<User | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ['users'],
@@ -111,9 +113,17 @@ const UsersSettings = () => {
   return (
     <div className="bg-white">
       <div className="p-6 overflow-x-auto">
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">User Management</h2>
-          <p className="text-gray-500 text-sm mt-1">Manage user accounts and permissions</p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">User Management</h2>
+            <p className="text-gray-500 text-sm mt-1">Manage user accounts and permissions</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Create User
+          </button>
         </div>
 
         <Table
@@ -122,6 +132,8 @@ const UsersSettings = () => {
           emptyState={<p className="text-center text-gray-400 py-8">No users found.</p>}
         />
       </div>
+
+      <CreateUserModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
 
       {/* Deactivate confirmation modal */}
       {confirmUser && (

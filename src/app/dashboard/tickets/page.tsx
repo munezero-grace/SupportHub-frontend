@@ -114,16 +114,28 @@ export default function TicketsPage() {
     return matchesSearch && matchesStatus && matchesPriority
   })
 
+  const getScoreTier = (score: number | null | undefined): number => {
+    if (score == null) return -1
+    if (score >= 0.80) return 3
+    if (score >= 0.55) return 2
+    if (score >= 0.25) return 1
+    return 0
+  }
+
   const sortedTickets = sortByScore === 'none'
     ? filteredTickets
     : [...filteredTickets].sort((a, b) => {
-        const aHas = typeof a.priorityScore === 'number'
-        const bHas = typeof b.priorityScore === 'number'
-        if (!aHas && !bHas) return 0
-        if (!aHas) return 1
-        if (!bHas) return -1
-        const diff = (a.priorityScore as number) - (b.priorityScore as number)
-        return sortByScore === 'desc' ? -diff : diff
+        const aScore = typeof a.priorityScore === 'number' ? a.priorityScore : null
+        const bScore = typeof b.priorityScore === 'number' ? b.priorityScore : null
+        const aTier = getScoreTier(aScore)
+        const bTier = getScoreTier(bScore)
+        if (aTier !== bTier) {
+          return sortByScore === 'desc' ? bTier - aTier : aTier - bTier
+        }
+        if (aScore === null && bScore === null) return 0
+        if (aScore === null) return 1
+        if (bScore === null) return -1
+        return sortByScore === 'desc' ? bScore - aScore : aScore - bScore
       })
 
   const handleRowClick = (item: Ticket): void => {

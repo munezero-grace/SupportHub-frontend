@@ -226,7 +226,7 @@ function AdminDashboard({
         data as DashboardData,
         activeTab,
         isLoading,
-        error as string | null
+        error ? (error instanceof Error ? error.message : String(error)) : null
       )}
     </div>
   )

@@ -67,11 +67,12 @@ export function Table<T extends { id: string | number }>({
                         <td
                           key={colIndex}
                           className={cn(
-                            'py-4 px-3 text-sm text-gray-900 whitespace-nowrap',
+                            'py-4 px-3 text-sm text-gray-900',
+                            !column.wrap && 'whitespace-nowrap',
                             column.className
                           )}
                         >
-                          <div className="truncate w-full">
+                          <div className={cn('w-full', !column.wrap && 'truncate')}>
                             {content as ReactNode}
                           </div>
                         </td>

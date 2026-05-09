@@ -217,8 +217,9 @@ export default function ClientsPage() {
     },
     {
       header: 'Products',
+      wrap: true,
       accessor: (client: Client) => (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 max-w-[220px]">
           {client.clientProducts &&
             client.clientProducts.map((cp) => (
               <Badge

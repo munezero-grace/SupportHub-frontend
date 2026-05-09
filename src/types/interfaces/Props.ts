@@ -219,6 +219,7 @@ export interface TableColumn<T extends Record<string, unknown> = Record<string, 
   header: string | ReactNode;
   accessor: keyof T | ((item: T) => ReactNode);
   className?: string;
+  wrap?: boolean;
 }
 
 export interface TableProps<T extends { id: string | number }> {

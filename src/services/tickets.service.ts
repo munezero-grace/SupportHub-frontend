@@ -3,7 +3,8 @@ import { AxiosError } from 'axios'
 import { TicketUpdateData } from '@/types/TicketTypes'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { RESPONSE_STATUS } from '@/constants/errorMessages'
-
+import { mapTickets } from '@/utils/mapTickets'
+import type { Ticket } from '@/types/interfaces/interface'
 
 const BASE_URL = '/tickets'
 
@@ -136,5 +137,13 @@ export const ticketService = {
   assignTicket: async (ticketId: string, assigneeId: string) => {
     const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/assign`, { assigneeId })
     return response.data
+  },
+
+  getRankedTickets: async (): Promise<Ticket[]> => {
+    const response = await axiosInstance.get<{ data: Record<string, unknown>[] }>(
+      `${BASE_URL}/ranked`
+    )
+    const raw = Array.isArray(response.data?.data) ? response.data.data : []
+    return mapTickets(raw)
   },
 }

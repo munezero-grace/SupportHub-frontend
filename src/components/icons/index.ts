@@ -12,6 +12,7 @@ export {
   TuneIcon,
   TeamIcon,
   TasksIcon,
+  PriorityQueueIcon,
 } from './CommonIcons';
 
 export {

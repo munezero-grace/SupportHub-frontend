@@ -8,6 +8,7 @@ import {
   SettingsIcon,
   TeamIcon,
   TasksIcon,
+  PriorityQueueIcon,
 } from '@/components/icons';
 
 const ADMIN_ROLES = ['super_admin', 'ticket_manager'];
@@ -19,8 +20,9 @@ export const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
 
   // Admin & Ticket Manager
-  { name: 'Tickets',  href: '/dashboard/tickets', icon: TicketIcon,   visibleTo: ADMIN_ROLES },
-  { name: 'Team',     href: '/dashboard/team',    icon: TeamIcon,     visibleTo: ADMIN_ROLES },
+  { name: 'Tickets',        href: '/dashboard/tickets',        icon: TicketIcon,        visibleTo: ADMIN_ROLES },
+  { name: 'Priority Queue', href: '/dashboard/priority-queue', icon: PriorityQueueIcon, visibleTo: ADMIN_ROLES },
+  { name: 'Team',           href: '/dashboard/team',           icon: TeamIcon,          visibleTo: ADMIN_ROLES },
   { name: 'Clients',  href: '/dashboard/clients', icon: ClientsIcon,  visibleTo: ADMIN_ROLES },
   { name: 'Products', href: '/dashboard/products',icon: ProductIcon,  visibleTo: ADMIN_ROLES },
   { name: 'Reports',  href: '/dashboard/reports', icon: ReportIcon,   visibleTo: ADMIN_ROLES },

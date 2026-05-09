@@ -74,3 +74,11 @@ export function TasksIcon({ className = "w-5 h-5" }: IconProps) {
     </svg>
   )
 }
+
+export function PriorityQueueIcon({ className = "w-5 h-5" }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  )
+}

@@ -84,7 +84,17 @@ const authOptions: NextAuthOptions = {
           return null
         } catch (error) {
           if (error instanceof AxiosError) {
-            throw new Error(JSON.stringify({ ...error.response?.data }))
+            console.error('[authorize] login failed:', {
+              status: error.response?.status,
+              data: error.response?.data,
+              message: error.message,
+              code: error.code,
+            })
+            throw new Error(
+              JSON.stringify(
+                error.response?.data ?? { message: error.message }
+              )
+            )
           }
           throw error
         }

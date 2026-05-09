@@ -33,6 +33,5 @@ export const navigation: NavItem[] = [
   // Clients
   { name: 'My Requests', href: '/dashboard/tickets', icon: TicketIcon, visibleTo: CLIENT_ROLES },
 
-  // Visible to everyone
-  { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon, visibleTo: ['super_admin'] },
 ];

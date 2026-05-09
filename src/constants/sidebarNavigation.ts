@@ -23,8 +23,8 @@ export const navigation: NavItem[] = [
   { name: 'Tickets',        href: '/dashboard/tickets',        icon: TicketIcon,        visibleTo: ADMIN_ROLES },
   { name: 'Priority Queue', href: '/dashboard/priority-queue', icon: PriorityQueueIcon, visibleTo: ADMIN_ROLES },
   { name: 'Team',           href: '/dashboard/team',           icon: TeamIcon,          visibleTo: ADMIN_ROLES },
-  { name: 'Clients',  href: '/dashboard/clients', icon: ClientsIcon,  visibleTo: ADMIN_ROLES },
-  { name: 'Products', href: '/dashboard/products',icon: ProductIcon,  visibleTo: ADMIN_ROLES },
+  { name: 'Clients',  href: '/dashboard/clients', icon: ClientsIcon,  visibleTo: ['super_admin'] },
+  { name: 'Products', href: '/dashboard/products',icon: ProductIcon,  visibleTo: ['super_admin'] },
   { name: 'Reports',  href: '/dashboard/reports', icon: ReportIcon,   visibleTo: ADMIN_ROLES },
 
   // Team Members (developers)

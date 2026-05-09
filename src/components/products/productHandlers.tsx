@@ -116,9 +116,9 @@ export const createProductHandlers = ({
     },
     {
       header: 'Active Tickets',
-      accessor: () => (
+      accessor: (product: Product) => (
         <div className="flex items-center gap-2">
-          <span>100</span>
+          <span>{product.activeTickets ?? 0}</span>
         </div>
       ),
     },

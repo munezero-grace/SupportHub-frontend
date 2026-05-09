@@ -253,7 +253,7 @@ export default function ClientsPage() {
     },
     {
       header: 'Active Tickets',
-      accessor: () => 100,
+      accessor: (client: Client) => client.activeTickets ?? 0,
     },
     {
       header: 'Status',

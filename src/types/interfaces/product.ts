@@ -8,7 +8,8 @@ export interface Product {
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
-  clientProducts?: { id: string }[]; 
+  clientProducts?: { id: string }[];
+  activeTickets?: number;
 }
 
 export const productValidationSchema = z.object({

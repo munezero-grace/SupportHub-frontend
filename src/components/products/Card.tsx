@@ -42,15 +42,11 @@ export function ProductCard({ product, onView, onEdit, onDelete }: ProductCardPr
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div>
           <p className="text-sm font-medium text-gray-600">Clients</p>
-          <p className="text-lg font-bold text-gray-700">{100}</p>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-600">Developers</p>
-          <p className="text-lg font-bold text-gray-700">{100}</p>
+          <p className="text-lg font-bold text-gray-700">{product.clientProducts?.length ?? 0}</p>
         </div>
         <div>
           <p className="text-sm font-medium text-gray-600">Active Tickets</p>
-          <p className="text-lg font-bold text-gray-700">{100}</p>
+          <p className="text-lg font-bold text-gray-700">{product.activeTickets ?? 0}</p>
         </div>
         <div>
           <p className="text-sm font-medium text-gray-600">Last Updated</p>

@@ -139,6 +139,24 @@ export const ticketService = {
     return response.data
   },
 
+  getAssignedTickets: async () => {
+    try {
+      const response = await axiosInstance.get(`${BASE_URL}/assigned`)
+      if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data
+      }
+      return []
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        return {
+          status: RESPONSE_STATUS.ERROR,
+          message: error.response?.data?.error || ERROR_MESSAGES.TICKETS_FETCH_FAILED,
+        }
+      }
+      return { status: RESPONSE_STATUS.ERROR, message: ERROR_MESSAGES.TICKETS_FETCH_FAILED }
+    }
+  },
+
   getRankedTickets: async (): Promise<Ticket[]> => {
     const response = await axiosInstance.get<{ data: Record<string, unknown>[] }>(
       `${BASE_URL}/ranked`

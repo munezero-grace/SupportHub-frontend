@@ -20,7 +20,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const [selectedStatus, setSelectedStatus] = useState('')
     const [selectedPriority, setSelectedPriority] = useState('')
     const { user } = useCurrentUser();
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+    const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
         queryKey: ['ticket', ticketId],
         queryFn: () => ticketService.getTicketById(ticketId),

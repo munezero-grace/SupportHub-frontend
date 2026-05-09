@@ -223,13 +223,15 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
       toast.error('Please select a product')
       return false
     }
-    if (!formData.contactEmail) {
-      toast.error('Contact email is required')
-      return false
-    }
-    if (!formData.contactName) {
-      toast.error('Contact name is required')
-      return false
+    if (isAdmin) {
+      if (!formData.contactEmail) {
+        toast.error('Contact email is required')
+        return false
+      }
+      if (!formData.contactName) {
+        toast.error('Contact name is required')
+        return false
+      }
     }
     return true
   }
@@ -390,86 +392,170 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
             </button>
           </div>
 
-          <div className="flex border-b border-gray-200 flex-col sm:flex-row">
-            <button
-              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
-                activeTab === 'ticketDetails'
-                  ? 'text-gray-900 bg-white'
-                  : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('ticketDetails')}
-            >
-              Ticket Details
-              {activeTab === 'ticketDetails' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
-              )}
-            </button>
-            <button
-              className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
-                activeTab === 'clientInfo'
-                  ? 'text-gray-900 bg-white'
-                  : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('clientInfo')}
-            >
-              Client Info
-              {activeTab === 'clientInfo' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
-              )}
-            </button>
-            {isAdmin && (
-              <button
-                className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
-                  activeTab === 'advanced'
-                    ? 'text-gray-900 bg-white'
-                    : 'text-gray-500 bg-gray-50 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('advanced')}
-              >
-                Advanced
-                {activeTab === 'advanced' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
+          {!isAdmin ? (
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Brief description of the issue"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  placeholder="Detailed description of the issue"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors"
+                  rows={5}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product *
+                </label>
+                <select
+                  value={formData.product}
+                  onChange={(e) => handleInputChange('product', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+                >
+                  {productOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Attachments (optional)
+                </label>
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('file-upload-client')?.click()}
+                >
+                  <div className="text-sm text-gray-600">Click to upload files</div>
+                  <div className="text-xs text-gray-500 mt-1">Max 2MB · Images, PDFs, MP4</div>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*,.pdf"
+                  className="hidden"
+                  id="file-upload-client"
+                  onChange={handleFileUpload}
+                />
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {uploadedFiles.map((fileItem, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                        <span className="text-sm text-gray-600 truncate">{fileItem.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="text-red-500 hover:text-red-700 ml-2 text-lg leading-none"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </button>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              {activeTab === 'ticketDetails' && (
-                <TicketDetails
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  productOptions={productOptions}
-                  priorityOptions={priorityOptions}
-                  uploadedFiles={uploadedFiles}
-                  handleFileUpload={handleFileUpload}
-                  removeFile={removeFile}
-                  isAdmin={isAdmin}
-                  availableClients={availableClients}
-                  setFormData={setFormData}
-                />
-              )}
-
-              {activeTab === 'clientInfo' && (
-                <ClientInfo
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  isAdmin={isAdmin}
-                  availableClients={availableClients}
-                  setFormData={setFormData}
-                />
-              )}
-
-              {activeTab === 'advanced' && (
-                <Advanced
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  isAdmin={isAdmin}
-                />
-              )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex border-b border-gray-200 flex-col sm:flex-row">
+                <button
+                  className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                    activeTab === 'ticketDetails'
+                      ? 'text-gray-900 bg-white'
+                      : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+                  }`}
+                  onClick={() => setActiveTab('ticketDetails')}
+                >
+                  Ticket Details
+                  {activeTab === 'ticketDetails' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
+                  )}
+                </button>
+                <button
+                  className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                    activeTab === 'clientInfo'
+                      ? 'text-gray-900 bg-white'
+                      : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+                  }`}
+                  onClick={() => setActiveTab('clientInfo')}
+                >
+                  Client Info
+                  {activeTab === 'clientInfo' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
+                  )}
+                </button>
+                <button
+                  className={`flex-1 py-3 px-4 text-sm font-medium relative transition-colors ${
+                    activeTab === 'advanced'
+                      ? 'text-gray-900 bg-white'
+                      : 'text-gray-500 bg-gray-50 hover:text-gray-700'
+                  }`}
+                  onClick={() => setActiveTab('advanced')}
+                >
+                  Advanced
+                  {activeTab === 'advanced' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-500"></div>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6">
+                  {activeTab === 'ticketDetails' && (
+                    <TicketDetails
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      productOptions={productOptions}
+                      priorityOptions={priorityOptions}
+                      uploadedFiles={uploadedFiles}
+                      handleFileUpload={handleFileUpload}
+                      removeFile={removeFile}
+                      isAdmin={isAdmin}
+                      availableClients={availableClients}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {activeTab === 'clientInfo' && (
+                    <ClientInfo
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      isAdmin={isAdmin}
+                      availableClients={availableClients}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {activeTab === 'advanced' && (
+                    <Advanced
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      isAdmin={isAdmin}
+                    />
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
             <button

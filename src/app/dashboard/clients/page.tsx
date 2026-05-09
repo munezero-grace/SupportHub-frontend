@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import SearchAndFilters from '@/components/shared/SearchAndFilters'
 import { AddClientButton } from '@/components/clients/AddClientButton'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -29,6 +30,8 @@ import { Pagination } from '@/components/ui/Pagination'
 const PAGE_SIZE = 10
 
 export default function ClientsPage() {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.role === 'super_admin'
   const router = useRouter()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
@@ -274,27 +277,31 @@ export default function ClientsPage() {
               label: 'View Details',
               onClick: () => router.push(`/dashboard/clients/${client.id}`),
             },
-            {
-              label: 'Edit Client',
-              onClick: () => handleEditClient(client),
-            },
-            {
-              label: 'Manage Products',
-              onClick: () => handleManageProducts(client),
-            },
+            ...(isSuperAdmin ? [
+              {
+                label: 'Edit Client',
+                onClick: () => handleEditClient(client),
+              },
+              {
+                label: 'Manage Products',
+                onClick: () => handleManageProducts(client),
+              },
+            ] : []),
             {
               label: 'View Tickets',
               onClick: () =>
                 router.push(`/dashboard/clients/${client.id}/tickets`),
             },
-            {
-              label: 'Delete',
-              onClick: () => {
-                setSelectedClient(client)
-                setIsDeleteModalOpen(true)
+            ...(isSuperAdmin ? [
+              {
+                label: 'Delete',
+                onClick: () => {
+                  setSelectedClient(client)
+                  setIsDeleteModalOpen(true)
+                },
+                variant: 'danger' as const,
               },
-              variant: 'danger',
-            },
+            ] : []),
           ]}
         />
       ),
@@ -310,9 +317,11 @@ export default function ClientsPage() {
             Manage client organizations and their product access
           </p>
         </div>
-        <div>
-          <AddClientButton />
-        </div>
+        {isSuperAdmin && (
+          <div>
+            <AddClientButton />
+          </div>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-lg mb-4 border border-gray-200 shadow-sm">

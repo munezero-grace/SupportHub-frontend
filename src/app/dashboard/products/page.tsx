@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/Button'
 import { Table } from '@/components/ui/Table'
 import { PlusIcon } from '@/components/icons/ActionIcons'
@@ -28,6 +29,8 @@ const ALL_OPTION = { label: 'All', value: '' }
 const FILTER_STATUS_OPTIONS = [ALL_OPTION, ...STATUS_OPTIONS]
 
 export default function ProductsAdminPage() {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.role === 'super_admin'
   const router = useRouter()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -114,6 +117,7 @@ export default function ProductsAdminPage() {
     openClientModal,
     setIsManageClientsModalOpen: setIsClientModalOpen,
     onNavigate: (path) => router.push(path),
+    isAdmin: isSuperAdmin,
   })
   const handleFilterChange = (name: string, value: string): void => {
     setFilterValues((prev) => ({ ...prev, [name]: value }))
@@ -192,13 +196,15 @@ export default function ProductsAdminPage() {
             Manage your products and their configurations
           </p>
         </div>
-        <Button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Add Product
-        </Button>
+        {isSuperAdmin && (
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Add Product
+          </Button>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow">

@@ -14,7 +14,8 @@ export const createProductHandlers = ({
   selectedProduct,
   refreshData,
   openClientModal,
-}: ProductHandlerProps & { openClientModal: (product: Product) => void }) => ({
+  isAdmin = true,
+}: ProductHandlerProps & { openClientModal: (product: Product) => void; isAdmin?: boolean }) => ({
   handleAddProduct: async (data: ProductFormData) => {
     try {
       if (data.description.trim().length < 10) {
@@ -141,32 +142,36 @@ export const createProductHandlers = ({
             {
               label: 'View Details',
               onClick: () => {
-                      window.location.href = `/dashboard/products/${product.id}`;
-                    },
-            },
-            {
-              label: 'Edit Product',
-              onClick: () => {
-                setSelectedProduct(product)
-                setIsAddModalOpen(true)
+                window.location.href = `/dashboard/products/${product.id}`;
               },
             },
-            {
-              label: 'Manage Clients',
-              onClick: () => openClientModal(product),
-            },
+            ...(isAdmin ? [
+              {
+                label: 'Edit Product',
+                onClick: () => {
+                  setSelectedProduct(product)
+                  setIsAddModalOpen(true)
+                },
+              },
+              {
+                label: 'Manage Clients',
+                onClick: () => openClientModal(product),
+              },
+            ] : []),
             {
               label: 'View Tickets',
               onClick: () => {},
             },
-            {
-              label: 'Delete',
-              onClick: () => {
-                setSelectedProduct(product)
-                setIsDeleteModalOpen(true)
+            ...(isAdmin ? [
+              {
+                label: 'Delete',
+                onClick: () => {
+                  setSelectedProduct(product)
+                  setIsDeleteModalOpen(true)
+                },
+                variant: 'danger' as const,
               },
-              variant: 'danger',
-            },
+            ] : []),
           ]}
         />
       ),

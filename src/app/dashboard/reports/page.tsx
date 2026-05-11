@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { dashboardAPI } from '@/services/dashboard.service'
-import { DashboardData } from '@/types/dashboard.types'
+import { DashboardData, TicketItem } from '@/types/dashboard.types'
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line,
+} from 'recharts'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -16,6 +21,29 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
   awaiting_client: 'Awaiting Client',
   resolved: 'Resolved',
+}
+
+const PIE_COLORS = ['#60a5fa', '#fbbf24', '#fb923c', '#4ade80']
+
+const PRIORITY_COLORS: Record<string, string> = {
+  critical: '#ef4444',
+  high: '#f97316',
+  medium: '#eab308',
+  low: '#22c55e',
+}
+
+function getWeekLabel(dateStr: string): string {
+  const date = new Date(dateStr)
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+  const monday = new Date(date)
+  monday.setDate(diff)
+  return monday.toISOString().split('T')[0]
+}
+
+function formatWeekLabel(isoDate: string): string {
+  const d = new Date(isoDate)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export default function ReportsPage() {
@@ -60,11 +88,49 @@ export default function ReportsPage() {
   const resolvedCount = tickets?.resolved?.length ?? 0
 
   const statusCounts = [
-    { key: 'new', count: tickets?.new?.length ?? 0 },
-    { key: 'in_progress', count: tickets?.in_progress?.length ?? 0 },
+    { key: 'new',             count: tickets?.new?.length ?? 0 },
+    { key: 'in_progress',     count: tickets?.in_progress?.length ?? 0 },
     { key: 'awaiting_client', count: tickets?.awaiting_client?.length ?? 0 },
-    { key: 'resolved', count: resolvedCount },
+    { key: 'resolved',        count: resolvedCount },
   ]
+
+  // Chart 1: status pie data
+  const statusPieData = statusCounts.map(({ key, count }) => ({
+    name: STATUS_LABELS[key],
+    value: count,
+  }))
+
+  // Chart 2: priority bar data
+  const allTickets: TicketItem[] = [
+    ...(tickets?.new ?? []),
+    ...(tickets?.in_progress ?? []),
+    ...(tickets?.awaiting_client ?? []),
+    ...(tickets?.resolved ?? []),
+  ]
+
+  const priorityCountMap: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 }
+  allTickets.forEach((t) => {
+    const p = t.priority?.toLowerCase()
+    if (p && p in priorityCountMap) priorityCountMap[p]++
+  })
+  const priorityBarData = [
+    { name: 'Critical', count: priorityCountMap.critical, fill: PRIORITY_COLORS.critical },
+    { name: 'High',     count: priorityCountMap.high,     fill: PRIORITY_COLORS.high },
+    { name: 'Medium',   count: priorityCountMap.medium,   fill: PRIORITY_COLORS.medium },
+    { name: 'Low',      count: priorityCountMap.low,      fill: PRIORITY_COLORS.low },
+  ]
+
+  // Chart 3: tickets per week (last 8 weeks)
+  const weekMap: Record<string, number> = {}
+  allTickets.forEach((t) => {
+    if (!t.createdAt) return
+    const week = getWeekLabel(t.createdAt)
+    weekMap[week] = (weekMap[week] || 0) + 1
+  })
+  const weeklyData = Object.entries(weekMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-8)
+    .map(([week, count]) => ({ week: formatWeekLabel(week), count }))
 
   return (
     <div className="space-y-6">
@@ -75,65 +141,88 @@ export default function ReportsPage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Tickets" value={totalTickets} color="border-blue-500" />
-        <StatCard label="Open Tickets" value={openTickets} color="border-yellow-500" />
-        <StatCard label="Resolved Tickets" value={resolvedCount} color="border-green-500" />
-        <StatCard label="Total Clients" value={clients?.totalClients ?? 0} color="border-purple-500" />
+        <StatCard label="Total Tickets"   value={totalTickets}              color="border-blue-500" />
+        <StatCard label="Open Tickets"    value={openTickets}               color="border-yellow-500" />
+        <StatCard label="Resolved"        value={resolvedCount}             color="border-green-500" />
+        <StatCard label="Total Clients"   value={clients?.totalClients ?? 0} color="border-purple-500" />
       </div>
 
-      {/* Tickets by Status */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Tickets by Status</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {statusCounts.map(({ key, count }) => (
-            <div key={key} className="flex flex-col items-center p-4 rounded-lg bg-gray-50">
-              <span className={`text-xs font-medium px-2 py-1 rounded-full mb-2 ${STATUS_COLORS[key]}`}>
-                {STATUS_LABELS[key]}
-              </span>
-              <span className="text-3xl font-bold text-gray-800">{count}</span>
-            </div>
-          ))}
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {/* Chart 1: Tickets by Status (Pie) */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-700 mb-4">Tickets by Status</h2>
+          {totalTickets === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">No tickets yet</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={statusPieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {statusPieData.map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v) => [`${v} tickets`]} />
+                <Legend iconType="circle" iconSize={8} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
-        {totalTickets > 0 && (
-          <div className="mt-6">
-            <p className="text-sm text-gray-500 mb-2">Distribution</p>
-            <div className="flex h-4 rounded-full overflow-hidden">
-              {statusCounts.map(({ key, count }) => {
-                const pct = totalTickets > 0 ? (count / totalTickets) * 100 : 0
-                const bgColors: Record<string, string> = {
-                  new: 'bg-blue-400',
-                  in_progress: 'bg-yellow-400',
-                  awaiting_client: 'bg-orange-400',
-                  resolved: 'bg-green-400',
-                }
-                return pct > 0 ? (
-                  <div
-                    key={key}
-                    className={`${bgColors[key]} transition-all`}
-                    style={{ width: `${pct}%` }}
-                    title={`${STATUS_LABELS[key]}: ${count}`}
-                  />
-                ) : null
-              })}
-            </div>
-            <div className="flex flex-wrap gap-3 mt-2">
-              {statusCounts.map(({ key, count }) => {
-                const dotColors: Record<string, string> = {
-                  new: 'bg-blue-400',
-                  in_progress: 'bg-yellow-400',
-                  awaiting_client: 'bg-orange-400',
-                  resolved: 'bg-green-400',
-                }
-                return (
-                  <div key={key} className="flex items-center gap-1 text-xs text-gray-500">
-                    <span className={`w-2 h-2 rounded-full ${dotColors[key]}`} />
-                    {STATUS_LABELS[key]} ({count})
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+        {/* Chart 2: Tickets by Priority Tier (Bar) */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-700 mb-4">Tickets by Priority</h2>
+          {allTickets.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">No tickets yet</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={priorityBarData} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(v) => [`${v} tickets`]} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {priorityBarData.map((entry, i) => (
+                    <Cell key={i} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      {/* Chart 3: Tickets created per week (Line) */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-base font-semibold text-gray-700 mb-4">Tickets Created per Week</h2>
+        {weeklyData.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8">No ticket history yet</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis dataKey="week" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(v) => [`${v} tickets`]} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#111827"
+                strokeWidth={2}
+                dot={{ r: 4, fill: '#111827' }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         )}
       </div>
 
@@ -142,8 +231,8 @@ export default function ReportsPage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Summary</h2>
           <div className="space-y-3">
-            <SummaryRow label="Total Clients" value={clients?.totalClients ?? 0} />
-            <SummaryRow label="Active Clients" value={clients?.activeClients ?? 0} />
+            <SummaryRow label="Total Clients"   value={clients?.totalClients ?? 0} />
+            <SummaryRow label="Active Clients"  value={clients?.activeClients ?? 0} />
             <SummaryRow label="Premium Clients" value={clients?.premiumClients ?? 0} />
           </div>
         </div>
@@ -151,7 +240,7 @@ export default function ReportsPage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Product Summary</h2>
           <div className="space-y-3">
-            <SummaryRow label="Total Products" value={products?.totalProducts ?? 0} />
+            <SummaryRow label="Total Products"  value={products?.totalProducts ?? 0} />
             <SummaryRow label="Active Products" value={products?.activeProducts ?? 0} />
             <SummaryRow
               label="Most Active Product"

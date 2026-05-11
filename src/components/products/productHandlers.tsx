@@ -106,15 +106,6 @@ export const createProductHandlers = ({
       ),
     },
     {
-      header: 'Developers',
-      accessor: () => (
-        <div className="flex items-center gap-2">
-          <UsersIcon className="w-4 h-4" />
-          <span>100</span>
-        </div>
-      ),
-    },
-    {
       header: 'Active Tickets',
       accessor: (product: Product) => (
         <div className="flex items-center gap-2">

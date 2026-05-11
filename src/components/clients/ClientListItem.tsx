@@ -85,7 +85,7 @@ const ClientListItem: FC<ClientListItemProps> = ({
           {client.supportTier}
         </Badge>
       </td>
-      <td className="p-4">{100}</td>
+      <td className="p-4">{client.activeTickets ?? 0}</td>
       <td className="p-4">
         <button
           onClick={toggleClientStatus}

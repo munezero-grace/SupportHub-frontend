@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
+import { useNotifications } from '@/context/NotificationContext'
 import { ticketService } from '@/services/tickets.service'
 import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge'
 import { Table } from '@/components/ui/Table'
@@ -46,6 +47,7 @@ function formatStatus(status: string) {
 
 export default function MyTasksPage() {
   const { data: session } = useSession()
+  const { addNotification } = useNotifications()
   const [tickets, setTickets] = useState<AssignedTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -74,6 +76,12 @@ export default function MyTasksPage() {
       setTickets((prev) =>
         prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t))
       )
+      const changed = tickets.find((t) => t.id === ticketId)
+      addNotification({
+        type: 'status_change',
+        title: 'Status Updated',
+        description: `"${changed?.title ?? 'Ticket'}" marked as ${newStatus.replace(/_/g, ' ')}.`,
+      })
       toast.success('Status updated')
     } catch {
       toast.error('Failed to update status')

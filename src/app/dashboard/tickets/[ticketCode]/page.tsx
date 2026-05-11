@@ -11,6 +11,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge'
+import { useNotifications } from '@/context/NotificationContext'
 
 const AGE_SATURATION_DAYS = 14
 
@@ -99,6 +100,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const [selectedStatus, setSelectedStatus] = useState('')
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
+    const { addNotification } = useNotifications()
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
         queryKey: ['ticket', ticketId],
         queryFn: () => ticketService.getTicketById(ticketId),
@@ -117,6 +119,11 @@ export default function TicketDetailsPage({ params }: PageProps) {
             queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
             const updatedTicket = data?.data || data
             setSelectedStatus(updatedTicket.status || '')
+            addNotification({
+                type: 'status_change',
+                title: 'Status Updated',
+                description: `"${updatedTicket.title}" was changed to ${(updatedTicket.status || '').replace(/_/g, ' ')}.`,
+            })
         }
     })
     const handleUpdateTicket = () => {

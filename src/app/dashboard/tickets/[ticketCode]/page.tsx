@@ -403,27 +403,32 @@ export default function TicketDetailsPage({ params }: PageProps) {
                     </div>
                     <ScoreBreakdown ticket={ticket} />
 
-                    {/* Client comments — visible to all roles */}
-                    <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="p-6">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">Comments</h3>
-                            <p className="text-xs text-gray-400 mb-4">Visible to everyone — use this to ask for updates or share more details</p>
-
+                    {/* ── Customer Conversation ── */}
+                    <div className="rounded-lg border border-blue-200 bg-white overflow-hidden" style={{ borderLeftWidth: '4px', borderLeftColor: '#3b82f6' }}>
+                        <div className="px-5 py-4 border-b border-blue-100 bg-blue-50 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <div>
+                                <h3 className="text-sm font-semibold text-blue-900">Customer Conversation</h3>
+                                <p className="text-[11px] text-blue-500">Visible to everyone including the customer</p>
+                            </div>
+                        </div>
+                        <div className="p-5">
                             {localComments.length === 0 && (
-                                <p className="text-xs text-gray-400 mb-4 italic">No comments yet. Be the first to leave one.</p>
+                                <p className="text-xs text-gray-400 mb-4 italic">No messages yet. Start the conversation.</p>
                             )}
-
                             {localComments.length > 0 && (
                                 <div className="space-y-3 mb-4">
                                     {localComments.map((c) => (
                                         <div key={c.id} className="flex gap-3">
-                                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase">
+                                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700 uppercase">
                                                 {c.user.firstName[0]}{c.user.lastName[0]}
                                             </div>
-                                            <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                                            <div className="flex-1 bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
                                                 <div className="flex items-baseline gap-2 mb-1">
-                                                    <span className="text-xs font-semibold text-gray-800">{c.user.firstName} {c.user.lastName}</span>
-                                                    <span className="text-[10px] text-gray-400">{format(new Date(c.createdAt), 'MMM d \'at\' h:mm a')}</span>
+                                                    <span className="text-xs font-semibold text-blue-900">{c.user.firstName} {c.user.lastName}</span>
+                                                    <span className="text-[10px] text-blue-400">{format(new Date(c.createdAt), 'MMM d \'at\' h:mm a')}</span>
                                                 </div>
                                                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{c.text}</p>
                                             </div>
@@ -431,42 +436,60 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     ))}
                                 </div>
                             )}
-
-                            <div className="flex gap-2 items-end">
-                                <textarea
-                                    value={commentInput}
-                                    onChange={(e) => setCommentInput(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment() } }}
-                                    placeholder="Write a comment... (Enter to send)"
-                                    rows={2}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none text-gray-800 placeholder-gray-400"
-                                />
-                                <button
-                                    onClick={handleAddComment}
-                                    disabled={commentMutation.isPending || !commentInput.trim() || !ticketUUID}
-                                    className="flex-shrink-0 px-3 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    {commentMutation.isPending ? '…' : 'Send'}
-                                </button>
-                            </div>
+                            <textarea
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment() } }}
+                                placeholder="Write a reply to the customer... (Enter to send)"
+                                rows={2}
+                                className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none text-gray-800 placeholder-blue-300 bg-blue-50"
+                            />
+                            <button
+                                onClick={handleAddComment}
+                                disabled={commentMutation.isPending || !commentInput.trim() || !ticketUUID}
+                                className="mt-2 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {commentMutation.isPending ? 'Sending…' : '↩ Reply to Customer'}
+                            </button>
                         </div>
                     </div>
 
+                    {/* ── Divider ── */}
                     {canSeeNotes && (
-                    <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="p-6">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">Internal Notes</h3>
-                            <p className="text-xs text-gray-400 mb-4">Only visible to staff — never shown to the client</p>
+                        <div className="flex items-center gap-3 py-1">
+                            <div className="flex-1 h-px bg-gray-200" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest whitespace-nowrap">Staff only below</span>
+                            <div className="flex-1 h-px bg-gray-200" />
+                        </div>
+                    )}
 
+                    {/* ── Internal Notes ── */}
+                    {canSeeNotes && (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 overflow-hidden" style={{ borderLeftWidth: '4px', borderLeftColor: '#f59e0b' }}>
+                        <div className="px-5 py-4 border-b border-amber-200 bg-amber-100 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <div>
+                                <h3 className="text-sm font-semibold text-amber-900 flex items-center gap-1.5">
+                                    Internal Notes
+                                </h3>
+                                <p className="text-[11px] font-bold text-amber-700">NOT visible to the customer</p>
+                            </div>
+                        </div>
+                        <div className="p-5">
+                            {localNotes.length === 0 && (
+                                <p className="text-xs text-amber-600 mb-4 italic">No internal notes yet.</p>
+                            )}
                             {localNotes.length > 0 && (
                                 <div className="space-y-3 mb-4">
                                     {localNotes.map((note) => (
-                                        <div key={note.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                        <div key={note.id} className="bg-amber-50 rounded-lg p-3 border border-amber-200">
                                             <div className="flex items-center gap-2 mb-1.5">
-                                                <span className="text-xs font-semibold text-gray-700">
+                                                <span className="text-xs font-semibold text-amber-900">
                                                     {note.user.firstName} {note.user.lastName}
                                                 </span>
-                                                <span className="text-[10px] text-gray-400">
+                                                <span className="text-[10px] text-amber-500">
                                                     {format(new Date(note.createdAt), 'MMM d, yyyy \'at\' h:mm a')}
                                                 </span>
                                             </div>
@@ -475,20 +498,22 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     ))}
                                 </div>
                             )}
-
                             <textarea
                                 value={noteInput}
                                 onChange={(e) => setNoteInput(e.target.value)}
-                                placeholder="Add a note — e.g. investigating DB connection, waiting on client response..."
+                                placeholder="Add an internal note — only your team will see this..."
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none text-gray-800 placeholder-gray-400"
+                                className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none text-gray-800 placeholder-amber-400 bg-amber-50"
                             />
                             <button
                                 onClick={handleAddNote}
                                 disabled={notesMutation.isPending || !noteInput.trim() || !ticketUUID}
-                                className="mt-2 w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="mt-2 w-full px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
-                                {notesMutation.isPending ? 'Saving...' : 'Add Note'}
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                {notesMutation.isPending ? 'Saving…' : 'Save Internal Note'}
                             </button>
                         </div>
                     </div>

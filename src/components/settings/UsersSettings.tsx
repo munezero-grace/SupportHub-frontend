@@ -107,7 +107,11 @@ const UsersSettings = () => {
   ]
 
   if (isLoading) {
-    return <div className="p-6 text-gray-500">Loading users...</div>
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (

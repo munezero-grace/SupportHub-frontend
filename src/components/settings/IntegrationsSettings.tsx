@@ -1,8 +1,7 @@
 'use client'
 import React, { useEffect } from 'react'
 import { notificationEvents } from '@/constants/integrationEvents'
-import { toast, ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-toastify'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import settingsService from '@/services/settings.service'
@@ -91,35 +90,41 @@ const IntegrationsSettings = () => {
   }
 
   if (queryLoading) {
-    return <div>Loading Slack settings...</div>
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   if (isError) {
-    return <div>Failed to load Slack settings.</div>
+    return (
+      <div className="p-6 text-sm text-red-500">Failed to load Slack settings. Please try again.</div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <ToastContainer />
+    <div className="p-6 space-y-6">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-md shadow-md"
+        className="bg-white p-6 rounded-lg border border-gray-200"
       >
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-xl font-semibold text-gray-900 mb-1">
           Slack Integration
         </h2>
-        <p className="text-gray-600 mb-6">
-          Configure Slack notifications for ticket events
+        <p className="text-sm text-gray-500 mb-6">
+          Connect a Slack webhook to receive ticket notifications in your channel
         </p>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Slack Webhook URL
+            Webhook URL
           </label>
           <input
             type="text"
             {...register('slackWebhookUrl')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="https://hooks.slack.com/services/..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
         </div>
 
@@ -134,11 +139,10 @@ const IntegrationsSettings = () => {
         </div>
       </form>
 
-      <div className="bg-white p-6 rounded-md shadow-md border border-gray-300">
-        <p className="text-sm font-medium text-gray-700 mb-2">
-          Notification Events
-        </p>
-        <div className="space-y-3">
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <h3 className="text-base font-semibold text-gray-900 mb-1">Notification Events</h3>
+        <p className="text-sm text-gray-500 mb-4">Choose which events send a Slack message</p>
+        <div className="space-y-4">
           {notificationEvents.map(({ label, field }) => (
             <Controller
               key={field}
@@ -160,24 +164,17 @@ const IntegrationsSettings = () => {
                   }}
                 >
                   <div
-                    className={`w-16 h-8 flex items-center rounded-full p-1 duration-300 ease-in-out border border-gray-400 relative select-none cursor-pointer ${
-                      controllerField.value ? 'bg-white' : 'bg-black'
+                    className={`w-11 h-6 flex items-center rounded-full duration-200 ease-in-out relative select-none cursor-pointer ${
+                      controllerField.value ? 'bg-green-500' : 'bg-gray-300'
                     }`}
-                    style={{
-                      backgroundColor: controllerField.value ? '#fff' : '#000',
-                    }}
                   >
                     <div
-                      className={`w-7 h-7 rounded-full shadow-md transform duration-300 ease-in-out absolute top-0.5 ${
-                        controllerField.value
-                          ? 'translate-x-8 bg-black text-white'
-                          : 'bg-black left-0.5 text-white'
-                      } flex items-center justify-center text-xs font-semibold select-none`}
-                    >
-                      {controllerField.value ? 'ON' : 'OFF'}
-                    </div>
+                      className={`w-5 h-5 bg-white rounded-full shadow-sm transform duration-200 ease-in-out absolute ${
+                        controllerField.value ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
                   </div>
-                  <span className="select-none">{label}</span>
+                  <span className="text-sm text-gray-700 select-none">{label}</span>
                 </label>
               )}
             />

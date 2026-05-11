@@ -13,16 +13,19 @@ const GeneralSettings: React.FC = () => {
   })
   const isAdmin = session?.user?.role === 'super_admin'
 
-  return (
-    <>
-      {user && (
-        <div className="bg-white p-4 sm:p-6 rounded-md shadow space-y-8 max-w-full overflow-x-auto">
-          <PersonnelProfileSection data={user} />
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
-          {!isAdmin && <CompanyProfileSection data={user?.data?.Clients[0]} />}
-        </div>
-      )}
-    </>
+  return (
+    <div className="p-6 space-y-6">
+      <PersonnelProfileSection data={user} />
+      {!isAdmin && <CompanyProfileSection data={user?.data?.Clients[0]} />}
+    </div>
   )
 }
 

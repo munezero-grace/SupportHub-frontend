@@ -56,8 +56,8 @@ const CompanyProfileSection: FC<PersonnelCompanySectionProps> = ({ data }) => {
     mutation.mutate(data)
   }
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-md shadow space-y-8 max-w-full overflow-x-auto">
-      <h2 className="text-xl font-semibold mb-4">Company Profile</h2>
+    <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-6">
+      <h2 className="text-xl font-semibold text-gray-900">Company Profile</h2>
 
       <form
         onSubmit={handleSubmit(handleUpdateCompanyProfile)}

@@ -70,7 +70,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Reports</h1>
-        <p className="text-gray-500 text-sm mt-1">Live overview of support operations</p>
+        <p className="text-gray-500 text-sm mt-1">Overview of support operations</p>
       </div>
 
       {/* Summary Stats */}

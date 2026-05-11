@@ -18,7 +18,6 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const { ticketCode } = React.use(params)
     const ticketId = ticketCode
     const [selectedStatus, setSelectedStatus] = useState('')
-    const [selectedPriority, setSelectedPriority] = useState('')
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
@@ -30,7 +29,6 @@ export default function TicketDetailsPage({ params }: PageProps) {
         if (response) {
             const ticketData = 'data' in response ? response.data : response
             setSelectedStatus(ticketData.status || '')
-            setSelectedPriority(ticketData.priority || '')
         }
     }, [response])
     const updateMutation = useMutation({
@@ -40,22 +38,11 @@ export default function TicketDetailsPage({ params }: PageProps) {
             queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
             const updatedTicket = data?.data || data
             setSelectedStatus(updatedTicket.status || '')
-            setSelectedPriority(updatedTicket.priority || '')
         }
     })
     const handleUpdateTicket = () => {
-        const updateData: { status?: string; priority?: string } = {
-            status: selectedStatus,
-            priority: selectedPriority
-        };
-        Object.keys(updateData).forEach(key => {
-            if (!updateData[key as keyof typeof updateData]) {
-                delete updateData[key as keyof typeof updateData];
-            }
-        });
-        if (Object.keys(updateData).length > 0) {
-            updateMutation.mutate(updateData)
-        }
+        if (!selectedStatus) return
+        updateMutation.mutate({ status: selectedStatus })
     }
 
     if (isLoading) {
@@ -99,16 +86,6 @@ export default function TicketDetailsPage({ params }: PageProps) {
             closed: 'bg-red-100 text-red-800',
         }
         return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-800'
-    }
-
-    const getPriorityColor = (priority: string) => {
-        const priorityColors: Record<string, string> = {
-            critical: 'bg-red-100 text-red-700',
-            high: 'bg-orange-100 text-orange-700',
-            medium: 'bg-yellow-100 text-yellow-700',
-            low: 'bg-green-100 text-green-700'
-        }
-        return priorityColors[priority?.toLowerCase()] || 'bg-green-500 text-white'
     }
 
     const formatStatusDisplay = (status: string) => {
@@ -225,15 +202,6 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     </span>
                                 </div>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-bold text-gray-600">Priority</span>
-                                    <span
-                                        className={`px-2.5 py-1 rounded-2xl text-xs font-semibold capitalize ${getPriorityColor(ticket.priority || 'low')}`}
-                                    >
-                                        {ticket.priority || 'Low'}
-                                    </span>
-                                </div>
-
                                 <div className="flex flex-col gap-2">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-bold text-gray-600">Priority Score</span>
@@ -269,10 +237,12 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     </div>
                                 )}
 
-                                {ticket.assignee && (
+                                {ticket.UserTickets && ticket.UserTickets.length > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium text-gray-700">Assignee</span>
-                                        <span className="text-sm font-semibold text-gray-900">{ticket.assignee}</span>
+                                        <span className="text-sm font-semibold text-gray-900">
+                                            {ticket.UserTickets[0].user.firstName} {ticket.UserTickets[0].user.lastName}
+                                        </span>
                                     </div>
                                 )}
 
@@ -296,15 +266,6 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                         {formatDate(ticket.dueDate)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-gray-700">ClickUp</span>
-                                    <a href="#" className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-semibold">
-                                        CU-123456
-                                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                        </svg>
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -327,21 +288,9 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     <option value="resolved">Resolved</option>
                                 </select>
 
-                                <select
-                                    value={selectedPriority}
-                                    onChange={(e) => setSelectedPriority(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium"
-                                >
-                                    <option value="">Select Priority</option>
-                                    <option value="critical">Critical</option>
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-
                                 <button
                                     onClick={handleUpdateTicket}
-                                    disabled={updateMutation.isPending || (!selectedStatus && !selectedPriority)}
+                                    disabled={updateMutation.isPending || !selectedStatus}
                                     className="w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium  focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {updateMutation.isPending ? 'Updating...' : 'Update Ticket'}

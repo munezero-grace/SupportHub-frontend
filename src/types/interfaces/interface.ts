@@ -64,6 +64,7 @@ export interface Ticket {
   lastUpdated?: string;
   priorityScore?: number;
   lastScoredAt?: string;
+  UserTickets?: Array<{ user: { id: string; firstName: string; lastName: string } }>;
 }
 
 export interface User {

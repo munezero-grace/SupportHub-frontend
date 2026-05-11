@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ticketService } from '@/services/tickets.service'
 import { format } from 'date-fns'
 import type { PageProps } from '@/types/TicketTypes'
-import type { Ticket, TicketNote } from '@/types/interfaces/interface'
+import type { Ticket, TicketNote, TicketComment } from '@/types/interfaces/interface'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -101,6 +101,8 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const [ticketUUID, setTicketUUID] = useState<string>('')
     const [noteInput, setNoteInput] = useState('')
     const [localNotes, setLocalNotes] = useState<TicketNote[]>([])
+    const [commentInput, setCommentInput] = useState('')
+    const [localComments, setLocalComments] = useState<TicketComment[]>([])
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
     const canSeeNotes = user?.role === 'super_admin' || user?.role === 'ticket_manager' || user?.role === 'developer'
@@ -116,6 +118,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
             setSelectedStatus(ticketData.status || '')
             if (ticketData.id) setTicketUUID(ticketData.id)
             setLocalNotes(ticketData.TicketNotes || [])
+            setLocalComments(ticketData.TicketComments || [])
         }
     }, [response])
     const updateMutation = useMutation({
@@ -141,6 +144,18 @@ export default function TicketDetailsPage({ params }: PageProps) {
             setNoteInput('')
         }
     })
+    const commentMutation = useMutation({
+        mutationFn: (text: string) => ticketService.addComment(ticketUUID, text),
+        onSuccess: (data) => {
+            const newComment: TicketComment = data?.data ?? data
+            setLocalComments((prev) => [...prev, newComment])
+            setCommentInput('')
+        }
+    })
+    const handleAddComment = () => {
+        if (!commentInput.trim() || !ticketUUID) return
+        commentMutation.mutate(commentInput.trim())
+    }
     const handleUpdateTicket = () => {
         if (!selectedStatus) return
         updateMutation.mutate({ status: selectedStatus })
@@ -375,6 +390,55 @@ export default function TicketDetailsPage({ params }: PageProps) {
                         </div>
                     </div>
                     <ScoreBreakdown ticket={ticket} />
+
+                    {/* Client comments — visible to all roles */}
+                    <div className="bg-white rounded-lg border border-gray-200">
+                        <div className="p-6">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">Comments</h3>
+                            <p className="text-xs text-gray-400 mb-4">Visible to everyone — use this to ask for updates or share more details</p>
+
+                            {localComments.length === 0 && (
+                                <p className="text-xs text-gray-400 mb-4 italic">No comments yet. Be the first to leave one.</p>
+                            )}
+
+                            {localComments.length > 0 && (
+                                <div className="space-y-3 mb-4">
+                                    {localComments.map((c) => (
+                                        <div key={c.id} className="flex gap-3">
+                                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase">
+                                                {c.user.firstName[0]}{c.user.lastName[0]}
+                                            </div>
+                                            <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                                                <div className="flex items-baseline gap-2 mb-1">
+                                                    <span className="text-xs font-semibold text-gray-800">{c.user.firstName} {c.user.lastName}</span>
+                                                    <span className="text-[10px] text-gray-400">{format(new Date(c.createdAt), 'MMM d \'at\' h:mm a')}</span>
+                                                </div>
+                                                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{c.text}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="flex gap-2 items-end">
+                                <textarea
+                                    value={commentInput}
+                                    onChange={(e) => setCommentInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment() } }}
+                                    placeholder="Write a comment... (Enter to send)"
+                                    rows={2}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none text-gray-800 placeholder-gray-400"
+                                />
+                                <button
+                                    onClick={handleAddComment}
+                                    disabled={commentMutation.isPending || !commentInput.trim() || !ticketUUID}
+                                    className="flex-shrink-0 px-3 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    {commentMutation.isPending ? '…' : 'Send'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     {canSeeNotes && (
                     <div className="bg-white rounded-lg border border-gray-200">

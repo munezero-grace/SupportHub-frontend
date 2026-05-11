@@ -186,6 +186,11 @@ export const ticketService = {
     }
   },
 
+  addComment: async (ticketId: string, text: string) => {
+    const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/comments`, { text })
+    return response.data
+  },
+
   addNote: async (ticketId: string, text: string) => {
     const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/notes`, { text })
     return response.data

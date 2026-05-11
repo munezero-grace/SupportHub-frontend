@@ -3,9 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { userService } from '@/services/user.service'
-import { ticketService } from '@/services/tickets.service'
-import { mapTickets } from '@/utils/mapTickets'
-import type { Ticket } from '@/types/interfaces/interface'
 
 interface TeamMember {
   id: string
@@ -13,6 +10,7 @@ interface TeamMember {
   lastName: string
   email: string
   roles: string[]
+  assignedTicketCount: number
 }
 
 function getRoleLabel(roles: string[]): string {
@@ -36,22 +34,13 @@ function getAvatarColor(id: string): string {
 }
 
 export default function TeamPage() {
-  const [team, setTeam]       = useState<TeamMember[]>([])
-  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [team, setTeam]     = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch]   = useState('')
 
   useEffect(() => {
-    Promise.all([
-      userService.getTeamMembers(),
-      ticketService.getUserTickets().then((data) =>
-        mapTickets(Array.isArray(data) ? data : [])
-      ),
-    ])
-      .then(([members, allTickets]) => {
-        setTeam(members ?? [])
-        setTickets(allTickets)
-      })
+    userService.getTeamMembers()
+      .then((members) => setTeam(members ?? []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -63,9 +52,6 @@ export default function TeamPage() {
       m.email.toLowerCase().includes(q)
     )
   })
-
-  const getAssignedCount = (memberId: string) =>
-    tickets.filter((t) => t.assignee === memberId).length
 
   if (loading) {
     return (
@@ -142,7 +128,7 @@ export default function TeamPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTeam.map((member) => {
-            const assignedCount = getAssignedCount(member.id)
+            const assignedCount = member.assignedTicketCount
             const initials      = getInitials(member.firstName, member.lastName)
             const avatarColor   = getAvatarColor(member.id)
 

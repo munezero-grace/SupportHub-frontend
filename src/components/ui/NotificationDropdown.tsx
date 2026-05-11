@@ -1,5 +1,6 @@
 'use client'
 import React, { useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useNotifications, AppNotification, NotificationType } from '@/context/NotificationContext'
 
 function timeAgo(timestamp: string): string {
@@ -22,10 +23,19 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; bg: string; color: s
 
 function NotificationItem({ notification, onRead }: { notification: AppNotification; onRead: (id: string) => void }) {
   const config = TYPE_CONFIG[notification.type]
+  const router = useRouter()
+
+  const handleClick = () => {
+    onRead(notification.id)
+    if (notification.ticketCode) {
+      router.push(`/dashboard/tickets/${notification.ticketCode}`)
+    }
+  }
+
   return (
     <div
       className={`flex gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.read ? 'bg-blue-50/40' : ''}`}
-      onClick={() => onRead(notification.id)}
+      onClick={handleClick}
     >
       <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-base ${config.bg}`}>
         {config.icon}
@@ -51,8 +61,11 @@ interface NotificationDropdownProps {
   onClose: () => void
 }
 
+const MAX_VISIBLE = 10
+
 export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownProps) {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications()
+  const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -104,7 +117,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       </div>
 
       {/* Notification list */}
-      <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+      <div className="overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center px-4">
             <div className="text-3xl mb-2">🔔</div>
@@ -112,7 +125,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
             <p className="text-xs text-gray-400 mt-1">No notifications yet</p>
           </div>
         ) : (
-          notifications.map((n) => (
+          notifications.slice(0, MAX_VISIBLE).map((n) => (
             <NotificationItem key={n.id} notification={n} onRead={markAsRead} />
           ))
         )}
@@ -120,10 +133,20 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
-          <p className="text-xs text-center text-gray-400">
-            Showing {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+        <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+          <p className="text-xs text-gray-400">
+            {notifications.length > MAX_VISIBLE
+              ? `Showing 10 of ${notifications.length}`
+              : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
           </p>
+          {notifications.length > MAX_VISIBLE && (
+            <button
+              onClick={() => { onClose(); router.push('/dashboard/tickets') }}
+              className="text-xs font-medium text-blue-600 hover:text-blue-800"
+            >
+              View all →
+            </button>
+          )}
         </div>
       )}
 

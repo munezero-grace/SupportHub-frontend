@@ -123,6 +123,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                 type: 'status_change',
                 title: 'Status Updated',
                 description: `"${updatedTicket.title}" was changed to ${(updatedTicket.status || '').replace(/_/g, ' ')}.`,
+                ticketCode: ticketId,
             })
         }
     })

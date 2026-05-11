@@ -81,6 +81,7 @@ export default function MyTasksPage() {
         type: 'status_change',
         title: 'Status Updated',
         description: `"${changed?.title ?? 'Ticket'}" marked as ${newStatus.replace(/_/g, ' ')}.`,
+        ticketCode: changed?.ticketCode,
       })
       toast.success('Status updated')
     } catch {

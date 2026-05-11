@@ -18,6 +18,7 @@ interface AssignTicketModalProps {
   onClose: () => void
   ticketId: string
   ticketTitle: string
+  ticketCode?: string
   onAssigned: () => void
 }
 
@@ -26,6 +27,7 @@ export default function AssignTicketModal({
   onClose,
   ticketId,
   ticketTitle,
+  ticketCode,
   onAssigned,
 }: AssignTicketModalProps) {
   const [team, setTeam] = useState<TeamMember[]>([])
@@ -54,7 +56,8 @@ export default function AssignTicketModal({
       addNotification({
         type: 'ticket_assigned',
         title: 'Ticket Assigned',
-        description: `"${ticketTitle}" was assigned to ${memberName}.`,
+        description: `"${ticketTitle}" assigned to ${memberName}.`,
+        ticketCode,
       })
       onAssigned()
       onClose()

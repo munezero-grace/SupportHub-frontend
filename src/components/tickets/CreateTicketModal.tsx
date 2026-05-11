@@ -18,7 +18,7 @@ import TicketDetails from './TicketDetails'
 import ClientInfo from './ClientInfo'
 import Advanced from './Advanced'
 
-type Props = CreateTicketModalProps & { onTicketCreated?: () => void }
+type Props = CreateTicketModalProps & { onTicketCreated?: (title: string, ticketCode?: string) => void }
 
 function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
   const { data: session } = useSession()
@@ -267,7 +267,9 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
       formDataToSend.append('internalNotes', formData.internalNotes)
       formDataToSend.append('tags', formData.tags || '')
 
-      await ticketService.createTicket(formDataToSend)
+      const result = await ticketService.createTicket(formDataToSend)
+      const createdTitle = formData.title
+      const createdCode = result?.ticketCode || result?.data?.ticketCode
       toast.success('Ticket created successfully!')
 
       setFormData({
@@ -289,7 +291,7 @@ function CreateTicketModal({ isOpen, onClose, onTicketCreated }: Props) {
       })
       setUploadedFiles([])
 
-      if (onTicketCreated) onTicketCreated()
+      if (onTicketCreated) onTicketCreated(createdTitle, createdCode)
       setTimeout(() => {
         onClose()
       }, 1500)

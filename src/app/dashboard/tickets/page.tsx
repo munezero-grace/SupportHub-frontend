@@ -144,16 +144,19 @@ export default function TicketsPage() {
     router.push(`/dashboard/tickets/${item.ticketCode || item.id}`)
   }
 
-  const handleTicketCreated = async (ticketTitle?: string) => {
+  const handleTicketCreated = async (ticketTitle?: string, ticketCode?: string) => {
     try {
       const data = await ticketService.getUserTickets()
       const mappedTickets: Ticket[] = mapTickets(data)
       setTickets(mappedTickets)
-      addNotification({
-        type: 'new_ticket',
-        title: 'Ticket Created',
-        description: ticketTitle ? `"${ticketTitle}" has been submitted.` : 'A new support ticket has been submitted.',
-      })
+      if (ticketTitle) {
+        addNotification({
+          type: 'new_ticket',
+          title: 'New Ticket',
+          description: `"${ticketTitle}" has been submitted.`,
+          ticketCode,
+        })
+      }
     } catch {
       setTickets([])
     }
@@ -308,6 +311,7 @@ export default function TicketsPage() {
           }}
           ticketId={selectedTicket.id}
           ticketTitle={selectedTicket.title}
+          ticketCode={selectedTicket.ticketCode}
           onAssigned={handleTicketCreated}
         />
       )}

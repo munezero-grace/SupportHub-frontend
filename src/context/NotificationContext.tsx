@@ -1,6 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { ticketService } from '@/services/tickets.service'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 export type NotificationType = 'new_ticket' | 'status_change' | 'ticket_assigned' | 'info' | 'warning'
 
@@ -11,6 +10,7 @@ export interface AppNotification {
   description: string
   timestamp: string
   read: boolean
+  ticketCode?: string
 }
 
 interface NotificationContextValue {
@@ -25,11 +25,16 @@ interface NotificationContextValue {
 const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 const STORAGE_KEY = 'supporthub_notifications'
-const LAST_CHECK_KEY = 'supporthub_last_ticket_check'
-const POLL_INTERVAL = 30000
+const STORAGE_VERSION_KEY = 'supporthub_notifications_version'
+const STORAGE_VERSION = 'v2'
 
 function loadFromStorage(): AppNotification[] {
   try {
+    if (localStorage.getItem(STORAGE_VERSION_KEY) !== STORAGE_VERSION) {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION)
+      return []
+    }
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? JSON.parse(raw) : []
   } catch {
@@ -45,11 +50,8 @@ function saveToStorage(notifications: AppNotification[]) {
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const lastCheckRef = useRef<string>(new Date().toISOString())
 
   useEffect(() => {
-    const saved = localStorage.getItem(LAST_CHECK_KEY)
-    if (saved) lastCheckRef.current = saved
     setNotifications(loadFromStorage())
   }, [])
 
@@ -80,32 +82,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const clearAll = useCallback(() => {
     setNotifications([])
   }, [])
-
-  // Poll for new tickets every 30 seconds
-  useEffect(() => {
-    const poll = async () => {
-      try {
-        const tickets = await ticketService.getUserTickets()
-        const arr = Array.isArray(tickets) ? tickets : []
-        const lastCheck = lastCheckRef.current
-        const newTickets = arr.filter((t: any) => t.createdAt > lastCheck)
-        newTickets.forEach((ticket: any) => {
-          addNotification({
-            type: 'new_ticket',
-            title: 'New Ticket Submitted',
-            description: ticket.title || 'A new support ticket has been submitted.',
-          })
-        })
-        if (newTickets.length > 0) {
-          lastCheckRef.current = new Date().toISOString()
-          localStorage.setItem(LAST_CHECK_KEY, lastCheckRef.current)
-        }
-      } catch {}
-    }
-
-    const interval = setInterval(poll, POLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [addNotification])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 

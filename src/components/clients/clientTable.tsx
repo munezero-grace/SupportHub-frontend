@@ -21,16 +21,10 @@ export function ClientTable({ clients, searchQuery }: ClientTableProps) {
               Company Name
             </th>
             <th className="p-4 text-left text-sm font-medium text-gray-500">
-              Contact
-            </th>
-            <th className="p-4 text-left text-sm font-medium text-gray-500">
               Products
             </th>
             <th className="p-4 text-left text-sm font-medium text-gray-500">
               Support Tier
-            </th>
-            <th className="p-4 text-left text-sm font-medium text-gray-500">
-              Active Tickets
             </th>
             <th className="p-4 text-left text-sm font-medium text-gray-500">
               Status
@@ -44,7 +38,7 @@ export function ClientTable({ clients, searchQuery }: ClientTableProps) {
           ))}
           {clients.length === 0 && (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                 {searchQuery
                   ? 'No clients found matching your search'
                   : 'No clients found. Add your first client!'}

@@ -140,7 +140,7 @@ const BPTicketLogin: React.FC = () => {
                   className="h-4 w-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer"
                 />
                 <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700 cursor-pointer">
-                  Remember me for 30 days
+                  Remember Me
                 </label>
               </div>
 

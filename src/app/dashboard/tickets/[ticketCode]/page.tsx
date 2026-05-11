@@ -380,12 +380,24 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     </span>
                                 </div>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-bold text-gray-600">Due Date</span>
-                                    <span className="text-sm font-semibold text-gray-900">
-                                        {formatDate(ticket.dueDate)}
-                                    </span>
-                                </div>
+                                {ticket.dueDate && (() => {
+                                    const due = new Date(ticket.dueDate)
+                                    const now = new Date()
+                                    const hoursLeft = (due.getTime() - now.getTime()) / 3_600_000
+                                    const isOverdue = hoursLeft < 0
+                                    const isUrgent  = !isOverdue && hoursLeft < 24
+                                    const color = isOverdue ? 'text-red-600' : isUrgent ? 'text-orange-500' : 'text-gray-900'
+                                    const label = isOverdue ? 'Overdue' : isUrgent ? `Due in ${Math.round(hoursLeft)}h` : null
+                                    return (
+                                        <div className={`flex justify-between items-center ${isOverdue || isUrgent ? 'bg-red-50 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
+                                            <span className="text-sm font-bold text-gray-600">Due Date</span>
+                                            <div className="text-right">
+                                                <span className={`text-sm font-semibold ${color}`}>{formatDate(ticket.dueDate)}</span>
+                                                {label && <p className={`text-[10px] font-bold ${color}`}>{label}</p>}
+                                            </div>
+                                        </div>
+                                    )
+                                })()}
                             </div>
                         </div>
                     </div>

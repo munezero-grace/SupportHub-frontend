@@ -22,6 +22,7 @@ type AssignedTicket = {
   complexityScore?: number | null
   lastScoredAt?: string | null
   createdAt: string
+  dueDate?: string | null
   client?: { companyName?: string | null } | null
   product?: { id: string; name: string } | null
 }
@@ -134,6 +135,23 @@ export default function MyTasksPage() {
       accessor: (t: AssignedTicket) => (
         <PriorityScoreBadge score={t.priorityScore} />
       ),
+    },
+    {
+      header: 'Due',
+      accessor: (t: AssignedTicket) => {
+        if (!t.dueDate) return <span className="text-gray-400 text-xs">—</span>
+        const due = new Date(t.dueDate)
+        const hoursLeft = (due.getTime() - Date.now()) / 3_600_000
+        const isOverdue = hoursLeft < 0
+        const isUrgent  = !isOverdue && hoursLeft < 24
+        const color = isOverdue ? 'text-red-600 font-semibold' : isUrgent ? 'text-orange-500 font-semibold' : 'text-gray-600'
+        const label = isOverdue
+          ? `Overdue`
+          : hoursLeft < 24
+            ? `${Math.round(hoursLeft)}h left`
+            : due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        return <span className={`text-xs ${color}`}>{label}</span>
+      },
     },
     {
       header: 'Status',

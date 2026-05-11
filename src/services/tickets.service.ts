@@ -176,6 +176,16 @@ export const ticketService = {
     }
   },
 
+  getTicketsForUser: async (userId: string) => {
+    try {
+      const response = await axiosInstance.get(`${BASE_URL}/assigned/${userId}`)
+      if (response.data && Array.isArray(response.data.data)) return response.data.data
+      return []
+    } catch {
+      return []
+    }
+  },
+
   addNote: async (ticketId: string, text: string) => {
     const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/notes`, { text })
     return response.data

@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ticketService } from '@/services/tickets.service'
 import { format } from 'date-fns'
 import type { PageProps } from '@/types/TicketTypes'
-import type { Ticket } from '@/types/interfaces/interface'
+import type { Ticket, TicketNote } from '@/types/interfaces/interface'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -99,10 +99,11 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const ticketId = ticketCode
     const [selectedStatus, setSelectedStatus] = useState('')
     const [ticketUUID, setTicketUUID] = useState<string>('')
-    const [notesText, setNotesText] = useState('')
-    const [notesSaved, setNotesSaved] = useState(false)
+    const [noteInput, setNoteInput] = useState('')
+    const [localNotes, setLocalNotes] = useState<TicketNote[]>([])
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
+    const canSeeNotes = user?.role === 'super_admin' || user?.role === 'ticket_manager' || user?.role === 'developer'
     const { addNotification } = useNotifications()
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
         queryKey: ['ticket', ticketId],
@@ -114,7 +115,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
             const ticketData = 'data' in response ? response.data : response
             setSelectedStatus(ticketData.status || '')
             if (ticketData.id) setTicketUUID(ticketData.id)
-            setNotesText(ticketData.internalNotes || '')
+            setLocalNotes(ticketData.TicketNotes || [])
         }
     }, [response])
     const updateMutation = useMutation({
@@ -133,20 +134,20 @@ export default function TicketDetailsPage({ params }: PageProps) {
         }
     })
     const notesMutation = useMutation({
-        mutationFn: (notes: string) =>
-            ticketService.updateTicket(ticketUUID, { internalNotes: notes }),
-        onSuccess: () => {
-            setNotesSaved(true)
-            setTimeout(() => setNotesSaved(false), 2000)
+        mutationFn: (text: string) => ticketService.addNote(ticketUUID, text),
+        onSuccess: (data) => {
+            const newNote: TicketNote = data?.data ?? data
+            setLocalNotes((prev) => [...prev, newNote])
+            setNoteInput('')
         }
     })
     const handleUpdateTicket = () => {
         if (!selectedStatus) return
         updateMutation.mutate({ status: selectedStatus })
     }
-    const handleSaveNotes = () => {
-        if (!ticketUUID) return
-        notesMutation.mutate(notesText)
+    const handleAddNote = () => {
+        if (!noteInput.trim() || !ticketUUID) return
+        notesMutation.mutate(noteInput.trim())
     }
 
     if (isLoading) {
@@ -375,26 +376,47 @@ export default function TicketDetailsPage({ params }: PageProps) {
                     </div>
                     <ScoreBreakdown ticket={ticket} />
 
+                    {canSeeNotes && (
                     <div className="bg-white rounded-lg border border-gray-200">
                         <div className="p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">Internal Notes</h3>
-                            <p className="text-xs text-gray-400 mb-3">Visible only to staff — not shown to the client</p>
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">Internal Notes</h3>
+                            <p className="text-xs text-gray-400 mb-4">Only visible to staff — never shown to the client</p>
+
+                            {localNotes.length > 0 && (
+                                <div className="space-y-3 mb-4">
+                                    {localNotes.map((note) => (
+                                        <div key={note.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <span className="text-xs font-semibold text-gray-700">
+                                                    {note.user.firstName} {note.user.lastName}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400">
+                                                    {format(new Date(note.createdAt), 'MMM d, yyyy \'at\' h:mm a')}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{note.text}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             <textarea
-                                value={notesText}
-                                onChange={(e) => setNotesText(e.target.value)}
-                                placeholder="Add investigation notes, progress updates, or anything the team should know..."
-                                rows={4}
+                                value={noteInput}
+                                onChange={(e) => setNoteInput(e.target.value)}
+                                placeholder="Add a note — e.g. investigating DB connection, waiting on client response..."
+                                rows={3}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none text-gray-800 placeholder-gray-400"
                             />
                             <button
-                                onClick={handleSaveNotes}
-                                disabled={notesMutation.isPending || !ticketUUID}
+                                onClick={handleAddNote}
+                                disabled={notesMutation.isPending || !noteInput.trim() || !ticketUUID}
                                 className="mt-2 w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {notesMutation.isPending ? 'Saving...' : notesSaved ? 'Saved' : 'Save Notes'}
+                                {notesMutation.isPending ? 'Saving...' : 'Add Note'}
                             </button>
                         </div>
                     </div>
+                    )}
 
                     <div className="bg-white rounded-lg border border-gray-200">
                         <div className="p-6">

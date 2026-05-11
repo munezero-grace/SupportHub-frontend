@@ -27,6 +27,15 @@ export interface Stats {
   info: string
 }
 
+export interface TicketNote {
+  id: string
+  ticketId: string
+  userId: string
+  text: string
+  createdAt: string
+  user: { id: string; firstName: string; lastName: string }
+}
+
 export interface Ticket {
   id: string;
   title: string;
@@ -67,6 +76,7 @@ export interface Ticket {
   complexityScore?: number;
   lastScoredAt?: string;
   UserTickets?: Array<{ user: { id: string; firstName: string; lastName: string } }>;
+  TicketNotes?: TicketNote[];
 }
 
 export interface User {

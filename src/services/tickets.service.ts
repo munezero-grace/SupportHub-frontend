@@ -176,6 +176,11 @@ export const ticketService = {
     }
   },
 
+  addNote: async (ticketId: string, text: string) => {
+    const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/notes`, { text })
+    return response.data
+  },
+
   getRankedTickets: async (): Promise<Ticket[]> => {
     const response = await axiosInstance.get<{ data: Record<string, unknown>[] }>(
       `${BASE_URL}/ranked`

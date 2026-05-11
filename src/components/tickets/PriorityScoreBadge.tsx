@@ -9,8 +9,8 @@ interface PriorityScoreBadgeProps {
 }
 
 const tierFor = (score: number) => {
-  if (score >= 0.80) return { label: 'Critical', bar: 'bg-red-500',    chip: 'bg-red-100 text-red-700' };
-  if (score >= 0.55) return { label: 'High',     bar: 'bg-orange-500', chip: 'bg-orange-100 text-orange-700' };
+  if (score >= 0.75) return { label: 'Critical', bar: 'bg-red-500',    chip: 'bg-red-100 text-red-700' };
+  if (score >= 0.50) return { label: 'High',     bar: 'bg-orange-500', chip: 'bg-orange-100 text-orange-700' };
   if (score >= 0.25) return { label: 'Medium',   bar: 'bg-yellow-500', chip: 'bg-yellow-100 text-yellow-700' };
   return                    { label: 'Low',      bar: 'bg-green-500',  chip: 'bg-green-100 text-green-700' };
 };

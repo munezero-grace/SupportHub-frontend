@@ -63,32 +63,11 @@ export const createTicketTableColumns = ({ onEdit, onDelete, onAssign }: TicketH
     className: 'w-32',
   },
   {
-    header: 'Priority',
-    accessor: (ticket: Ticket): ReactNode => {
-      const priority = ticket.priority?.toLowerCase() || 'low';
-      const displayPriority = priority.charAt(0).toUpperCase() + priority.slice(1);
-      return (
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${priority === 'critical'
-          ? 'bg-red-100 text-red-700'
-          : priority === 'high'
-            ? 'bg-orange-100 text-orange-700'
-            : priority === 'medium'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-green-100 text-green-700'
-          }`}>
-          {displayPriority}
-        </span>
-      );
-    },
-    className: 'w-24',
-  },
-  
-  {
-    header: 'Score',
+    header: 'Priority Score',
     accessor: (ticket: Ticket): ReactNode => (
-      <PriorityScoreBadge score={ticket.priorityScore} variant="compact" />
+      <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
     ),
-    className: 'w-32',
+    className: 'w-40',
   },
   {
     header: 'Due Date',

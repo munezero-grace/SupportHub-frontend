@@ -71,10 +71,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  if (status === 'loading') {
+  if (status === 'loading' || status === 'unauthenticated') {
     return (
       <div className="flex h-screen items-center justify-center">
-        Loading...
+        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }

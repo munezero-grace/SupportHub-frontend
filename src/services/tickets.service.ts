@@ -86,6 +86,25 @@ export const ticketService = {
     }
   },
 
+  getTicketByCode: async (ticketCode: string) => {
+    try {
+      const response = await axiosInstance.get(`${BASE_URL}/code/${ticketCode}`)
+      return response.data
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        return {
+          status: RESPONSE_STATUS.ERROR,
+          message:
+            error.response?.data?.error || ERROR_MESSAGES.TICKET_NOT_FOUND,
+        }
+      }
+      return {
+        status: RESPONSE_STATUS.ERROR,
+        message: ERROR_MESSAGES.TICKET_NOT_FOUND,
+      }
+    }
+  },
+
   updateTicket: async (id: string, ticketData: FormData | TicketUpdateData) => {
     try {
       const headers =

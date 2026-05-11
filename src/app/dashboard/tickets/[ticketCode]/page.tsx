@@ -98,23 +98,25 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const { ticketCode } = React.use(params)
     const ticketId = ticketCode
     const [selectedStatus, setSelectedStatus] = useState('')
+    const [ticketUUID, setTicketUUID] = useState<string>('')
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
     const { addNotification } = useNotifications()
     const { data: response, isLoading } = useQuery<{ data: Ticket } | Ticket>({
         queryKey: ['ticket', ticketId],
-        queryFn: () => ticketService.getTicketById(ticketId),
+        queryFn: () => ticketService.getTicketByCode(ticketId),
         retry: 1
     })
     React.useEffect(() => {
         if (response) {
             const ticketData = 'data' in response ? response.data : response
             setSelectedStatus(ticketData.status || '')
+            if (ticketData.id) setTicketUUID(ticketData.id)
         }
     }, [response])
     const updateMutation = useMutation({
         mutationFn: (updateData: { status?: string; priority?: string }) =>
-            ticketService.updateTicket(ticketId, updateData),
+            ticketService.updateTicket(ticketUUID, updateData),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
             const updatedTicket = data?.data || data

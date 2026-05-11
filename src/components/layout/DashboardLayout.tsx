@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import { navigation } from '@/constants/sidebarNavigation'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { getNavItemStyles } from '@/lib/styles'
 import { AvatarIcon } from '@/components/icons'
 import { signOut, useSession } from 'next-auth/react'
@@ -13,8 +13,18 @@ import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
 import { useNotifications } from '@/context/NotificationContext'
 import { NotificationDropdown } from '@/components/ui/NotificationDropdown'
 
+const ROUTE_GUARDS: { pattern: string; roles: string[] }[] = [
+  { pattern: '/dashboard/priority-queue', roles: ['super_admin', 'ticket_manager'] },
+  { pattern: '/dashboard/team',           roles: ['super_admin', 'ticket_manager'] },
+  { pattern: '/dashboard/clients',        roles: ['super_admin'] },
+  { pattern: '/dashboard/products',       roles: ['super_admin'] },
+  { pattern: '/dashboard/reports',        roles: ['super_admin', 'ticket_manager'] },
+  { pattern: '/dashboard/my-tasks',       roles: ['developer'] },
+]
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -43,6 +53,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [setIsMobileMenuOpen])
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !userRole) return
+    const blocked = ROUTE_GUARDS.find(({ pattern }) => pathname.startsWith(pattern))
+    if (blocked && !blocked.roles.includes(userRole)) {
+      router.replace('/dashboard')
+    }
+  }, [pathname, userRole, status, router])
 
   useEffect(() => {
     if (status === ('unauthenticated' as string)) {

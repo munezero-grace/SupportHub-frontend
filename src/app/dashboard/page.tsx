@@ -207,9 +207,11 @@ function AdminDashboard({
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" className="w-full sm:w-auto">
-            Export Reports
-          </Button>
+          <Link href="/dashboard/reports">
+            <Button variant="outline" className="w-full sm:w-auto">
+              View Reports
+            </Button>
+          </Link>
           <Button
             className="w-full sm:w-auto flex items-center justify-center gap-2"
             onClick={onNewTicket}

@@ -40,7 +40,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading reports...</p>
+        <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }

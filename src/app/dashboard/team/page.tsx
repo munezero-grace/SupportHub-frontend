@@ -15,39 +15,6 @@ interface TeamMember {
   roles: string[]
 }
 
-type MemberStatus = 'Active' | 'Busy' | 'Offline'
-
-const SPECIALIZATIONS = [
-  'Frontend Developer',
-  'Backend Developer',
-  'Full Stack Developer',
-  'QA Engineer',
-  'DevOps Engineer',
-  'UI/UX Designer',
-]
-
-const STATUS_OPTIONS: MemberStatus[] = ['Active', 'Busy', 'Offline']
-
-const STATUS_BADGE: Record<MemberStatus, string> = {
-  Active:  'bg-green-100 text-green-700',
-  Busy:    'bg-yellow-100 text-yellow-700',
-  Offline: 'bg-gray-100 text-gray-500',
-}
-
-const STATUS_DOT: Record<MemberStatus, string> = {
-  Active:  'bg-green-500',
-  Busy:    'bg-yellow-500',
-  Offline: 'bg-gray-400',
-}
-
-function deriveStatus(id: string): MemberStatus {
-  return STATUS_OPTIONS[id.charCodeAt(id.length - 1) % 3]
-}
-
-function deriveSpecialization(id: string): string {
-  return SPECIALIZATIONS[id.charCodeAt(0) % SPECIALIZATIONS.length]
-}
-
 function getRoleLabel(roles: string[]): string {
   if (roles.includes('super_admin'))   return 'Admin'
   if (roles.includes('ticket_manager')) return 'Ticket Manager'
@@ -100,10 +67,6 @@ export default function TeamPage() {
   const getAssignedCount = (memberId: string) =>
     tickets.filter((t) => t.assignee === memberId).length
 
-  const activeCount  = team.filter((m) => deriveStatus(m.id) === 'Active').length
-  const busyCount    = team.filter((m) => deriveStatus(m.id) === 'Busy').length
-  const offlineCount = team.filter((m) => deriveStatus(m.id) === 'Offline').length
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -133,21 +96,12 @@ export default function TeamPage() {
         </Link>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat card */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Members', value: team.length,   color: 'text-gray-900' },
-          { label: 'Active',        value: activeCount,   color: 'text-green-600' },
-          { label: 'Busy',          value: busyCount,     color: 'text-yellow-600' },
-          { label: 'Offline',       value: offlineCount,  color: 'text-gray-400' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              {stat.label}
-            </p>
-            <p className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
-          </div>
-        ))}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Members</p>
+          <p className="text-3xl font-bold mt-1 text-gray-900">{team.length}</p>
+        </div>
       </div>
 
       {/* Search */}
@@ -188,42 +142,33 @@ export default function TeamPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTeam.map((member) => {
-            const status        = deriveStatus(member.id)
             const assignedCount = getAssignedCount(member.id)
             const initials      = getInitials(member.firstName, member.lastName)
             const avatarColor   = getAvatarColor(member.id)
-            const specialization = deriveSpecialization(member.id)
 
             return (
               <div
                 key={member.id}
                 className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all duration-200"
               >
-                {/* Top row: avatar + name + status */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-full ${avatarColor} text-white flex items-center justify-center text-sm font-bold flex-shrink-0`}>
-                      {initials}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 leading-tight">
-                        {member.firstName} {member.lastName}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{specialization}</p>
-                    </div>
+                {/* Top row: avatar + name */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-11 h-11 rounded-full ${avatarColor} text-white flex items-center justify-center text-sm font-bold flex-shrink-0`}>
+                    {initials}
                   </div>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_BADGE[status]}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status]}`} />
-                    {status}
-                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900 leading-tight">
+                      {member.firstName} {member.lastName}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-0.5">{member.email}</p>
+                  </div>
                 </div>
 
-                {/* Role badge + email */}
-                <div className="space-y-2 mb-4">
+                {/* Role badge */}
+                <div className="mb-4">
                   <span className="inline-block text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 font-medium">
                     {getRoleLabel(member.roles)}
                   </span>
-                  <p className="text-xs text-gray-400 truncate">{member.email}</p>
                 </div>
 
                 {/* Footer: assigned count + action */}

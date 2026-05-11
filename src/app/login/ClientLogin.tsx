@@ -4,19 +4,20 @@ import { signIn, useSession } from 'next-auth/react'
 import { useState, FormEvent } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
-import Link from 'next/link'
 import ChangePasswordModal from '@/components/auth/ChangePasswordModal'
 
 const BPTicketLogin: React.FC = () => {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
-  const [isLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const { data: session } = useSession()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError(null)
 
     try {
       const result = await signIn('credentials', {
@@ -44,6 +45,8 @@ const BPTicketLogin: React.FC = () => {
     } catch (err) {
       setError('An error occurred during login')
       console.error('Login error:', err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -66,17 +69,17 @@ const BPTicketLogin: React.FC = () => {
             Support Hub
           </h1>
           <h2 className="mt-2 text-center text-lg font-medium text-gray-400">
-            Client Support Portal
+            Sign in to your account
           </h2>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <h3 className="text-3xl font-medium text-black mb-1">
-              Client Login
+            <h3 className="text-2xl font-semibold text-black mb-1">
+              Sign In
             </h3>
             <p className="text-sm text-gray-400 mb-6">
-              Sign in to access your support tickets
+              Enter your credentials to continue
             </p>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -103,19 +106,13 @@ const BPTicketLogin: React.FC = () => {
               </div>
 
               <div>
-                <div className="flex justify-between items-center">
+                <div>
                   <label
                     htmlFor="password"
                     className="block text-sm font-medium text-black"
                   >
                     Password
                   </label>
-                  <a
-                    href="#"
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                  >
-                    Forgot password?
-                  </a>
                 </div>
                 <div className="mt-1">
                   <input
@@ -143,13 +140,6 @@ const BPTicketLogin: React.FC = () => {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
-              <Link href="/">
-                <span className="text-md text-blue-600 hover:text-blue-500 cursor-pointer">
-                  Back to main login
-                </span>
-              </Link>
-            </div>
           </div>
         </div>
       </div>

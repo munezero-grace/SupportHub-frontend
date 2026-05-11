@@ -2,6 +2,7 @@
 import type { Ticket } from '@/types/interfaces/interface'
 import React, { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useNotifications } from '@/context/NotificationContext'
 import { Button } from '@/components/ui/Button'
 import { ticketService } from '@/services/tickets.service'
@@ -42,6 +43,7 @@ export default function TicketsPage() {
 
   const isAdmin = session?.user?.role === 'super_admin' || session?.user?.role === 'ticket_manager'
   const currentUserId = session?.user?.id
+  const router = useRouter()
 
   const handleDelete = async () => {
     if (!selectedTicket) return
@@ -116,8 +118,8 @@ export default function TicketsPage() {
 
   const getScoreTier = (score: number | null | undefined): number => {
     if (score == null) return -1
-    if (score >= 0.80) return 3
-    if (score >= 0.55) return 2
+    if (score >= 0.75) return 3
+    if (score >= 0.50) return 2
     if (score >= 0.25) return 1
     return 0
   }
@@ -139,8 +141,7 @@ export default function TicketsPage() {
       })
 
   const handleRowClick = (item: Ticket): void => {
-    setSelectedTicket(item)
-    setIsEditModalOpen(true)
+    router.push(`/dashboard/tickets/${item.ticketCode || item.id}`)
   }
 
   const handleTicketCreated = async (ticketTitle?: string) => {
@@ -212,23 +213,23 @@ export default function TicketsPage() {
             placeholder="Search tickets..."
             onFilterClick={() => setIsFilterModalOpen(true)}
           />
-          <div className="px-4 pb-2 flex items-center gap-2">
-            <label htmlFor="sort-by-score" className="text-xs font-medium text-gray-600">
-              Sort by score:
-            </label>
-            <select
-              id="sort-by-score"
-              value={sortByScore}
-              onChange={(e) => {
-                setSortByScore(e.target.value as 'none' | 'desc' | 'asc')
-                setCurrentPage(1)
-              }}
-              className="text-xs px-2 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="none">Default</option>
-              <option value="desc">Highest first</option>
-              <option value="asc">Lowest first</option>
-            </select>
+          <div className="px-4 pb-3 flex items-center gap-2 border-t border-gray-100 pt-3">
+            <span className="text-xs font-medium text-gray-500">Sort by priority score:</span>
+            <div className="flex gap-1">
+              {(['none', 'desc', 'asc'] as const).map((val) => (
+                <button
+                  key={val}
+                  onClick={() => { setSortByScore(val); setCurrentPage(1) }}
+                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                    sortByScore === val
+                      ? 'bg-gray-900 text-white border-gray-900'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  {val === 'none' ? 'Default' : val === 'desc' ? 'Highest first' : 'Lowest first'}
+                </button>
+              ))}
+            </div>
           </div>
           {isFilterModalOpen && (
             <FilterModal

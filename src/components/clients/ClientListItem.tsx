@@ -60,7 +60,7 @@ const ClientListItem: FC<ClientListItemProps> = ({
         <div className="text-gray-500">{client.user.email}</div>
       </td>
       <td className="p-4">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-col gap-1">
           {client.clientProducts &&
             client.clientProducts.map((cp) => (
               <Badge

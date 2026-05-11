@@ -201,6 +201,11 @@ const authOptions: NextAuthOptions = {
 
   session: {
     strategy: 'jwt',
+    maxAge: 28800,
+  },
+
+  jwt: {
+    maxAge: 28800,
   },
 
   secret: process.env.NEXTAUTH_SECRET,

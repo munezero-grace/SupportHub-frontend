@@ -12,6 +12,85 @@ import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge'
 
+const AGE_SATURATION_DAYS = 14
+
+function ScoreBreakdown({ ticket }: { ticket: Ticket }) {
+    if (ticket.priorityScore == null) return null
+
+    const createdMs = new Date(ticket.createdAt || ticket.created || '').getTime()
+    const ageDays = Number.isFinite(createdMs)
+        ? (Date.now() - createdMs) / (1000 * 60 * 60 * 24)
+        : 0
+    const ageScore = Math.min(ageDays / AGE_SATURATION_DAYS, 1)
+    const emotionScore = ticket.emotionScore ?? 0.5
+    const complexityScore = ticket.complexityScore ?? 0.5
+
+    const factors = [
+        {
+            label: 'Emotion',
+            description: 'Tone & urgency in the writing',
+            weight: 0.4,
+            score: emotionScore,
+            barColor: 'bg-rose-400',
+            textColor: 'text-rose-600',
+        },
+        {
+            label: 'Complexity',
+            description: 'Technical severity & business impact',
+            weight: 0.35,
+            score: complexityScore,
+            barColor: 'bg-amber-400',
+            textColor: 'text-amber-600',
+        },
+        {
+            label: 'Age',
+            description: `${ageDays.toFixed(1)} days old (saturates at ${AGE_SATURATION_DAYS}d)`,
+            weight: 0.25,
+            score: ageScore,
+            barColor: 'bg-blue-400',
+            textColor: 'text-blue-600',
+        },
+    ]
+
+    return (
+        <div className="bg-white rounded-lg border border-gray-200">
+            <div className="p-6">
+                <h3 className="text-base font-semibold text-gray-900 mb-0.5">AI Score Breakdown</h3>
+                <p className="text-xs text-gray-400 mb-4">How this ticket&apos;s priority score was computed</p>
+                <div className="space-y-4">
+                    {factors.map(f => {
+                        const contribution = f.score * f.weight
+                        return (
+                            <div key={f.label}>
+                                <div className="flex justify-between items-baseline mb-1">
+                                    <div>
+                                        <span className="text-sm font-semibold text-gray-700">{f.label}</span>
+                                        <span className="text-xs text-gray-400 ml-2">{Math.round(f.weight * 100)}% weight</span>
+                                    </div>
+                                    <span className={`text-xs font-bold ${f.textColor}`}>
+                                        {f.score.toFixed(2)} &rarr; +{contribution.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full ${f.barColor} rounded-full`}
+                                        style={{ width: `${f.score * 100}%` }}
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-0.5">{f.description}</p>
+                            </div>
+                        )
+                    })}
+                    <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+                        <span className="text-xs font-medium text-gray-500">Total Score</span>
+                        <span className="text-sm font-bold text-gray-900">{ticket.priorityScore.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function TicketDetailsPage({ params }: PageProps) {
     const router = useRouter()
     const queryClient = useQueryClient()
@@ -269,6 +348,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                             </div>
                         </div>
                     </div>
+                    <ScoreBreakdown ticket={ticket} />
                     {isAdmin && (
                     <div className="bg-white rounded-lg border border-gray-200">
                         <div className="p-6">

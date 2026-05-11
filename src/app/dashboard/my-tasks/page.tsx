@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
 import { useNotifications } from '@/context/NotificationContext'
@@ -13,11 +14,16 @@ type AssignedTicket = {
   id: string
   ticketCode?: string
   title: string
+  description?: string | null
   status: string
   priority: string
   priorityScore?: number | null
+  emotionScore?: number | null
+  complexityScore?: number | null
+  lastScoredAt?: string | null
   createdAt: string
   client?: { companyName?: string | null } | null
+  product?: { id: string; name: string } | null
 }
 
 const STATUS_OPTIONS = [
@@ -47,6 +53,7 @@ function formatStatus(status: string) {
 
 export default function MyTasksPage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const { addNotification } = useNotifications()
   const [tickets, setTickets] = useState<AssignedTicket[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,12 +102,17 @@ export default function MyTasksPage() {
 
   const columns = [
     {
-      header: 'Title',
+      header: 'Ticket',
       accessor: (t: AssignedTicket) => (
-        <div>
-          <div className="font-medium text-gray-900 truncate max-w-[220px]">{t.title}</div>
+        <div className="max-w-[280px]">
+          <div className="font-medium text-gray-900 truncate">{t.title}</div>
           {t.ticketCode && (
             <div className="text-xs text-gray-400 font-mono mt-0.5">{t.ticketCode}</div>
+          )}
+          {t.description && (
+            <div className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-normal leading-relaxed">
+              {t.description}
+            </div>
           )}
         </div>
       ),
@@ -112,6 +124,12 @@ export default function MyTasksPage() {
       ),
     },
     {
+      header: 'Product',
+      accessor: (t: AssignedTicket) => (
+        <span className="text-gray-700">{t.product?.name || '—'}</span>
+      ),
+    },
+    {
       header: 'Priority Score',
       accessor: (t: AssignedTicket) => (
         <PriorityScoreBadge score={t.priorityScore} />
@@ -119,9 +137,8 @@ export default function MyTasksPage() {
     },
     {
       header: 'Status',
-      accessor: (t: AssignedTicket) => {
-        const isUpdatable = STATUS_OPTIONS.some((o) => o.value === t.status) || t.status === 'assigned' || t.status === 'in_progress'
-        return (
+      accessor: (t: AssignedTicket) => (
+        <div onClick={(e) => e.stopPropagation()}>
           <select
             value={t.status}
             disabled={updatingId === t.id}
@@ -137,8 +154,8 @@ export default function MyTasksPage() {
               </option>
             ))}
           </select>
-        )
-      },
+        </div>
+      ),
     },
     {
       header: 'Created',
@@ -162,7 +179,7 @@ export default function MyTasksPage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">My Tasks</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Tickets assigned to <strong>{firstName}</strong>
+            Tickets assigned to <strong>{firstName}</strong> — click a row to view full details
           </p>
         </div>
         <span className="text-sm text-gray-500">
@@ -176,7 +193,10 @@ export default function MyTasksPage() {
             <Table
               data={tickets}
               columns={columns}
-              className="w-full min-w-[700px]"
+              className="w-full min-w-[800px]"
+              onRowClick={(t) => {
+                if (t.ticketCode) router.push(`/dashboard/tickets/${t.ticketCode}`)
+              }}
               emptyState={
                 <div className="text-center py-12">
                   <svg

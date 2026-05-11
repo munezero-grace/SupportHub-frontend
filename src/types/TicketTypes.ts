@@ -119,6 +119,7 @@ export interface TicketUpdateData {
   contactPhone?: string
   tags?: string
   dueDate?: string
+  internalNotes?: string
 }
 
 export interface PageProps {

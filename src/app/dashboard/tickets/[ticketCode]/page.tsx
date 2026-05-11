@@ -99,6 +99,8 @@ export default function TicketDetailsPage({ params }: PageProps) {
     const ticketId = ticketCode
     const [selectedStatus, setSelectedStatus] = useState('')
     const [ticketUUID, setTicketUUID] = useState<string>('')
+    const [notesText, setNotesText] = useState('')
+    const [notesSaved, setNotesSaved] = useState(false)
     const { user } = useCurrentUser();
     const isAdmin = user?.role === 'super_admin' || user?.role === 'ticket_manager'
     const { addNotification } = useNotifications()
@@ -112,6 +114,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
             const ticketData = 'data' in response ? response.data : response
             setSelectedStatus(ticketData.status || '')
             if (ticketData.id) setTicketUUID(ticketData.id)
+            setNotesText(ticketData.internalNotes || '')
         }
     }, [response])
     const updateMutation = useMutation({
@@ -129,9 +132,21 @@ export default function TicketDetailsPage({ params }: PageProps) {
             })
         }
     })
+    const notesMutation = useMutation({
+        mutationFn: (notes: string) =>
+            ticketService.updateTicket(ticketUUID, { internalNotes: notes }),
+        onSuccess: () => {
+            setNotesSaved(true)
+            setTimeout(() => setNotesSaved(false), 2000)
+        }
+    })
     const handleUpdateTicket = () => {
         if (!selectedStatus) return
         updateMutation.mutate({ status: selectedStatus })
+    }
+    const handleSaveNotes = () => {
+        if (!ticketUUID) return
+        notesMutation.mutate(notesText)
     }
 
     if (isLoading) {
@@ -359,11 +374,33 @@ export default function TicketDetailsPage({ params }: PageProps) {
                         </div>
                     </div>
                     <ScoreBreakdown ticket={ticket} />
-                    {isAdmin && (
+
                     <div className="bg-white rounded-lg border border-gray-200">
                         <div className="p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-1">Internal Notes</h3>
+                            <p className="text-xs text-gray-400 mb-3">Visible only to staff — not shown to the client</p>
+                            <textarea
+                                value={notesText}
+                                onChange={(e) => setNotesText(e.target.value)}
+                                placeholder="Add investigation notes, progress updates, or anything the team should know..."
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none text-gray-800 placeholder-gray-400"
+                            />
+                            <button
+                                onClick={handleSaveNotes}
+                                disabled={notesMutation.isPending || !ticketUUID}
+                                className="mt-2 w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {notesMutation.isPending ? 'Saving...' : notesSaved ? 'Saved' : 'Save Notes'}
+                            </button>
+                        </div>
+                    </div>
 
+                    <div className="bg-white rounded-lg border border-gray-200">
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                {isAdmin ? 'Actions' : 'Update Status'}
+                            </h3>
                             <div className="space-y-3">
                                 <select
                                     value={selectedStatus}
@@ -371,24 +408,31 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium"
                                 >
                                     <option value="">Select Status</option>
-                                    <option value="new">New</option>
-                                    <option value="assigned">Assigned</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="awaiting_client">Awaiting Client</option>
-                                    <option value="resolved">Resolved</option>
+                                    {isAdmin ? (
+                                        <>
+                                            <option value="new">New</option>
+                                            <option value="assigned">Assigned</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="awaiting_client">Awaiting Client</option>
+                                            <option value="resolved">Resolved</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="resolved">Resolved</option>
+                                        </>
+                                    )}
                                 </select>
-
                                 <button
                                     onClick={handleUpdateTicket}
                                     disabled={updateMutation.isPending || !selectedStatus}
-                                    className="w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium  focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-4 py-2 bg-black text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {updateMutation.isPending ? 'Updating...' : 'Update Ticket'}
                                 </button>
                             </div>
                         </div>
                     </div>
-                    )}
                 </div>
             </div>
         </div>

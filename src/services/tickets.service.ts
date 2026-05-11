@@ -153,8 +153,8 @@ export const ticketService = {
     }
   },
 
-  assignTicket: async (ticketId: string, assigneeId: string) => {
-    const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/assign`, { assigneeId })
+  assignTicket: async (ticketId: string, assigneeId: string, deadline?: string) => {
+    const response = await axiosInstance.post(`${BASE_URL}/${ticketId}/assign`, { assigneeId, deadline })
     return response.data
   },
 

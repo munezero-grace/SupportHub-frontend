@@ -117,7 +117,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       </div>
 
       {/* Notification list */}
-      <div className="overflow-y-auto divide-y divide-gray-50">
+      <div className="overflow-y-auto divide-y divide-gray-50" style={{ maxHeight: '400px' }}>
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center px-4">
             <div className="text-3xl mb-2">🔔</div>
@@ -132,23 +132,21 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       </div>
 
       {/* Footer */}
-      {notifications.length > 0 && (
-        <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-          <p className="text-xs text-gray-400">
-            {notifications.length > MAX_VISIBLE
+      <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+        <p className="text-xs text-gray-400">
+          {notifications.length === 0
+            ? 'No notifications'
+            : notifications.length > MAX_VISIBLE
               ? `Showing 10 of ${notifications.length}`
               : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
-          </p>
-          {notifications.length > MAX_VISIBLE && (
-            <button
-              onClick={() => { onClose(); router.push('/dashboard/tickets') }}
-              className="text-xs font-medium text-blue-600 hover:text-blue-800"
-            >
-              View all →
-            </button>
-          )}
-        </div>
-      )}
+        </p>
+        <button
+          onClick={() => { onClose(); router.push('/dashboard/notifications') }}
+          className="text-xs font-medium text-blue-600 hover:text-blue-800"
+        >
+          View all →
+        </button>
+      </div>
 
       <style>{`
         @keyframes slideDown {

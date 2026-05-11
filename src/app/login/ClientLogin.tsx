@@ -9,6 +9,7 @@ import ChangePasswordModal from '@/components/auth/ChangePasswordModal'
 const BPTicketLogin: React.FC = () => {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -23,6 +24,7 @@ const BPTicketLogin: React.FC = () => {
       const result = await signIn('credentials', {
         email,
         password,
+        rememberMe: String(rememberMe),
         redirect: false,
       })
 
@@ -126,6 +128,20 @@ const BPTicketLogin: React.FC = () => {
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm text-black"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  id="rememberMe"
+                  name="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer"
+                />
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+                  Remember me for 30 days
+                </label>
               </div>
 
               {error && (

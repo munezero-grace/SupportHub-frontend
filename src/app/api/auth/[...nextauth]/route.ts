@@ -2,10 +2,14 @@ import NextAuth, { type NextAuthOptions } from 'next-auth'
 import axios, { AxiosError } from 'axios'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
+import { encode, decode } from 'next-auth/jwt'
 import { socialSignup } from '@/services/auth.service'
 
 import { splitName } from '@/lib/utils'
 import { CustomUser } from '@/types/auth'
+
+const REMEMBER_ME_MAX_AGE = 30 * 24 * 60 * 60  // 30 days
+const DEFAULT_MAX_AGE = 8 * 60 * 60              // 8 hours
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -45,6 +49,7 @@ const authOptions: NextAuthOptions = {
           placeholder: 'email@example.com',
         },
         password: { label: 'Password', type: 'password' },
+        rememberMe: { label: 'Remember Me', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
@@ -74,6 +79,7 @@ const authOptions: NextAuthOptions = {
               firstName: userData.firstName,
               lastName: userData.lastName,
               hasChangedPassword: hasChangedPassword || false,
+              rememberMe: credentials.rememberMe === 'true',
               name:
                 userData.firstName && userData.lastName
                   ? `${userData.firstName} ${userData.lastName}`
@@ -119,16 +125,7 @@ const authOptions: NextAuthOptions = {
         token.email = customUser.email || token.email
         token.client = customUser.client || undefined
         token.hasChangedPassword = customUser.hasChangedPassword ?? false
-
-        /**
-         * ❌ FIXED ISSUE:
-         * Before: (customUser as Record<string, unknown>).hasChangedPassword
-         * - invalid cast
-         * - TypeScript blocked production build
-         *
-         * ✅ Now safely read property with nullish coalescing
-         */
-        token.hasChangedPassword = customUser.hasChangedPassword ?? false
+        token.rememberMe = (customUser as Record<string, unknown>).rememberMe ?? false
 
         if (customUser.contactName) {
           token.name = customUser.contactName
@@ -201,11 +198,16 @@ const authOptions: NextAuthOptions = {
 
   session: {
     strategy: 'jwt',
-    maxAge: 28800,
+    maxAge: REMEMBER_ME_MAX_AGE,
   },
 
   jwt: {
-    maxAge: 28800,
+    maxAge: REMEMBER_ME_MAX_AGE,
+    encode: async (params) => {
+      const maxAge = params.token?.rememberMe ? REMEMBER_ME_MAX_AGE : DEFAULT_MAX_AGE
+      return encode({ ...params, maxAge })
+    },
+    decode: async (params) => decode(params),
   },
 
   secret: process.env.NEXTAUTH_SECRET,

@@ -20,6 +20,9 @@ type AssignedTicket = {
   priorityScore?: number | null
   emotionScore?: number | null
   complexityScore?: number | null
+  agingScore?: number | null
+  llmReasoning?: string | null
+  confidence?: number | null
   lastScoredAt?: string | null
   createdAt: string
   dueDate?: string | null
@@ -133,7 +136,7 @@ export default function MyTasksPage() {
     {
       header: 'Priority Score',
       accessor: (t: AssignedTicket) => (
-        <PriorityScoreBadge score={t.priorityScore} />
+        <PriorityScoreBadge score={t.priorityScore} confidence={t.confidence} />
       ),
     },
     {

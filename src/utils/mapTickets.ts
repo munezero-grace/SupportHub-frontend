@@ -40,6 +40,13 @@ export function mapTickets(tickets: Record<string, unknown>[]): Ticket[] {
         dueDate: ticket.dueDate as string | undefined,
         estimatedTime: ticket.estimatedTime as string | undefined,
         internalNotes: ticket.internalNotes as string | undefined,
-        imageUrl: ticket.imageUrl as string | undefined
+        imageUrl: ticket.imageUrl as string | undefined,
+        priorityScore:   ticket.priorityScore   as number | undefined,
+        emotionScore:    ticket.emotionScore     as number | undefined,
+        complexityScore: ticket.complexityScore  as number | undefined,
+        agingScore:      ticket.agingScore       as number | undefined,
+        llmReasoning:    ticket.llmReasoning     as string | undefined,
+        confidence:      ticket.confidence       as number | undefined,
+        lastScoredAt:    ticket.lastScoredAt     as string | undefined,
     }));
 }

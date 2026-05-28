@@ -33,7 +33,7 @@ export default function TicketsPage() {
     status: '',
     priority: '',
   })
-  const [sortByScore, setSortByScore] = useState<'none' | 'desc' | 'asc'>('none')
+  const [sortByScore, setSortByScore] = useState<'none' | 'desc' | 'asc'>('desc')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)

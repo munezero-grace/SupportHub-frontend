@@ -10,7 +10,7 @@ export function TicketActions({ ticket, onEdit, onDelete, onAssign }: TicketActi
     const items = [
         {
             label: 'View Details',
-            onClick: () => router.push(`/dashboard/tickets/${ticket.id}`),
+            onClick: () => router.push(`/dashboard/tickets/${ticket.ticketCode || ticket.id}`),
         },
         {
             label: 'Edit Ticket',

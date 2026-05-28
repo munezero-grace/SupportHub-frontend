@@ -81,7 +81,7 @@ function buildColumns() {
     {
       header: 'Priority Score',
       accessor: (ticket: RankedTicket) => (
-        <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
+        <PriorityScoreBadge score={ticket.priorityScore} confidence={ticket.confidence} llmReasoning={ticket.llmReasoning} variant="detailed" />
       ),
       className: 'w-48',
     },

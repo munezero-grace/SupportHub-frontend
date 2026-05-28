@@ -331,7 +331,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                             </span>
                                         )}
                                     </div>
-                                    <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
+                                    <PriorityScoreBadge score={ticket.priorityScore} confidence={ticket.confidence} llmReasoning={ticket.llmReasoning} variant="detailed" />
                                 </div>
 
                                 <div className="flex justify-between items-center">

@@ -83,6 +83,9 @@ export interface Ticket {
   priorityScore?: number;
   emotionScore?: number;
   complexityScore?: number;
+  agingScore?: number;
+  llmReasoning?: string;
+  confidence?: number;
   lastScoredAt?: string;
   UserTickets?: Array<{ user: { id: string; firstName: string; lastName: string } }>;
   TicketNotes?: TicketNote[];

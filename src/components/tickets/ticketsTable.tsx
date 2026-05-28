@@ -65,7 +65,7 @@ export const createTicketTableColumns = ({ onEdit, onDelete, onAssign }: TicketH
   {
     header: 'Priority Score',
     accessor: (ticket: Ticket): ReactNode => (
-      <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
+      <PriorityScoreBadge score={ticket.priorityScore} confidence={ticket.confidence} llmReasoning={ticket.llmReasoning} variant="detailed" />
     ),
     className: 'w-40',
   },

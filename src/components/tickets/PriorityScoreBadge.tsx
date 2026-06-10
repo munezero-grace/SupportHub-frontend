@@ -8,7 +8,7 @@ interface PriorityScoreBadgeProps {
   className?: string;
 }
 
-const tierFor = (score: number) => {
+export const tierFor = (score: number) => {
   if (score >= 0.75) return { label: 'Critical', bar: 'bg-red-500',    chip: 'bg-red-100 text-red-700' };
   if (score >= 0.50) return { label: 'High',     bar: 'bg-orange-500', chip: 'bg-orange-100 text-orange-700' };
   if (score >= 0.25) return { label: 'Medium',   bar: 'bg-yellow-500', chip: 'bg-yellow-100 text-yellow-700' };

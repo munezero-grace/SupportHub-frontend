@@ -10,7 +10,7 @@ import type { Ticket, TicketNote, TicketComment } from '@/types/interfaces/inter
 import Image from 'next/image'
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { PriorityScoreBadge } from '@/components/tickets/PriorityScoreBadge'
+import { PriorityScoreBadge, tierFor } from '@/components/tickets/PriorityScoreBadge'
 import { useNotifications } from '@/context/NotificationContext'
 
 const AGE_SATURATION_DAYS = 14
@@ -22,7 +22,7 @@ function ScoreBreakdown({ ticket }: { ticket: Ticket }) {
     const ageDays = Number.isFinite(createdMs)
         ? (Date.now() - createdMs) / (1000 * 60 * 60 * 24)
         : 0
-    const ageScore = Math.min(ageDays / AGE_SATURATION_DAYS, 1)
+    const ageScore = ticket.agingScore ?? Math.min(ageDays / AGE_SATURATION_DAYS, 1)
     const emotionScore = ticket.emotionScore ?? 0.5
     const complexityScore = ticket.complexityScore ?? 0.5
 
@@ -86,6 +86,12 @@ function ScoreBreakdown({ ticket }: { ticket: Ticket }) {
                         <span className="text-xs font-medium text-gray-500">Total Score</span>
                         <span className="text-sm font-bold text-gray-900">{ticket.priorityScore.toFixed(2)}</span>
                     </div>
+                    {ticket.llmReasoning && (
+                        <div className="pt-3 border-t border-gray-100">
+                            <p className="text-xs font-semibold text-gray-500 mb-1">AI Reasoning</p>
+                            <p className="text-xs text-gray-600 leading-relaxed">{ticket.llmReasoning}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -332,6 +338,11 @@ export default function TicketDetailsPage({ params }: PageProps) {
                                         )}
                                     </div>
                                     <PriorityScoreBadge score={ticket.priorityScore} variant="detailed" />
+                                    {ticket.confidence != null && ticket.priorityScore != null && (
+                                        <span className="text-xs text-gray-500">
+                                            {tierFor(ticket.priorityScore).label.toUpperCase()} — {Math.round(ticket.confidence * 100)}% confident
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-between items-center">

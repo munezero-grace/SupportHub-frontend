@@ -86,6 +86,16 @@ axiosInstance.interceptors.response.use(
     }
 
     const errorData = error.response?.data as ErrorResponse
+
+    if (
+      error.response?.status === 403 &&
+      (errorData as Record<string, unknown>)?.code === 'PASSWORD_CHANGE_REQUIRED' &&
+      typeof window !== 'undefined' &&
+      window.location.pathname !== '/change-password'
+    ) {
+      window.location.href = '/change-password'
+    }
+
     const errorMessage =
       errorData?.message || error.message || 'An error occurred'
     error.message = errorMessage

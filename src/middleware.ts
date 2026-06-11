@@ -15,6 +15,16 @@ export default withAuth(
       return NextResponse.redirect(new URL('/', req.url))
     }
 
+    if (isAuthenticated && token?.hasChangedPassword === false &&
+      req.nextUrl.pathname !== '/change-password') {
+      return NextResponse.redirect(new URL('/change-password', req.url))
+    }
+
+    if (isAuthenticated && req.nextUrl.pathname === '/change-password' &&
+      token?.hasChangedPassword !== false) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
     if (isAuthenticated && req.nextUrl.pathname === '/') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
@@ -39,5 +49,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/products/:path*']
+  matcher: ['/', '/dashboard/:path*', '/products/:path*', '/change-password']
 }

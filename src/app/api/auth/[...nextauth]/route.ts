@@ -113,7 +113,12 @@ const authOptions: NextAuthOptions = {
       return !!user
     },
 
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile, trigger, session }) {
+      if (trigger === 'update' && session?.hasChangedPassword) {
+        token.hasChangedPassword = true
+        return token
+      }
+
       if (user) {
         const customUser = user as CustomUser
 
